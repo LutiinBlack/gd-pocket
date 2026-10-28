@@ -47,7 +47,7 @@
   #list { list-style:none; margin:10px 0 0; padding:0; }
   #list li { display:flex; align-items:center; gap:6px; padding:4px 0 4px 8px; border-bottom:1px solid var(--mut); font-family:ui-monospace, monospace; font-size:14px; word-break:break-all; }
   #list li .path { flex:1; padding:8px 0; }
-  #list li .del { background:transparent; padding:10px 12px; font-size:17px; opacity:.6; }
+  #list li .del, #list li .ren { background:transparent; padding:10px 12px; font-size:17px; opacity:.6; }
   #list li .dir { opacity:.55; }
   #list li.current { color:var(--ok); }
   .check { display:flex; align-items:center; gap:8px; margin-top:10px; font-size:14px; }
@@ -107,12 +107,12 @@
   header input[readonly] { opacity:.85; }
 
   /* Fenêtre « Nouveau script » */
-  #newDlg { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:200; display:none; align-items:flex-start; justify-content:center; padding-top:10vh; }
-  #newDlg.open { display:flex; }
-  #newDlg .box { background:var(--bar); border-radius:10px; padding:14px; width:min(92vw,420px); }
-  #newDlg h2 { margin:0 0 4px; font-size:17px; }
-  #newDlg input, #newDlg select { width:100%; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:10px; font-size:15px; }
-  #newPreview { font-family:ui-monospace, monospace; font-size:13px; opacity:.8; margin-top:8px; word-break:break-all; }
+  #newDlg, #renDlg { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:200; display:none; align-items:flex-start; justify-content:center; padding-top:10vh; }
+  #newDlg.open, #renDlg.open { display:flex; }
+  #newDlg .box, #renDlg .box { background:var(--bar); border-radius:10px; padding:14px; width:min(92vw,420px); }
+  #newDlg h2, #renDlg h2 { margin:0 0 4px; font-size:17px; }
+  #newDlg input, #newDlg select, #renDlg input, #renDlg select { width:100%; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:10px; font-size:15px; }
+  #newPreview, #renPreview { font-family:ui-monospace, monospace; font-size:13px; opacity:.8; margin-top:8px; word-break:break-all; }
 </style>
 </head>
 <body>
@@ -197,6 +197,24 @@
       <button id="newCancel" class="ghost">Annuler</button>
     </div>
     <p class="hint">Le script s'ouvre dans un nouvel onglet. Il n'est créé sur GitHub qu'au premier « Envoyer ».</p>
+  </div>
+</div>
+
+<!-- Fenêtre : renommer / déplacer -->
+<div id="renDlg">
+  <div class="box">
+    <h2>Renommer / déplacer</h2>
+    <div id="renFrom" class="hint" style="font-family:ui-monospace, monospace; word-break:break-all"></div>
+    <label for="renDir">Dossier</label>
+    <select id="renDir"></select>
+    <label for="renName">Nouveau nom</label>
+    <input id="renName" type="text" autocomplete="off" autocapitalize="off">
+    <div id="renPreview"></div>
+    <div class="row">
+      <button id="renOk">Renommer</button>
+      <button id="renCancel" class="ghost">Annuler</button>
+    </div>
+    <p class="hint">Un seul commit sur GitHub. Le fichier .uid suit le script s'il existe.</p>
   </div>
 </div>
 
@@ -537,12 +555,14 @@ function renderList() {
   items.forEach(p => {
     const li = document.createElement("li");
     const i = p.lastIndexOf("/");
-    li.innerHTML = `<span class="path"><span class="dir"></span><span></span></span><button class="del">🗑</button>`;
-    const path = li.children[0], del = li.children[1];
+    li.innerHTML = `<span class="path"><span class="dir"></span><span></span></span><button class="ren">✏️</button><button class="del">🗑</button>`;
+    const path = li.children[0], ren = li.children[1], del = li.children[2];
     path.children[0].textContent = i >= 0 ? p.slice(0, i + 1) : "";
     path.children[1].textContent = p.slice(i + 1) + (openPaths.has(p) ? "  • ouvert" : "");
     if (openPaths.has(p)) li.classList.add("current");
     path.onclick = () => openGh(p);
+    ren.setAttribute("aria-label", "Renommer " + p);
+    ren.onclick = e => { e.stopPropagation(); openRenDlg(p); };
     del.setAttribute("aria-label", "Supprimer " + p);
     del.onclick = e => { e.stopPropagation(); deleteGh(p); };
     ul.appendChild(li);
@@ -646,6 +666,99 @@ async function deleteGh(path) {
       ? "Ce fichier n'existe plus sur GitHub : touche ↻ Actualiser."
       : "Erreur : " + friendly(e);
     if (e.status === 404) { tree = tree.filter(x => x !== path); store.set("tree", tree); renderList(); }
+  }
+}
+
+// ---------- GitHub : renommer / déplacer ----------
+let renSrc = null;
+const extOf = p => (p.match(/\.[^./]+$/) || [""])[0];
+function openRenDlg(path) {
+  renSrc = path;
+  const i = path.lastIndexOf("/");
+  const dir = i >= 0 ? path.slice(0, i) : "";
+  const dirs = [...new Set(tree.filter(p => GD_RE.test(p)).map(p => p.includes("/") ? p.slice(0, p.lastIndexOf("/")) : ""))];
+  if (!dirs.includes("")) dirs.push("");
+  if (!dirs.includes(dir)) dirs.push(dir);
+  dirs.sort();
+  const sel = $("renDir"); sel.innerHTML = "";
+  dirs.forEach(d => { const o = document.createElement("option"); o.value = d; o.textContent = d ? d + "/" : "(racine du dépôt)"; sel.appendChild(o); });
+  sel.value = dir;
+  const name = path.slice(i + 1), ext = extOf(name);
+  $("renFrom").textContent = "Actuel : " + path;
+  $("renName").value = ext ? name.slice(0, -ext.length) : name;
+  updateRenPreview();
+  $("renDlg").classList.add("open");
+  setTimeout(() => { $("renName").focus(); $("renName").select(); }, 50);
+}
+function renPath() {
+  const ext = extOf(renSrc);
+  let n = $("renName").value.trim().replace(/\s+/g, "_").replace(/[^\w.\-]/g, "");
+  if (ext && n.toLowerCase().endsWith(ext.toLowerCase())) n = n.slice(0, -ext.length);
+  if (!n) return "";
+  return ($("renDir").value ? $("renDir").value + "/" : "") + n + ext;
+}
+function updateRenPreview() { $("renPreview").textContent = renPath() ? "→ " + renPath() : ""; }
+$("renName").oninput = updateRenPreview;
+$("renDir").onchange = updateRenPreview;
+$("renCancel").onclick = () => $("renDlg").classList.remove("open");
+$("renOk").onclick = renameGh;
+
+async function renameGh() {
+  const from = renSrc, to = renPath();
+  if (!to) { alert("Donne un nom au fichier."); return; }
+  if (to === from) { $("renDlg").classList.remove("open"); return; }
+  if (tree.includes(to) || tabs.some(t => t.kind === "gh" && t.path === to)) { alert("Un fichier « " + to + " » existe déjà."); return; }
+  const moves = [[from, to]];
+  if (tree.includes(from + ".uid")) moves.push([from + ".uid", to + ".uid"]);
+  const ti = tabs.findIndex(t => t.kind === "gh" && t.path === from);
+  const isGd = /\.gd$/i.test(from);
+  let warn = `Renommer « ${from} »\nen « ${to} » ?`;
+  if (moves.length > 1) warn += "\n\nSon fichier .uid suit le script : les scènes Godot le retrouveront automatiquement.";
+  else if (isGd) warn += "\n\nPas de fichier .uid : les scènes qui utilisent ce script devront être corrigées dans Godot.";
+  if (isGd) warn += "\n\nLes preload() / load() qui écrivent l'ancien chemin en toutes lettres devront être mis à jour.";
+  if (ti >= 0 && isDirty(tabs[ti])) warn += "\n\nTes modifications non envoyées restent dans l'onglet : envoie-les ensuite.";
+  if (!confirm(warn)) return;
+  const fromName = from.split("/").pop(), toName = to.split("/").pop();
+  const def = fromName === toName ? `GD Pocket : déplace ${fromName} vers ${to.slice(0, to.lastIndexOf("/") + 1) || "la racine"}`
+                                  : `GD Pocket : renomme ${fromName} en ${toName}`;
+  const message = prompt("Message du commit :", def);
+  if (message === null) return;
+  $("renDlg").classList.remove("open");
+  $("filesHint").textContent = "Renommage…";
+  const c = cfg(), R = `/repos/${c.owner}/${c.repo}`, br = encPath(c.branch);
+  try {
+    // 1. Empreintes (sha) des fichiers à déplacer : leur contenu ne change pas
+    const blobs = [];
+    for (const [a] of moves) blobs.push((await gh(`${R}/contents/${encPath(a)}?ref=${encodeURIComponent(c.branch)}`)).sha);
+    // 2. Nouveau commit : ajoute les nouveaux chemins, retire les anciens
+    for (let attempt = 0; ; attempt++) {
+      const head = (await gh(`${R}/git/ref/heads/${br}`)).object.sha;
+      const base = (await gh(`${R}/git/commits/${head}`)).tree.sha;
+      const entries = [];
+      moves.forEach(([a, b], k) => {
+        entries.push({path: b, mode: "100644", type: "blob", sha: blobs[k]});
+        entries.push({path: a, mode: "100644", type: "blob", sha: null});
+      });
+      const t = await gh(`${R}/git/trees`, {method: "POST", body: JSON.stringify({base_tree: base, tree: entries})});
+      const nc = await gh(`${R}/git/commits`, {method: "POST", body: JSON.stringify({message: message || def, tree: t.sha, parents: [head]})});
+      try {
+        await gh(`${R}/git/refs/heads/${br}`, {method: "PATCH", body: JSON.stringify({sha: nc.sha})});
+        break;
+      } catch (e) {
+        if (e.status === 422 && attempt < 2) continue;   // quelqu'un a poussé entre-temps : on recommence
+        throw e;
+      }
+    }
+    // 3. Mettre à jour la liste et les onglets
+    moves.forEach(([a, b]) => { tree = tree.filter(x => x !== a); tree.push(b); });
+    tree.sort(); store.set("tree", tree);
+    tabs.forEach(t => { if (t.kind === "gh" && t.path === from) { t.path = to; t.name = toName; } });
+    saveTabs(true); renderTabs(); refreshStatus(); renderList();
+    $("filesHint").textContent = `Renommé en « ${to} » ✔ (pense à faire un pull sur le PC)`;
+  } catch (e) {
+    $("filesHint").textContent = e.status === 404
+      ? "Fichier introuvable sur GitHub : touche ↻ Actualiser."
+      : "Erreur : " + friendly(e);
   }
 }
 
