@@ -12,31 +12,95 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
 <style>
-  :root { --bg:#1e1f29; --bar:#282a36; --txt:#f8f8f2; --acc:#478cbf; }
+  :root { --bg:#1e1f29; --bar:#282a36; --txt:#f8f8f2; --acc:#478cbf; --mut:#44475a; --ok:#50fa7b; --warn:#ffb86c; }
   * { box-sizing:border-box; }
   html, body { margin:0; height:100%; background:var(--bg); color:var(--txt); font-family:system-ui, sans-serif; }
   body { display:flex; flex-direction:column; }
   header { display:flex; gap:6px; padding:8px; background:var(--bar); align-items:center; }
-  header input[type=text] { flex:1; min-width:0; background:#44475a; color:var(--txt); border:0; border-radius:6px; padding:8px; font-size:15px; }
+  header input[type=text] { flex:1; min-width:0; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:8px; font-size:15px; }
   button { background:var(--acc); color:#fff; border:0; border-radius:6px; padding:8px 10px; font-size:15px; }
+  button.ghost { background:var(--mut); }
+  button:disabled { opacity:.5; }
   #editor { flex:1; min-height:0; }
   .CodeMirror { height:100%; font-size:15px; font-family:"JetBrains Mono", ui-monospace, monospace; }
   .CodeMirror-hints { font-size:15px; z-index:50; }
   #keys { display:flex; gap:4px; overflow-x:auto; padding:6px; background:var(--bar); }
-  #keys button { background:#44475a; min-width:42px; font-family:monospace; padding:8px; }
-  #status { font-size:12px; opacity:.7; padding:0 8px 6px; background:var(--bar); }
+  #keys button { background:var(--mut); min-width:42px; font-family:monospace; padding:8px; }
+  #status { font-size:12px; opacity:.8; padding:0 8px 6px; background:var(--bar); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #status.dirty::before { content:"● "; color:var(--warn); }
+
+  /* Panneau GitHub */
+  #panel { position:fixed; inset:0; background:var(--bg); z-index:100; display:none; flex-direction:column; }
+  #panel.open { display:flex; }
+  #panel .top { display:flex; gap:6px; padding:8px; background:var(--bar); align-items:center; }
+  #panel .top h2 { flex:1; margin:0; font-size:17px; }
+  .tabs { display:flex; background:var(--bar); }
+  .tabs button { flex:1; border-radius:0; background:transparent; border-bottom:2px solid transparent; }
+  .tabs button.on { border-bottom-color:var(--acc); }
+  .pane { flex:1; overflow:auto; padding:10px; display:none; }
+  .pane.on { display:block; }
+  label { display:block; font-size:13px; opacity:.8; margin:12px 0 4px; }
+  .pane input[type=text], .pane input[type=password], .pane input[type=search] {
+    width:100%; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:10px; font-size:15px; }
+  .row { display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
+  .hint { font-size:13px; opacity:.75; line-height:1.4; }
+  #list { list-style:none; margin:10px 0 0; padding:0; }
+  #list li { padding:12px 8px; border-bottom:1px solid var(--mut); font-family:ui-monospace, monospace; font-size:14px; word-break:break-all; }
+  #list li .dir { opacity:.55; }
+  #list li.current { color:var(--ok); }
+  .check { display:flex; align-items:center; gap:8px; margin-top:10px; font-size:14px; }
 </style>
 </head>
 <body>
 <header>
-  <button id="open">Ouvrir</button>
+  <button id="btnFiles" class="ghost" aria-label="Fichiers GitHub">📁</button>
   <input id="name" type="text" value="script.gd" aria-label="Nom du fichier">
   <button id="save">Enregistrer</button>
-  <input id="file" type="file" accept=".gd,.txt,text/plain" hidden>
 </header>
 <div id="editor"></div>
 <div id="keys"></div>
 <div id="status">Prêt</div>
+
+<!-- Panneau : fichiers et réglages -->
+<div id="panel">
+  <div class="top">
+    <h2>GD Pocket</h2>
+    <button id="closePanel" class="ghost">Fermer</button>
+  </div>
+  <div class="tabs">
+    <button data-tab="files" class="on">Fichiers</button>
+    <button data-tab="settings">Réglages</button>
+  </div>
+
+  <div class="pane on" id="pane-files">
+    <div class="row" style="margin-top:0">
+      <button id="refresh">↻ Actualiser</button>
+      <button id="openLocal" class="ghost">Ouvrir un fichier du téléphone</button>
+      <button id="download" class="ghost">Télécharger le fichier actuel</button>
+    </div>
+    <input id="filter" type="search" placeholder="Filtrer (ex. voiture)" style="margin-top:10px">
+    <label class="check"><input id="allText" type="checkbox"> Afficher aussi .tscn, .tres, .cfg, .json, .md…</label>
+    <ul id="list"></ul>
+    <p class="hint" id="filesHint">Renseigne d'abord l'onglet Réglages.</p>
+  </div>
+
+  <div class="pane" id="pane-settings">
+    <label for="ghOwner">Propriétaire du dépôt</label>
+    <input id="ghOwner" type="text" autocomplete="off" autocapitalize="off" placeholder="LutiinBlack">
+    <label for="ghRepo">Nom du dépôt</label>
+    <input id="ghRepo" type="text" autocomplete="off" autocapitalize="off" placeholder="Micro-Racer-Mobile-">
+    <label for="ghBranch">Branche (vide = branche principale)</label>
+    <input id="ghBranch" type="text" autocomplete="off" autocapitalize="off" placeholder="main">
+    <label for="ghToken">Jeton GitHub (fine-grained)</label>
+    <input id="ghToken" type="password" autocomplete="off" placeholder="github_pat_…">
+    <div class="row">
+      <button id="saveSettings">Enregistrer et tester</button>
+      <button id="forget" class="ghost">Effacer le jeton</button>
+    </div>
+    <p class="hint">Le jeton reste uniquement dans cette appli, sur ce téléphone, et n'est envoyé qu'à api.github.com.</p>
+  </div>
+  <input id="file" type="file" accept=".gd,.gdshader,.txt,text/plain" hidden>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/mode/simple.min.js"></script>
@@ -44,6 +108,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
 <script>
+// ---------- Petits utilitaires de stockage ----------
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("gdpocket_" + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem("gdpocket_" + k, JSON.stringify(v)); } catch (e) {} },
+  del(k)    { try { localStorage.removeItem("gdpocket_" + k); } catch (e) {} }
+};
+const $ = id => document.getElementById(id);
+
 // ---------- Vocabulaire GDScript (Godot 4) ----------
 const KEYWORDS = ["if","elif","else","for","while","match","when","break","continue","pass","return",
   "class","class_name","extends","is","in","as","not","and","or","func","static","const","enum",
@@ -101,7 +173,6 @@ function gdHint(cm) {
   while (start > 0 && /[\w@]/.test(line.charAt(start - 1))) start--;
   const word = line.slice(start, cur.ch);
   if (!word) return null;
-  // mots déjà présents dans le fichier (tes variables, fonctions...)
   const docWords = cm.getValue().match(/@?[A-Za-z_]\w{2,}/g) || [];
   const all = [...new Set([...BASE_WORDS, ...docWords])];
   const low = word.toLowerCase();
@@ -120,11 +191,14 @@ func _physics_process(delta: float) -> void:
 \tvelocity.x = direction * vitesse
 \tmove_and_slide()
 `;
-let saved = null;
-try { saved = localStorage.getItem("gdpocket_code"); } catch (e) {}
+let savedCode = null;
+try { savedCode = localStorage.getItem("gdpocket_code"); } catch (e) {}
 
-const cm = CodeMirror(document.getElementById("editor"), {
-  value: saved || SAMPLE,
+// Fichier GitHub actuellement ouvert : {path, sha, base} (base = texte tel que sur GitHub)
+let ghFile = store.get("ghfile", null);
+
+const cm = CodeMirror($("editor"), {
+  value: savedCode || SAMPLE,
   mode: "gdscript",
   theme: "dracula",
   lineNumbers: true,
@@ -132,14 +206,14 @@ const cm = CodeMirror(document.getElementById("editor"), {
   autoCloseBrackets: true, matchBrackets: true,
   inputStyle: "contenteditable",
   extraKeys: {
-    "Enter": c => {   // garde l'indentation, ajoute un cran après ":"
+    "Enter": c => {
       const p = c.getCursor(), before = c.getLine(p.line).slice(0, p.ch);
       let ind = before.match(/^\s*/)[0];
       if (/:\s*(#.*)?$/.test(before)) ind += "\t";
       c.replaceSelection("\n" + ind);
     },
     "Ctrl-Space": c => c.showHint({hint: gdHint, completeSingle: false}),
-    "Ctrl-S": () => saveFile()
+    "Ctrl-S": () => save()
   }
 });
 cm.on("inputRead", (c, ch) => {
@@ -149,53 +223,244 @@ let timer;
 cm.on("change", () => {
   clearTimeout(timer);
   timer = setTimeout(() => {
-    try { localStorage.setItem("gdpocket_code", cm.getValue());
-          localStorage.setItem("gdpocket_name", nameInput.value); } catch (e) {}
-    status("Sauvegarde auto ✔");
-  }, 800);
+    try { localStorage.setItem("gdpocket_code", cm.getValue()); } catch (e) {}
+    store.set("name", nameInput.value);
+    refreshStatus();
+  }, 600);
 });
 
-// ---------- Barre de touches pour le téléphone ----------
+// ---------- Barre de touches ----------
 const KEYS = ["⇥", ":", "(", ")", "_", "\"", "$", "@", "=", ".", "[", "]", "{", "}", "->", "#"];
-const keysBar = document.getElementById("keys");
 KEYS.forEach(k => {
   const b = document.createElement("button");
   b.textContent = k;
-  b.addEventListener("mousedown", e => e.preventDefault()); // garde le focus
-  b.addEventListener("click", () => {
-    cm.replaceSelection(k === "⇥" ? "\t" : k);
-    cm.focus();
-  });
-  keysBar.appendChild(b);
+  b.addEventListener("mousedown", e => e.preventDefault());
+  b.addEventListener("click", () => { cm.replaceSelection(k === "⇥" ? "\t" : k); cm.focus(); });
+  $("keys").appendChild(b);
 });
 
-// ---------- Ouvrir / Enregistrer ----------
-const nameInput = document.getElementById("name");
-try { nameInput.value = localStorage.getItem("gdpocket_name") || "script.gd"; } catch (e) {}
-const fileInput = document.getElementById("file");
-document.getElementById("open").onclick = () => fileInput.click();
-fileInput.onchange = async () => {
-  const f = fileInput.files[0];
+// ---------- Barre d'état ----------
+const nameInput = $("name");
+nameInput.value = store.get("name", "script.gd");
+function isDirty() { return ghFile && cm.getValue() !== ghFile.base; }
+function refreshStatus(msg) {
+  const s = $("status");
+  s.classList.toggle("dirty", !!isDirty());
+  if (msg) { s.textContent = msg; return; }
+  if (ghFile) s.textContent = (isDirty() ? "Modifié — " : "À jour — ") + "GitHub : " + ghFile.path;
+  else s.textContent = "Fichier local (sauvegarde auto dans l'appli)";
+  $("save").textContent = ghFile ? "Envoyer" : "Enregistrer";
+}
+
+// ---------- GitHub : API ----------
+function cfg() { return store.get("gh", {}); }
+function encPath(p) { return p.split("/").map(encodeURIComponent).join("/"); }
+async function gh(path, opts = {}) {
+  const c = cfg();
+  if (!c.token) throw new Error("Aucun jeton : va dans Réglages.");
+  const r = await fetch("https://api.github.com" + path, {
+    ...opts,
+    headers: {
+      "Accept": "application/vnd.github+json",
+      "Authorization": "Bearer " + c.token,
+      "X-GitHub-Api-Version": "2022-11-28",
+      ...(opts.body ? {"Content-Type": "application/json"} : {})
+    }
+  });
+  if (!r.ok) {
+    let msg = r.status + "";
+    try { msg += " : " + (await r.json()).message; } catch (e) {}
+    const err = new Error(msg); err.status = r.status; throw err;
+  }
+  return r.json();
+}
+function b64ToText(b) {
+  const bin = atob(b.replace(/\s/g, ""));
+  return new TextDecoder().decode(Uint8Array.from(bin, ch => ch.charCodeAt(0)));
+}
+function textToB64(s) {
+  const bytes = new TextEncoder().encode(s);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+function friendly(e) {
+  if (e.status === 401) return "Jeton refusé (expiré ou mal copié).";
+  if (e.status === 403) return "Accès refusé : vérifie les permissions du jeton (Contents : Read and write).";
+  if (e.status === 404) return "Introuvable : vérifie le propriétaire, le dépôt et la branche, et que le jeton y a accès.";
+  if (!navigator.onLine) return "Pas de connexion Internet.";
+  return e.message;
+}
+
+// ---------- GitHub : liste des fichiers ----------
+let tree = [];
+const GD_RE = /\.(gd|gdshader)$/i;
+const TEXT_RE = /\.(gd|gdshader|tscn|tres|cfg|godot|json|md|txt|csv|import)$/i;
+async function loadTree() {
+  const c = cfg();
+  if (!c.token || !c.owner || !c.repo) { $("filesHint").textContent = "Renseigne d'abord l'onglet Réglages."; return; }
+  $("filesHint").textContent = "Chargement…";
+  try {
+    const t = await gh(`/repos/${c.owner}/${c.repo}/git/trees/${encodeURIComponent(c.branch)}?recursive=1`);
+    tree = t.tree.filter(x => x.type === "blob").map(x => x.path).sort();
+    store.set("tree", tree);
+    renderList();
+    $("filesHint").textContent = t.truncated ? "Dépôt très gros : liste incomplète." : "";
+  } catch (e) {
+    $("filesHint").textContent = "Erreur : " + friendly(e);
+  }
+}
+function renderList() {
+  const q = $("filter").value.trim().toLowerCase();
+  const re = $("allText").checked ? TEXT_RE : GD_RE;
+  const items = tree.filter(p => re.test(p) && p.toLowerCase().includes(q));
+  const ul = $("list"); ul.innerHTML = "";
+  items.forEach(p => {
+    const li = document.createElement("li");
+    const i = p.lastIndexOf("/");
+    li.innerHTML = `<span class="dir"></span><span></span>`;
+    li.children[0].textContent = i >= 0 ? p.slice(0, i + 1) : "";
+    li.children[1].textContent = p.slice(i + 1);
+    if (ghFile && ghFile.path === p) li.classList.add("current");
+    li.onclick = () => openGh(p);
+    ul.appendChild(li);
+  });
+  if (!items.length && tree.length) $("filesHint").textContent = "Aucun fichier ne correspond.";
+}
+
+// ---------- GitHub : ouvrir ----------
+async function openGh(path) {
+  if (isDirty() && !confirm("Le fichier actuel a des modifications non envoyées. Les abandonner ?")) return;
+  const c = cfg();
+  $("filesHint").textContent = "Ouverture de " + path + "…";
+  try {
+    const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(path)}?ref=${encodeURIComponent(c.branch)}`);
+    const text = b64ToText(f.content);
+    ghFile = {path, sha: f.sha, base: text};
+    store.set("ghfile", ghFile);
+    cm.setValue(text);
+    cm.clearHistory();
+    nameInput.value = path.split("/").pop();
+    store.set("name", nameInput.value);
+    closePanel();
+    refreshStatus();
+  } catch (e) {
+    $("filesHint").textContent = "Erreur : " + friendly(e);
+  }
+}
+
+// ---------- GitHub : envoyer ----------
+async function pushGh(force = false, presetMsg = null) {
+  const c = cfg();
+  const text = cm.getValue();
+  if (!isDirty() && !force) { refreshStatus("Rien à envoyer, déjà à jour ✔"); return; }
+  const file = ghFile.path.split("/").pop();
+  const message = presetMsg !== null ? presetMsg : prompt("Message du commit :", "GD Pocket : modifie " + file);
+  if (message === null) return;
+  $("save").disabled = true;
+  refreshStatus("Envoi vers GitHub…");
+  try {
+    const r = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(ghFile.path)}`, {
+      method: "PUT",
+      body: JSON.stringify({message: message || ("GD Pocket : modifie " + file),
+                            content: textToB64(text), sha: ghFile.sha, branch: c.branch})
+    });
+    ghFile = {path: ghFile.path, sha: r.content.sha, base: text};
+    store.set("ghfile", ghFile);
+    refreshStatus();
+    refreshStatus("Envoyé sur GitHub ✔ (pense à faire un pull sur le PC)");
+  } catch (e) {
+    if (e.status === 409 || e.status === 422) {
+      // Le fichier a changé sur GitHub depuis l'ouverture (PC ou autre appli)
+      if (confirm("Ce fichier a été modifié sur GitHub depuis que tu l'as ouvert.\n\nOK = écraser avec ta version\nAnnuler = ne rien envoyer")) {
+        try {
+          const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(ghFile.path)}?ref=${encodeURIComponent(c.branch)}`);
+          ghFile.sha = f.sha;  // on repart de la version actuelle de GitHub
+          $("save").disabled = false;
+          return pushGh(true, message);
+        } catch (e2) { refreshStatus("Erreur : " + friendly(e2)); }
+      } else refreshStatus("Envoi annulé. Ta version reste dans l'appli.");
+    } else refreshStatus("Erreur : " + friendly(e));
+  } finally { $("save").disabled = false; }
+}
+
+// ---------- Local : ouvrir / télécharger ----------
+$("openLocal").onclick = () => $("file").click();
+$("file").onchange = async () => {
+  const f = $("file").files[0];
   if (!f) return;
+  if (isDirty() && !confirm("Le fichier GitHub ouvert a des modifications non envoyées. Les abandonner ?")) return;
   cm.setValue(await f.text());
-  nameInput.value = f.name;
-  status("Ouvert : " + f.name);
-  fileInput.value = "";
+  ghFile = null; store.del("ghfile");
+  nameInput.value = f.name; store.set("name", f.name);
+  $("file").value = "";
+  closePanel(); refreshStatus("Ouvert depuis le téléphone : " + f.name);
 };
-function saveFile() {
+function download() {
   const blob = new Blob([cm.getValue()], {type: "text/plain"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = nameInput.value || "script.gd";
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  status("Enregistré dans Téléchargements : " + a.download);
+  refreshStatus("Téléchargé : " + a.download);
 }
-document.getElementById("save").onclick = saveFile;
+$("download").onclick = download;
+function save() { ghFile ? pushGh() : download(); }
+$("save").onclick = save;
 
-function status(t) { document.getElementById("status").textContent = t; }
+// ---------- Panneau ----------
+function openPanel() {
+  $("panel").classList.add("open");
+  const c = cfg();
+  tree = store.get("tree", []);
+  renderList();
+  if (!c.token) showTab("settings"); else if (!tree.length) loadTree();
+}
+function closePanel() { $("panel").classList.remove("open"); }
+function showTab(t) {
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === t));
+  document.querySelectorAll(".pane").forEach(p => p.classList.toggle("on", p.id === "pane-" + t));
+}
+$("btnFiles").onclick = openPanel;
+$("closePanel").onclick = closePanel;
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
+$("refresh").onclick = loadTree;
+$("filter").oninput = renderList;
+$("allText").onchange = renderList;
 
-// ---------- Mode appli (PWA) : fonctionne hors ligne ----------
+// ---------- Réglages ----------
+(function fillSettings() {
+  const c = cfg();
+  $("ghOwner").value = c.owner || "LutiinBlack";
+  $("ghRepo").value = c.repo || "Micro-Racer-Mobile-";
+  $("ghBranch").value = c.branch || "";
+  $("ghToken").value = c.token || "";
+})();
+$("saveSettings").onclick = async () => {
+  const c = {owner: $("ghOwner").value.trim(), repo: $("ghRepo").value.trim(),
+             branch: $("ghBranch").value.trim(), token: $("ghToken").value.trim()};
+  store.set("gh", c);
+  $("saveSettings").disabled = true;
+  try {
+    const info = await gh(`/repos/${c.owner}/${c.repo}`);
+    if (!c.branch) { c.branch = info.default_branch; $("ghBranch").value = c.branch; store.set("gh", c); }
+    store.del("tree");
+    alert("Connexion réussie ✔\nDépôt : " + info.full_name + "\nBranche : " + c.branch);
+    showTab("files"); loadTree();
+  } catch (e) {
+    alert("Échec : " + friendly(e));
+  } finally { $("saveSettings").disabled = false; }
+};
+$("forget").onclick = () => {
+  const c = cfg(); delete c.token; store.set("gh", c);
+  $("ghToken").value = ""; store.del("tree");
+  alert("Jeton effacé de l'appli.");
+};
+
+refreshStatus();
+
+// ---------- Mode appli (PWA) ----------
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   navigator.serviceWorker.register("sw.js").catch(() => {});
 }
