@@ -91,6 +91,26 @@
   .cm-s-dracula .cm-gd-fcall, .cm-s-dracula .cm-gd-gfunc, .cm-s-dracula .cm-gd-fdef { color:#50fa7b; }
   .cm-s-dracula .cm-gd-member { color:#f8f8f2; }
   .cm-s-dracula .cm-gd-annot { color:#ffb86c; }
+  /* Onglets de fichiers */
+  #tabbar { display:flex; gap:4px; overflow-x:auto; padding:0 8px 6px; background:var(--bar); scrollbar-width:none; }
+  #tabbar::-webkit-scrollbar { display:none; }
+  .ftab { display:flex; align-items:center; gap:2px; flex:0 0 auto; max-width:60vw; background:var(--mut);
+          border-radius:6px; padding:0 0 0 10px; font-size:14px; opacity:.75; }
+  .ftab.on { opacity:1; box-shadow:inset 0 -2px 0 var(--acc); }
+  .ftab .lbl { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:7px 0; }
+  .ftab .lbl.dirty::before { content:"● "; color:var(--warn); }
+  .ftab .lbl.new::after { content:" (nouveau)"; opacity:.6; font-size:12px; }
+  .ftab .x { background:transparent; padding:7px 10px; font-size:15px; opacity:.8; }
+  #newTab { flex:0 0 auto; background:var(--mut); padding:6px 12px; }
+  header input[readonly] { opacity:.85; }
+
+  /* Fenêtre « Nouveau script » */
+  #newDlg { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:200; display:none; align-items:flex-start; justify-content:center; padding-top:10vh; }
+  #newDlg.open { display:flex; }
+  #newDlg .box { background:var(--bar); border-radius:10px; padding:14px; width:min(92vw,420px); }
+  #newDlg h2 { margin:0 0 4px; font-size:17px; }
+  #newDlg input, #newDlg select { width:100%; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:10px; font-size:15px; }
+  #newPreview { font-family:ui-monospace, monospace; font-size:13px; opacity:.8; margin-top:8px; word-break:break-all; }
 </style>
 </head>
 <body>
@@ -99,6 +119,7 @@
   <input id="name" type="text" value="script.gd" aria-label="Nom du fichier">
   <button id="save">Enregistrer</button>
 </header>
+<div id="tabbar"></div>
 <div id="editor"></div>
 <div id="keys"></div>
 <div id="status">Prêt</div>
@@ -116,9 +137,10 @@
 
   <div class="pane on" id="pane-files">
     <div class="row" style="margin-top:0">
-      <button id="refresh">↻ Actualiser</button>
+      <button id="newScript">＋ Nouveau script</button>
+      <button id="refresh" class="ghost">↻ Actualiser</button>
       <button id="openLocal" class="ghost">Ouvrir un fichier du téléphone</button>
-      <button id="download" class="ghost">Télécharger le fichier actuel</button>
+      <button id="download" class="ghost">Télécharger l'onglet actuel</button>
     </div>
     <input id="filter" type="search" placeholder="Filtrer (ex. voiture)" style="margin-top:10px">
     <label class="check"><input id="allText" type="checkbox"> Afficher aussi .tscn, .tres, .cfg, .json, .md…</label>
@@ -150,6 +172,30 @@
     <label class="check"><input id="prefWrap" type="checkbox"> Retour à la ligne automatique des lignes longues</label>
   </div>
   <input id="file" type="file" accept=".gd,.gdshader,.txt,text/plain" hidden>
+</div>
+
+<!-- Fenêtre : nouveau script -->
+<div id="newDlg">
+  <div class="box">
+    <h2>Nouveau script</h2>
+    <label for="newDir">Dossier</label>
+    <select id="newDir"></select>
+    <label for="newName">Nom du fichier</label>
+    <input id="newName" type="text" autocomplete="off" autocapitalize="off" placeholder="boost_turbo">
+    <label for="newBase">Hérite de (extends)</label>
+    <select id="newBase">
+      <option>Node</option><option selected>Node3D</option><option>CharacterBody3D</option>
+      <option>RigidBody3D</option><option>VehicleBody3D</option><option>Area3D</option>
+      <option>Camera3D</option><option>Control</option><option>CanvasLayer</option>
+      <option>Node2D</option><option>Resource</option><option value="">(script vide)</option>
+    </select>
+    <div id="newPreview"></div>
+    <div class="row">
+      <button id="newCreate">Créer</button>
+      <button id="newCancel" class="ghost">Annuler</button>
+    </div>
+    <p class="hint">Le script s'ouvre dans un nouvel onglet. Il n'est créé sur GitHub qu'au premier « Envoyer ».</p>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
@@ -273,7 +319,14 @@ function gdHint(cm) {
   return list.length ? {list, from: CodeMirror.Pos(cur.line, start), to: cur} : null;
 }
 
-// ---------- Éditeur ----------
+// ---------- Préférences d'affichage ----------
+const prefs = Object.assign({theme: "godot", wrap: false}, store.get("prefs", {}));
+document.body.style.background = prefs.theme === "godot" ? "#1d2229" : "";
+
+// ---------- Onglets ----------
+// Un onglet = {kind: "gh" | "local", name, path?, sha?, base?, isNew?, doc}
+//  - kind "gh"    : fichier du dépôt GitHub (base = texte tel que sur GitHub, isNew = pas encore créé)
+//  - kind "local" : brouillon ou fichier du téléphone
 const SAMPLE = `extends CharacterBody3D
 
 @export var vitesse: float = 10.0
@@ -283,19 +336,40 @@ func _physics_process(delta: float) -> void:
 \tvelocity.x = direction * vitesse
 \tmove_and_slide()
 `;
-let savedCode = null;
-try { savedCode = localStorage.getItem("gdpocket_code"); } catch (e) {}
+const newDoc = text => CodeMirror.Doc(text, "gdscript");
+let tabs = [], active = 0;
 
-// Fichier GitHub actuellement ouvert : {path, sha, base} (base = texte tel que sur GitHub)
-let ghFile = store.get("ghfile", null);
+function loadTabs() {
+  const saved = store.get("tabs", null);
+  if (saved && saved.list && saved.list.length) {
+    tabs = saved.list.map(t => ({...t, doc: newDoc(t.text)}));
+    tabs.forEach(t => delete t.text);
+    active = Math.min(saved.active || 0, tabs.length - 1);
+    return;
+  }
+  // Reprise de la v0.4 (un seul fichier)
+  let code = null;
+  try { code = localStorage.getItem("gdpocket_code"); } catch (e) {}
+  const old = store.get("ghfile", null);
+  if (old) tabs = [{kind: "gh", name: old.path.split("/").pop(), path: old.path, sha: old.sha, base: old.base, doc: newDoc(code ?? old.base)}];
+  else tabs = [{kind: "local", name: store.get("name", "script.gd"), doc: newDoc(code || SAMPLE)}];
+  active = 0;
+}
+let saveTimer;
+function saveTabs(now) {
+  clearTimeout(saveTimer);
+  const run = () => store.set("tabs", {active, list: tabs.map(t => {
+    const {doc, ...rest} = t; return {...rest, text: doc.getValue()};
+  })});
+  now ? run() : (saveTimer = setTimeout(run, 600));
+}
+const cur = () => tabs[active];
+const isDirty = t => !!t && t.kind === "gh" && (t.isNew || t.doc.getValue() !== t.base);
 
-// Préférences d'affichage : thème et retour à la ligne
-const prefs = Object.assign({theme: "godot", wrap: false}, store.get("prefs", {}));
-document.body.style.background = prefs.theme === "godot" ? "#1d2229" : "";
+loadTabs();
 
 const cm = CodeMirror($("editor"), {
-  value: savedCode || SAMPLE,
-  mode: "gdscript",
+  value: tabs[active].doc,
   theme: prefs.theme,
   lineWrapping: prefs.wrap,
   styleActiveLine: true,
@@ -317,15 +391,55 @@ const cm = CodeMirror($("editor"), {
 cm.on("inputRead", (c, ch) => {
   if (/[\w@]/.test(ch.text.join(""))) c.showHint({hint: gdHint, completeSingle: false});
 });
-let timer;
-cm.on("change", () => {
-  clearTimeout(timer);
-  timer = setTimeout(() => {
-    try { localStorage.setItem("gdpocket_code", cm.getValue()); } catch (e) {}
-    store.set("name", nameInput.value);
-    refreshStatus();
-  }, 600);
-});
+cm.on("change", () => { saveTabs(); refreshTabLabel(active); refreshStatus(); });
+
+function switchTab(i) {
+  if (i < 0 || i >= tabs.length) return;
+  active = i;
+  cm.swapDoc(tabs[i].doc);
+  renderTabs(); refreshStatus(); saveTabs(true);
+  const el = $("tabbar").children[i];
+  if (el) el.scrollIntoView({inline: "nearest", block: "nearest"});
+}
+function addTab(t, focus = true) {
+  tabs.push(t);
+  if (focus) { switchTab(tabs.length - 1); cm.focus(); }
+  else { renderTabs(); saveTabs(true); }
+}
+function closeTab(i) {
+  const t = tabs[i];
+  if (isDirty(t) && !confirm(`« ${t.name} » a des modifications non envoyées. Fermer quand même ?`)) return;
+  tabs.splice(i, 1);
+  if (!tabs.length) tabs.push({kind: "local", name: "script.gd", doc: newDoc("")});
+  const next = i < active ? active - 1 : Math.min(active, tabs.length - 1);
+  active = -1;               // force le changement de document
+  switchTab(next);
+}
+function renderTabs() {
+  const bar = $("tabbar"); bar.innerHTML = "";
+  tabs.forEach((t, i) => {
+    const d = document.createElement("div");
+    d.className = "ftab" + (i === active ? " on" : "");
+    d.title = t.path || t.name;
+    const l = document.createElement("span"); l.className = "lbl"; l.textContent = t.name;
+    const x = document.createElement("button"); x.className = "x"; x.textContent = "×";
+    x.setAttribute("aria-label", "Fermer " + t.name);
+    l.onclick = () => switchTab(i);
+    x.onclick = e => { e.stopPropagation(); closeTab(i); };
+    d.append(l, x); bar.appendChild(d);
+  });
+  const plus = document.createElement("button");
+  plus.id = "newTab"; plus.textContent = "＋"; plus.setAttribute("aria-label", "Nouveau script");
+  plus.onclick = openNewDlg;
+  bar.appendChild(plus);
+  tabs.forEach((_, i) => refreshTabLabel(i));
+}
+function refreshTabLabel(i) {
+  const el = $("tabbar").children[i]; if (!el) return;
+  const l = el.querySelector(".lbl"), t = tabs[i];
+  l.classList.toggle("dirty", isDirty(t) && !t.isNew);
+  l.classList.toggle("new", !!t.isNew);
+}
 
 // ---------- Barre de touches ----------
 const KEYS = ["⇥", ":", "(", ")", "_", "\"", "$", "@", "=", ".", "[", "]", "{", "}", "->", "#"];
@@ -337,17 +451,21 @@ KEYS.forEach(k => {
   $("keys").appendChild(b);
 });
 
-// ---------- Barre d'état ----------
+// ---------- Nom du fichier et barre d'état ----------
 const nameInput = $("name");
-nameInput.value = store.get("name", "script.gd");
-function isDirty() { return ghFile && cm.getValue() !== ghFile.base; }
+nameInput.oninput = () => {               // renommer un onglet local (nom de téléchargement)
+  const t = cur(); if (t.kind !== "local") return;
+  t.name = nameInput.value || "script.gd"; renderTabs(); saveTabs();
+};
 function refreshStatus(msg) {
-  const s = $("status");
-  s.classList.toggle("dirty", !!isDirty());
+  const t = cur(), s = $("status");
+  nameInput.value = t.name;
+  nameInput.readOnly = t.kind === "gh";
+  $("save").textContent = t.kind === "gh" ? "Envoyer" : "Enregistrer";
+  s.classList.toggle("dirty", isDirty(t));
   if (msg) { s.textContent = msg; return; }
-  if (ghFile) s.textContent = (isDirty() ? "Modifié — " : "À jour — ") + "GitHub : " + ghFile.path;
+  if (t.kind === "gh") s.textContent = (t.isNew ? "Nouveau, pas encore envoyé — " : isDirty(t) ? "Modifié — " : "À jour — ") + "GitHub : " + t.path;
   else s.textContent = "Fichier local (sauvegarde auto dans l'appli)";
-  $("save").textContent = ghFile ? "Envoyer" : "Enregistrer";
 }
 
 // ---------- GitHub : API ----------
@@ -391,7 +509,7 @@ function friendly(e) {
 }
 
 // ---------- GitHub : liste des fichiers ----------
-let tree = [];
+let tree = store.get("tree", []);
 const GD_RE = /\.(gd|gdshader)$/i;
 const TEXT_RE = /\.(gd|gdshader|tscn|tres|cfg|godot|json|md|txt|csv|import)$/i;
 async function loadTree() {
@@ -412,85 +530,129 @@ function renderList() {
   const q = $("filter").value.trim().toLowerCase();
   const re = $("allText").checked ? TEXT_RE : GD_RE;
   const items = tree.filter(p => re.test(p) && p.toLowerCase().includes(q));
+  const openPaths = new Set(tabs.filter(t => t.kind === "gh").map(t => t.path));
   const ul = $("list"); ul.innerHTML = "";
   items.forEach(p => {
     const li = document.createElement("li");
     const i = p.lastIndexOf("/");
     li.innerHTML = `<span class="dir"></span><span></span>`;
     li.children[0].textContent = i >= 0 ? p.slice(0, i + 1) : "";
-    li.children[1].textContent = p.slice(i + 1);
-    if (ghFile && ghFile.path === p) li.classList.add("current");
+    li.children[1].textContent = p.slice(i + 1) + (openPaths.has(p) ? "  • ouvert" : "");
+    if (openPaths.has(p)) li.classList.add("current");
     li.onclick = () => openGh(p);
     ul.appendChild(li);
   });
   if (!items.length && tree.length) $("filesHint").textContent = "Aucun fichier ne correspond.";
 }
 
-// ---------- GitHub : ouvrir ----------
+// ---------- GitHub : ouvrir (dans un onglet) ----------
 async function openGh(path) {
-  if (isDirty() && !confirm("Le fichier actuel a des modifications non envoyées. Les abandonner ?")) return;
+  const already = tabs.findIndex(t => t.kind === "gh" && t.path === path);
+  if (already >= 0) { switchTab(already); closePanel(); return; }
   const c = cfg();
   $("filesHint").textContent = "Ouverture de " + path + "…";
   try {
     const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(path)}?ref=${encodeURIComponent(c.branch)}`);
     const text = b64ToText(f.content);
-    ghFile = {path, sha: f.sha, base: text};
-    store.set("ghfile", ghFile);
-    cm.setValue(text);
-    cm.clearHistory();
-    nameInput.value = path.split("/").pop();
-    store.set("name", nameInput.value);
+    // Remplace l'onglet de départ s'il est vide et inutilisé
+    const t0 = cur();
+    if (tabs.length === 1 && t0.kind === "local" && !t0.doc.getValue().trim()) tabs = [];
+    addTab({kind: "gh", name: path.split("/").pop(), path, sha: f.sha, base: text, doc: newDoc(text)});
+    $("filesHint").textContent = "";
     closePanel();
-    refreshStatus();
   } catch (e) {
     $("filesHint").textContent = "Erreur : " + friendly(e);
   }
 }
 
-// ---------- GitHub : envoyer ----------
+// ---------- GitHub : envoyer l'onglet actif ----------
 async function pushGh(force = false, presetMsg = null) {
-  const c = cfg();
-  const text = cm.getValue();
-  if (!isDirty() && !force) { refreshStatus("Rien à envoyer, déjà à jour ✔"); return; }
-  const file = ghFile.path.split("/").pop();
-  const message = presetMsg !== null ? presetMsg : prompt("Message du commit :", "GD Pocket : modifie " + file);
+  const c = cfg(), t = cur();
+  const text = t.doc.getValue();
+  if (!isDirty(t) && !force) { refreshStatus("Rien à envoyer, déjà à jour ✔"); return; }
+  const verb = t.isNew ? "ajoute" : "modifie";
+  const message = presetMsg !== null ? presetMsg : prompt("Message du commit :", `GD Pocket : ${verb} ${t.name}`);
   if (message === null) return;
   $("save").disabled = true;
   refreshStatus("Envoi vers GitHub…");
   try {
-    const r = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(ghFile.path)}`, {
-      method: "PUT",
-      body: JSON.stringify({message: message || ("GD Pocket : modifie " + file),
-                            content: textToB64(text), sha: ghFile.sha, branch: c.branch})
-    });
-    ghFile = {path: ghFile.path, sha: r.content.sha, base: text};
-    store.set("ghfile", ghFile);
-    refreshStatus();
-    refreshStatus("Envoyé sur GitHub ✔ (pense à faire un pull sur le PC)");
+    const body = {message: message || `GD Pocket : ${verb} ${t.name}`, content: textToB64(text), branch: c.branch};
+    if (t.sha) body.sha = t.sha;
+    const r = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(t.path)}`, {method: "PUT", body: JSON.stringify(body)});
+    const wasNew = t.isNew;
+    Object.assign(t, {sha: r.content.sha, base: text, isNew: false});
+    if (wasNew && !tree.includes(t.path)) { tree.push(t.path); tree.sort(); store.set("tree", tree); }
+    saveTabs(true); renderTabs();
+    refreshStatus((wasNew ? "Créé" : "Envoyé") + " sur GitHub ✔ (pense à faire un pull sur le PC)");
   } catch (e) {
-    if (e.status === 409 || e.status === 422) {
-      // Le fichier a changé sur GitHub depuis l'ouverture (PC ou autre appli)
+    if (t.isNew && e.status === 422) {
+      refreshStatus("Un fichier porte déjà ce nom sur GitHub : ferme l'onglet et choisis un autre nom.");
+    } else if (e.status === 409 || e.status === 422) {
       if (confirm("Ce fichier a été modifié sur GitHub depuis que tu l'as ouvert.\n\nOK = écraser avec ta version\nAnnuler = ne rien envoyer")) {
         try {
-          const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(ghFile.path)}?ref=${encodeURIComponent(c.branch)}`);
-          ghFile.sha = f.sha;  // on repart de la version actuelle de GitHub
+          const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(t.path)}?ref=${encodeURIComponent(c.branch)}`);
+          t.sha = f.sha;
           $("save").disabled = false;
           return pushGh(true, message);
         } catch (e2) { refreshStatus("Erreur : " + friendly(e2)); }
-      } else refreshStatus("Envoi annulé. Ta version reste dans l'appli.");
+      } else refreshStatus("Envoi annulé. Ta version reste dans l'onglet.");
     } else refreshStatus("Erreur : " + friendly(e));
   } finally { $("save").disabled = false; }
 }
+
+// ---------- Nouveau script ----------
+const TEMPLATE = base => base ? `extends ${base}
+
+
+# Appelée quand le nœud entre dans la scène pour la première fois.
+func _ready() -> void:
+\tpass
+
+
+# Appelée à chaque image. 'delta' est le temps écoulé depuis l'image précédente.
+func _process(delta: float) -> void:
+\tpass
+` : "";
+function openNewDlg() {
+  const dirs = [...new Set(tree.filter(p => GD_RE.test(p)).map(p => p.includes("/") ? p.slice(0, p.lastIndexOf("/")) : ""))].sort();
+  if (!dirs.includes("")) dirs.unshift("");
+  const sel = $("newDir"); sel.innerHTML = "";
+  dirs.forEach(d => { const o = document.createElement("option"); o.value = d; o.textContent = d ? d + "/" : "(racine du dépôt)"; sel.appendChild(o); });
+  const last = store.get("lastDir", dirs.includes("scripts") ? "scripts" : "");
+  if (dirs.includes(last)) sel.value = last;
+  $("newName").value = "";
+  updateNewPreview();
+  $("newDlg").classList.add("open");
+  setTimeout(() => $("newName").focus(), 50);
+}
+function newPath() {
+  let n = $("newName").value.trim().replace(/\s+/g, "_").replace(/[^\w.\-]/g, "");
+  if (!n) return "";
+  if (!/\.(gd|gdshader)$/i.test(n)) n += ".gd";
+  return ($("newDir").value ? $("newDir").value + "/" : "") + n;
+}
+function updateNewPreview() { $("newPreview").textContent = newPath() ? "→ " + newPath() : ""; }
+$("newName").oninput = updateNewPreview;
+$("newDir").onchange = updateNewPreview;
+$("newCancel").onclick = () => $("newDlg").classList.remove("open");
+$("newCreate").onclick = () => {
+  const p = newPath();
+  if (!p) { alert("Donne un nom au script."); return; }
+  if (tree.includes(p) || tabs.some(t => t.path === p)) { alert("Un fichier « " + p + " » existe déjà."); return; }
+  if (!cfg().token) { alert("Configure d'abord la connexion GitHub dans Réglages."); return; }
+  store.set("lastDir", $("newDir").value);
+  $("newDlg").classList.remove("open");
+  closePanel();
+  addTab({kind: "gh", name: p.split("/").pop(), path: p, sha: null, base: null, isNew: true, doc: newDoc(TEMPLATE($("newBase").value))});
+};
+$("newScript").onclick = openNewDlg;
 
 // ---------- Local : ouvrir / télécharger ----------
 $("openLocal").onclick = () => $("file").click();
 $("file").onchange = async () => {
   const f = $("file").files[0];
   if (!f) return;
-  if (isDirty() && !confirm("Le fichier GitHub ouvert a des modifications non envoyées. Les abandonner ?")) return;
-  cm.setValue(await f.text());
-  ghFile = null; store.del("ghfile");
-  nameInput.value = f.name; store.set("name", f.name);
+  addTab({kind: "local", name: f.name, doc: newDoc(await f.text())});
   $("file").value = "";
   closePanel(); refreshStatus("Ouvert depuis le téléphone : " + f.name);
 };
@@ -498,22 +660,20 @@ function download() {
   const blob = new Blob([cm.getValue()], {type: "text/plain"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = nameInput.value || "script.gd";
+  a.download = cur().name || "script.gd";
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   refreshStatus("Téléchargé : " + a.download);
 }
 $("download").onclick = download;
-function save() { ghFile ? pushGh() : download(); }
+function save() { cur().kind === "gh" ? pushGh() : download(); }
 $("save").onclick = save;
 
 // ---------- Panneau ----------
 function openPanel() {
   $("panel").classList.add("open");
-  const c = cfg();
-  tree = store.get("tree", []);
   renderList();
-  if (!c.token) showTab("settings"); else if (!tree.length) loadTree();
+  if (!cfg().token) showTab("settings"); else if (!tree.length) loadTree();
 }
 function closePanel() { $("panel").classList.remove("open"); }
 function showTab(t) {
@@ -543,7 +703,7 @@ $("saveSettings").onclick = async () => {
   try {
     const info = await gh(`/repos/${c.owner}/${c.repo}`);
     if (!c.branch) { c.branch = info.default_branch; $("ghBranch").value = c.branch; store.set("gh", c); }
-    store.del("tree");
+    store.del("tree"); tree = [];
     alert("Connexion réussie ✔\nDépôt : " + info.full_name + "\nBranche : " + c.branch);
     showTab("files"); loadTree();
   } catch (e) {
@@ -561,13 +721,16 @@ $("prefWrap").onchange = () => {
   prefs.wrap = $("prefWrap").checked; store.set("prefs", prefs);
   cm.setOption("lineWrapping", prefs.wrap);
 };
-
 $("forget").onclick = () => {
   const c = cfg(); delete c.token; store.set("gh", c);
-  $("ghToken").value = ""; store.del("tree");
+  $("ghToken").value = ""; store.del("tree"); tree = [];
   alert("Jeton effacé de l'appli.");
 };
 
+// Prévenir avant de quitter s'il reste des modifications non envoyées
+window.addEventListener("beforeunload", e => { saveTabs(true); if (tabs.some(isDirty)) e.preventDefault(); });
+
+renderTabs();
 refreshStatus();
 
 // ---------- Mode appli (PWA) ----------
