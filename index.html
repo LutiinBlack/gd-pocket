@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
+<title>GD Pocket</title>
+<meta name="theme-color" content="#282a36">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
+<style>
+  :root { --bg:#1e1f29; --bar:#282a36; --txt:#f8f8f2; --acc:#478cbf; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--txt); font-family:system-ui, sans-serif; }
+  body { display:flex; flex-direction:column; }
+  header { display:flex; gap:6px; padding:8px; background:var(--bar); align-items:center; }
+  header input[type=text] { flex:1; min-width:0; background:#44475a; color:var(--txt); border:0; border-radius:6px; padding:8px; font-size:15px; }
+  button { background:var(--acc); color:#fff; border:0; border-radius:6px; padding:8px 10px; font-size:15px; }
+  #editor { flex:1; min-height:0; }
+  .CodeMirror { height:100%; font-size:15px; font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .CodeMirror-hints { font-size:15px; z-index:50; }
+  #keys { display:flex; gap:4px; overflow-x:auto; padding:6px; background:var(--bar); }
+  #keys button { background:#44475a; min-width:42px; font-family:monospace; padding:8px; }
+  #status { font-size:12px; opacity:.7; padding:0 8px 6px; background:var(--bar); }
+</style>
+</head>
+<body>
+<header>
+  <button id="open">Ouvrir</button>
+  <input id="name" type="text" value="script.gd" aria-label="Nom du fichier">
+  <button id="save">Enregistrer</button>
+  <input id="file" type="file" accept=".gd,.txt,text/plain" hidden>
+</header>
+<div id="editor"></div>
+<div id="keys"></div>
+<div id="status">Prêt</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/mode/simple.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script>
+// ---------- Vocabulaire GDScript (Godot 4) ----------
+const KEYWORDS = ["if","elif","else","for","while","match","when","break","continue","pass","return",
+  "class","class_name","extends","is","in","as","not","and","or","func","static","const","enum",
+  "var","signal","await","breakpoint","preload","load","super","assert","yield"];
+const ANNOTATIONS = ["@export","@export_range","@export_enum","@export_file","@export_dir",
+  "@export_multiline","@export_color_no_alpha","@export_flags","@export_group","@export_subgroup",
+  "@export_category","@export_node_path","@onready","@tool","@icon","@static_unload","@warning_ignore","@rpc"];
+const TYPES = ["void","bool","int","float","String","StringName","NodePath","Vector2","Vector2i",
+  "Vector3","Vector3i","Vector4","Color","Rect2","Transform2D","Transform3D","Basis","Quaternion",
+  "AABB","Plane","Array","Dictionary","PackedScene","Callable","Signal","Object","Node","Node2D",
+  "Node3D","Control","Resource","CharacterBody2D","CharacterBody3D","RigidBody2D","RigidBody3D",
+  "VehicleBody3D","VehicleWheel3D","Area2D","Area3D","Camera2D","Camera3D","Sprite2D","Sprite3D",
+  "MeshInstance3D","AnimationPlayer","Timer","Label","Button","Input","InputEvent","Engine","OS",
+  "Time","Tween","RayCast3D","CollisionShape3D","PathFollow3D","AudioStreamPlayer"];
+const BUILTINS = ["_ready","_process","_physics_process","_input","_unhandled_input","_init",
+  "_enter_tree","_exit_tree","print","printerr","push_error","push_warning","str","int","float",
+  "abs","clamp","clampf","lerp","lerpf","move_toward","min","max","sign","sqrt","pow","randf",
+  "randi","randf_range","randi_range","deg_to_rad","rad_to_deg","is_instance_valid","get_node",
+  "get_tree","queue_free","add_child","instantiate","move_and_slide","emit","connect",
+  "is_action_pressed","is_action_just_pressed","get_axis","get_vector","delta","velocity","position",
+  "rotation","global_position","self","true","false","null","PI","TAU","INF","NAN"];
+
+// ---------- Coloration syntaxique ----------
+const kwRe = new RegExp("\\b(?:" + KEYWORDS.join("|") + ")\\b");
+const typeRe = new RegExp("\\b(?:" + TYPES.join("|") + ")\\b");
+CodeMirror.defineSimpleMode("gdscript", {
+  start: [
+    {regex: /#.*/, token: "comment"},
+    {regex: /"""/, token: "string", next: "tstring"},
+    {regex: /"(?:[^\\"]|\\.)*?(?:"|$)/, token: "string"},
+    {regex: /'(?:[^\\']|\\.)*?(?:'|$)/, token: "string"},
+    {regex: /@[A-Za-z_]\w*/, token: "meta"},
+    {regex: /\$[\w\/]+|%\w+/, token: "variable-3"},
+    {regex: /0x[0-9a-fA-F_]+|\d[\d_]*\.?[\d_]*(?:e[+-]?\d+)?/, token: "number"},
+    {regex: /(func)(\s+)([A-Za-z_]\w*)/, token: ["keyword", null, "def"]},
+    {regex: kwRe, token: "keyword"},
+    {regex: /\b(?:true|false|null|self|PI|TAU|INF|NAN)\b/, token: "atom"},
+    {regex: typeRe, token: "builtin"},
+    {regex: /[A-Za-z_]\w*(?=\s*\()/, token: "variable-2"},
+    {regex: /[-+\/*=<>!%&|^~]+/, token: "operator"},
+    {regex: /[A-Za-z_]\w*/, token: "variable"}
+  ],
+  tstring: [
+    {regex: /.*?"""/, token: "string", next: "start"},
+    {regex: /.*/, token: "string"}
+  ],
+  meta: {lineComment: "#"}
+});
+
+// ---------- Autocomplétion ----------
+const BASE_WORDS = [...new Set([...KEYWORDS, ...ANNOTATIONS, ...TYPES, ...BUILTINS])];
+function gdHint(cm) {
+  const cur = cm.getCursor(), line = cm.getLine(cur.line);
+  let start = cur.ch;
+  while (start > 0 && /[\w@]/.test(line.charAt(start - 1))) start--;
+  const word = line.slice(start, cur.ch);
+  if (!word) return null;
+  // mots déjà présents dans le fichier (tes variables, fonctions...)
+  const docWords = cm.getValue().match(/@?[A-Za-z_]\w{2,}/g) || [];
+  const all = [...new Set([...BASE_WORDS, ...docWords])];
+  const low = word.toLowerCase();
+  const list = all.filter(w => w !== word && w.toLowerCase().startsWith(low))
+                  .sort((a, b) => a.length - b.length).slice(0, 30);
+  return list.length ? {list, from: CodeMirror.Pos(cur.line, start), to: cur} : null;
+}
+
+// ---------- Éditeur ----------
+const SAMPLE = `extends CharacterBody3D
+
+@export var vitesse: float = 10.0
+
+func _physics_process(delta: float) -> void:
+\tvar direction := Input.get_axis("gauche", "droite")
+\tvelocity.x = direction * vitesse
+\tmove_and_slide()
+`;
+let saved = null;
+try { saved = localStorage.getItem("gdpocket_code"); } catch (e) {}
+
+const cm = CodeMirror(document.getElementById("editor"), {
+  value: saved || SAMPLE,
+  mode: "gdscript",
+  theme: "dracula",
+  lineNumbers: true,
+  indentUnit: 4, tabSize: 4, indentWithTabs: true,
+  autoCloseBrackets: true, matchBrackets: true,
+  inputStyle: "contenteditable",
+  extraKeys: {
+    "Enter": c => {   // garde l'indentation, ajoute un cran après ":"
+      const p = c.getCursor(), before = c.getLine(p.line).slice(0, p.ch);
+      let ind = before.match(/^\s*/)[0];
+      if (/:\s*(#.*)?$/.test(before)) ind += "\t";
+      c.replaceSelection("\n" + ind);
+    },
+    "Ctrl-Space": c => c.showHint({hint: gdHint, completeSingle: false}),
+    "Ctrl-S": () => saveFile()
+  }
+});
+cm.on("inputRead", (c, ch) => {
+  if (/[\w@]/.test(ch.text.join(""))) c.showHint({hint: gdHint, completeSingle: false});
+});
+let timer;
+cm.on("change", () => {
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    try { localStorage.setItem("gdpocket_code", cm.getValue());
+          localStorage.setItem("gdpocket_name", nameInput.value); } catch (e) {}
+    status("Sauvegarde auto ✔");
+  }, 800);
+});
+
+// ---------- Barre de touches pour le téléphone ----------
+const KEYS = ["⇥", ":", "(", ")", "_", "\"", "$", "@", "=", ".", "[", "]", "{", "}", "->", "#"];
+const keysBar = document.getElementById("keys");
+KEYS.forEach(k => {
+  const b = document.createElement("button");
+  b.textContent = k;
+  b.addEventListener("mousedown", e => e.preventDefault()); // garde le focus
+  b.addEventListener("click", () => {
+    cm.replaceSelection(k === "⇥" ? "\t" : k);
+    cm.focus();
+  });
+  keysBar.appendChild(b);
+});
+
+// ---------- Ouvrir / Enregistrer ----------
+const nameInput = document.getElementById("name");
+try { nameInput.value = localStorage.getItem("gdpocket_name") || "script.gd"; } catch (e) {}
+const fileInput = document.getElementById("file");
+document.getElementById("open").onclick = () => fileInput.click();
+fileInput.onchange = async () => {
+  const f = fileInput.files[0];
+  if (!f) return;
+  cm.setValue(await f.text());
+  nameInput.value = f.name;
+  status("Ouvert : " + f.name);
+  fileInput.value = "";
+};
+function saveFile() {
+  const blob = new Blob([cm.getValue()], {type: "text/plain"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = nameInput.value || "script.gd";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  status("Enregistré dans Téléchargements : " + a.download);
+}
+document.getElementById("save").onclick = saveFile;
+
+function status(t) { document.getElementById("status").textContent = t; }
+
+// ---------- Mode appli (PWA) : fonctionne hors ligne ----------
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+</script>
+</body>
+</html>
