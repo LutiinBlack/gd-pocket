@@ -45,7 +45,9 @@
   .row { display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
   .hint { font-size:13px; opacity:.75; line-height:1.4; }
   #list { list-style:none; margin:10px 0 0; padding:0; }
-  #list li { padding:12px 8px; border-bottom:1px solid var(--mut); font-family:ui-monospace, monospace; font-size:14px; word-break:break-all; }
+  #list li { display:flex; align-items:center; gap:6px; padding:4px 0 4px 8px; border-bottom:1px solid var(--mut); font-family:ui-monospace, monospace; font-size:14px; word-break:break-all; }
+  #list li .path { flex:1; padding:8px 0; }
+  #list li .del { background:transparent; padding:10px 12px; font-size:17px; opacity:.6; }
   #list li .dir { opacity:.55; }
   #list li.current { color:var(--ok); }
   .check { display:flex; align-items:center; gap:8px; margin-top:10px; font-size:14px; }
@@ -535,11 +537,14 @@ function renderList() {
   items.forEach(p => {
     const li = document.createElement("li");
     const i = p.lastIndexOf("/");
-    li.innerHTML = `<span class="dir"></span><span></span>`;
-    li.children[0].textContent = i >= 0 ? p.slice(0, i + 1) : "";
-    li.children[1].textContent = p.slice(i + 1) + (openPaths.has(p) ? "  • ouvert" : "");
+    li.innerHTML = `<span class="path"><span class="dir"></span><span></span></span><button class="del">🗑</button>`;
+    const path = li.children[0], del = li.children[1];
+    path.children[0].textContent = i >= 0 ? p.slice(0, i + 1) : "";
+    path.children[1].textContent = p.slice(i + 1) + (openPaths.has(p) ? "  • ouvert" : "");
     if (openPaths.has(p)) li.classList.add("current");
-    li.onclick = () => openGh(p);
+    path.onclick = () => openGh(p);
+    del.setAttribute("aria-label", "Supprimer " + p);
+    del.onclick = e => { e.stopPropagation(); deleteGh(p); };
     ul.appendChild(li);
   });
   if (!items.length && tree.length) $("filesHint").textContent = "Aucun fichier ne correspond.";
@@ -598,6 +603,50 @@ async function pushGh(force = false, presetMsg = null) {
       } else refreshStatus("Envoi annulé. Ta version reste dans l'onglet.");
     } else refreshStatus("Erreur : " + friendly(e));
   } finally { $("save").disabled = false; }
+}
+
+// ---------- GitHub : supprimer ----------
+async function deleteGh(path) {
+  const c = cfg();
+  const name = path.split("/").pop();
+  const uid = path + ".uid";                       // fichier compagnon Godot 4.4+
+  const withUid = tree.includes(uid);
+  const ti = tabs.findIndex(t => t.kind === "gh" && t.path === path);
+  let warn = `Supprimer « ${path} » du dépôt GitHub ?`;
+  if (withUid) warn += `\n\nSon fichier compagnon « ${name}.uid » sera aussi supprimé.`;
+  if (/\.gd$/i.test(path)) warn += "\n\nAttention : si une scène Godot utilise ce script, elle affichera une erreur. Détache-le d'abord dans Godot si besoin.";
+  if (ti >= 0 && isDirty(tabs[ti])) warn += "\n\nCe fichier est ouvert avec des modifications non envoyées : elles seront perdues.";
+  warn += "\n\n(Il reste récupérable dans l'historique Git.)";
+  if (!confirm(warn)) return;
+  const message = prompt("Message du commit :", "GD Pocket : supprime " + name);
+  if (message === null) return;
+  $("filesHint").textContent = "Suppression de " + path + "…";
+  try {
+    for (const p of withUid ? [path, uid] : [path]) {
+      const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(p)}?ref=${encodeURIComponent(c.branch)}`);
+      await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(p)}`, {
+        method: "DELETE",
+        body: JSON.stringify({message: message || ("GD Pocket : supprime " + name), sha: f.sha, branch: c.branch})
+      });
+      tree = tree.filter(x => x !== p);
+    }
+    store.set("tree", tree);
+    // Fermer l'onglet du fichier supprimé, sans redemander
+    const j = tabs.findIndex(t => t.kind === "gh" && t.path === path);
+    if (j >= 0) {
+      tabs.splice(j, 1);
+      if (!tabs.length) tabs.push({kind: "local", name: "script.gd", doc: newDoc("")});
+      const next = j < active ? active - 1 : Math.min(active, tabs.length - 1);
+      active = -1; switchTab(next);
+    }
+    renderList();
+    $("filesHint").textContent = `« ${name} » supprimé ✔ (pense à faire un pull sur le PC)`;
+  } catch (e) {
+    $("filesHint").textContent = e.status === 404
+      ? "Ce fichier n'existe plus sur GitHub : touche ↻ Actualiser."
+      : "Erreur : " + friendly(e);
+    if (e.status === 404) { tree = tree.filter(x => x !== path); store.set("tree", tree); renderList(); }
+  }
 }
 
 // ---------- Nouveau script ----------
