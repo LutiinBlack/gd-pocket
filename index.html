@@ -49,6 +49,48 @@
   #list li .dir { opacity:.55; }
   #list li.current { color:var(--ok); }
   .check { display:flex; align-items:center; gap:8px; margin-top:10px; font-size:14px; }
+  .pane h3 { font-size:15px; margin:22px 0 4px; padding-top:14px; border-top:1px solid var(--mut); }
+  .pane select { width:100%; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:10px; font-size:15px; }
+
+  /* ---------- Thème « Godot » : couleurs par défaut de l'éditeur de script Godot 4 ---------- */
+  .cm-s-godot.CodeMirror { background:#1d2229; color:#cdcfd2; }
+  .cm-s-godot .CodeMirror-gutters { background:#1d2229; border-right:0; }
+  .cm-s-godot .CodeMirror-linenumber { color:rgba(205,207,210,.5); }
+  .cm-s-godot .CodeMirror-cursor { border-left:2px solid #e0e0e0; }
+  .cm-s-godot .CodeMirror-activeline-background { background:rgba(255,255,255,.07); }
+  .cm-s-godot div.CodeMirror-selected, .cm-s-godot .CodeMirror-line::selection,
+  .cm-s-godot .CodeMirror-line > span::selection, .cm-s-godot .CodeMirror-line > span > span::selection { background:rgba(112,186,250,.4); }
+  .cm-s-godot .CodeMirror-matchingbracket { color:#cdcfd2 !important; background:rgba(255,255,255,.15); text-decoration:none; }
+  .cm-s-godot .cm-gd-kw      { color:#ff7085; }  /* var, func, extends, true, self… */
+  .cm-s-godot .cm-gd-flow    { color:#ff8ccc; }  /* if, for, return… */
+  .cm-s-godot .cm-gd-base    { color:#42ffc2; }  /* int, float, Vector3… */
+  .cm-s-godot .cm-gd-engine  { color:#8fffdb; }  /* Node3D, Input… */
+  .cm-s-godot .cm-gd-user    { color:#c7ffed; }  /* tes classes (class_name) */
+  .cm-s-godot .cm-gd-comment { color:rgba(205,207,210,.5); }
+  .cm-s-godot .cm-gd-doc     { color:rgba(153,179,204,.8); }
+  .cm-s-godot .cm-gd-string  { color:#ffeda1; }
+  .cm-s-godot .cm-gd-sname   { color:#ffc2a6; }  /* &"nom" */
+  .cm-s-godot .cm-gd-npath   { color:#b8c47d; }  /* ^"chemin" */
+  .cm-s-godot .cm-gd-noderef { color:#63c259; }  /* $Noeud, %Unique */
+  .cm-s-godot .cm-gd-num     { color:#a1ffe0; }
+  .cm-s-godot .cm-gd-sym     { color:#abc9ff; }
+  .cm-s-godot .cm-gd-fcall   { color:#57b3ff; }  /* appel de fonction */
+  .cm-s-godot .cm-gd-gfunc   { color:#a3a3f5; }  /* print, str, lerp… */
+  .cm-s-godot .cm-gd-fdef    { color:#66e6ff; }  /* nom après func */
+  .cm-s-godot .cm-gd-member  { color:#bce0ff; }  /* .position, .velocity… */
+  .cm-s-godot .cm-gd-annot   { color:#ffb373; }  /* @export, @onready… */
+
+  /* Thème « Dracula » (ancien) avec les mêmes catégories */
+  .cm-s-dracula .cm-gd-kw, .cm-s-dracula .cm-gd-flow { color:#ff79c6; }
+  .cm-s-dracula .cm-gd-base, .cm-s-dracula .cm-gd-engine, .cm-s-dracula .cm-gd-user { color:#8be9fd; font-style:italic; }
+  .cm-s-dracula .cm-gd-comment, .cm-s-dracula .cm-gd-doc { color:#6272a4; }
+  .cm-s-dracula .cm-gd-string, .cm-s-dracula .cm-gd-sname, .cm-s-dracula .cm-gd-npath { color:#f1fa8c; }
+  .cm-s-dracula .cm-gd-noderef { color:#ffb86c; }
+  .cm-s-dracula .cm-gd-num { color:#bd93f9; }
+  .cm-s-dracula .cm-gd-sym { color:#ff79c6; }
+  .cm-s-dracula .cm-gd-fcall, .cm-s-dracula .cm-gd-gfunc, .cm-s-dracula .cm-gd-fdef { color:#50fa7b; }
+  .cm-s-dracula .cm-gd-member { color:#f8f8f2; }
+  .cm-s-dracula .cm-gd-annot { color:#ffb86c; }
 </style>
 </head>
 <body>
@@ -98,6 +140,14 @@
       <button id="forget" class="ghost">Effacer le jeton</button>
     </div>
     <p class="hint">Le jeton reste uniquement dans cette appli, sur ce téléphone, et n'est envoyé qu'à api.github.com.</p>
+
+    <h3>Affichage</h3>
+    <label for="prefTheme">Couleurs du code</label>
+    <select id="prefTheme">
+      <option value="godot">Godot (comme l'éditeur de script)</option>
+      <option value="dracula">Dracula</option>
+    </select>
+    <label class="check"><input id="prefWrap" type="checkbox"> Retour à la ligne automatique des lignes longues</label>
   </div>
   <input id="file" type="file" accept=".gd,.gdshader,.txt,text/plain" hidden>
 </div>
@@ -107,6 +157,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
 <script>
 // ---------- Petits utilitaires de stockage ----------
 const store = {
@@ -138,29 +189,70 @@ const BUILTINS = ["_ready","_process","_physics_process","_input","_unhandled_in
   "is_action_pressed","is_action_just_pressed","get_axis","get_vector","delta","velocity","position",
   "rotation","global_position","self","true","false","null","PI","TAU","INF","NAN"];
 
-// ---------- Coloration syntaxique ----------
-const kwRe = new RegExp("\\b(?:" + KEYWORDS.join("|") + ")\\b");
-const typeRe = new RegExp("\\b(?:" + TYPES.join("|") + ")\\b");
+// ---------- Coloration syntaxique (mêmes catégories que l'éditeur Godot) ----------
+const words = list => new RegExp("(?:" + list.join("|") + ")\\b");
+const FLOW = ["if","elif","else","for","while","match","when","break","continue","pass","return"];
+const KW = ["var","const","func","static","class","class_name","extends","signal","enum","await",
+  "is","in","as","not","and","or","super","self","true","false","null","void","breakpoint",
+  "preload","load","assert","yield","PI","TAU","INF","NAN"];
+const BASE = ["bool","int","float","String","StringName","NodePath","Vector2i","Vector2","Vector3i",
+  "Vector3","Vector4i","Vector4","Color","Rect2i","Rect2","Transform2D","Transform3D","Basis",
+  "Quaternion","AABB","Plane","Projection","Array","Dictionary","Callable","Signal","RID","Object",
+  "PackedByteArray","PackedInt32Array","PackedInt64Array","PackedFloat32Array","PackedFloat64Array",
+  "PackedStringArray","PackedVector2Array","PackedVector3Array","PackedColorArray","Variant"];
+const ENGINE = ["Node","Node2D","Node3D","Control","Resource","PackedScene","CharacterBody2D",
+  "CharacterBody3D","RigidBody2D","RigidBody3D","StaticBody3D","StaticBody2D","VehicleBody3D",
+  "VehicleWheel3D","Area2D","Area3D","Camera2D","Camera3D","Sprite2D","Sprite3D","MeshInstance3D",
+  "AnimationPlayer","AnimatedSprite2D","Timer","Label","Button","TextureRect","CanvasLayer",
+  "Input","InputEvent","InputEventKey","InputEventScreenTouch","InputEventScreenDrag","Engine","OS",
+  "Time","Tween","RayCast3D","RayCast2D","CollisionShape3D","CollisionShape2D","Path3D",
+  "PathFollow3D","AudioStreamPlayer","AudioStreamPlayer3D","GPUParticles3D","CPUParticles3D",
+  "DirectionalLight3D","OmniLight3D","WorldEnvironment","Environment","StandardMaterial3D",
+  "BoxMesh","SphereMesh","CylinderMesh","BoxShape3D","SphereShape3D","Curve3D","FastNoiseLite",
+  "ResourceLoader","SceneTree","Viewport","Window","DisplayServer","ProjectSettings","FileAccess",
+  "DirAccess","JSON","RandomNumberGenerator","PhysicsDirectSpaceState3D","PhysicsRayQueryParameters3D"];
+const GFUNC = ["print","prints","printt","print_rich","printerr","push_error","push_warning","str",
+  "abs","absf","absi","clamp","clampf","clampi","lerp","lerpf","lerp_angle","inverse_lerp","remap",
+  "move_toward","min","max","minf","maxf","mini","maxi","sign","signf","sqrt","pow","exp","log",
+  "sin","cos","tan","atan2","floor","ceil","round","snapped","wrapf","wrapi","fmod","randf","randi",
+  "randf_range","randi_range","randomize","deg_to_rad","rad_to_deg","is_instance_valid","is_zero_approx",
+  "is_equal_approx","smoothstep","range","len","typeof","type_string","instance_from_id","str_to_var",
+  "var_to_str","weakref","hash","char","ord","get_stack","print_stack","is_nan","is_inf"];
+const MEMBERS = ["position","rotation","rotation_degrees","scale","transform","global_position",
+  "global_rotation","global_rotation_degrees","global_transform","basis","velocity","linear_velocity",
+  "angular_velocity","visible","modulate","name","owner","text","size","engine_force","brake",
+  "steering","up_direction","floor_max_angle","process_mode","current","fov","quaternion"];
+
 CodeMirror.defineSimpleMode("gdscript", {
   start: [
-    {regex: /#.*/, token: "comment"},
-    {regex: /"""/, token: "string", next: "tstring"},
-    {regex: /"(?:[^\\"]|\\.)*?(?:"|$)/, token: "string"},
-    {regex: /'(?:[^\\']|\\.)*?(?:'|$)/, token: "string"},
-    {regex: /@[A-Za-z_]\w*/, token: "meta"},
-    {regex: /\$[\w\/]+|%\w+/, token: "variable-3"},
-    {regex: /0x[0-9a-fA-F_]+|\d[\d_]*\.?[\d_]*(?:e[+-]?\d+)?/, token: "number"},
-    {regex: /(func)(\s+)([A-Za-z_]\w*)/, token: ["keyword", null, "def"]},
-    {regex: kwRe, token: "keyword"},
-    {regex: /\b(?:true|false|null|self|PI|TAU|INF|NAN)\b/, token: "atom"},
-    {regex: typeRe, token: "builtin"},
-    {regex: /[A-Za-z_]\w*(?=\s*\()/, token: "variable-2"},
-    {regex: /[-+\/*=<>!%&|^~]+/, token: "operator"},
-    {regex: /[A-Za-z_]\w*/, token: "variable"}
+    {regex: /##.*/, token: "gd-doc"},
+    {regex: /#.*/, token: "gd-comment"},
+    {regex: /&"(?:[^\\"]|\\.)*?(?:"|$)/, token: "gd-sname"},
+    {regex: /\^"(?:[^\\"]|\\.)*?(?:"|$)/, token: "gd-npath"},
+    {regex: /"""/, token: "gd-string", next: "tstring"},
+    {regex: /"(?:[^\\"]|\\.)*?(?:"|$)/, token: "gd-string"},
+    {regex: /'(?:[^\\']|\\.)*?(?:'|$)/, token: "gd-string"},
+    {regex: /@[A-Za-z_]\w*/, token: "gd-annot"},
+    {regex: /\$(?:"[^"]*"|[\w\/]+)|%[A-Za-z_]\w*/, token: "gd-noderef"},
+    {regex: /0x[0-9a-fA-F_]+|0b[01_]+|(?:\d[\d_]*\.?[\d_]*|\.\d[\d_]*)(?:e[+-]?\d+)?/, token: "gd-num"},
+    {regex: /(func)(\s+)([A-Za-z_]\w*)/, token: ["gd-kw", null, "gd-fdef"]},
+    {regex: /(\.)([A-Za-z_]\w*)(?=\s*\()/, token: ["gd-sym", "gd-fcall"]},
+    {regex: /(\.)([A-Za-z_]\w*)/, token: ["gd-sym", "gd-member"]},
+    {regex: words(FLOW), token: "gd-flow"},
+    {regex: words(KW), token: "gd-kw"},
+    {regex: words(BASE), token: "gd-base"},
+    {regex: new RegExp("(?:" + GFUNC.join("|") + ")(?=\\s*\\()"), token: "gd-gfunc"},
+    {regex: words(ENGINE), token: "gd-engine"},
+    {regex: /[A-Za-z_]\w*(?=\s*\()/, token: "gd-fcall"},
+    {regex: words(MEMBERS), token: "gd-member"},         // propriétés héritées (position, velocity…)
+    {regex: /[A-Z][A-Z0-9_]*\b/, token: null},          // CONSTANTES : couleur du texte
+    {regex: /[A-Z]\w*/, token: "gd-user"},               // tes classes (class_name)
+    {regex: /[A-Za-z_]\w*/, token: null},                // variables : couleur du texte
+    {regex: /[-+*\/%=<>!&|^~.,:;()\[\]{}]/, token: "gd-sym"}
   ],
   tstring: [
-    {regex: /.*?"""/, token: "string", next: "start"},
-    {regex: /.*/, token: "string"}
+    {regex: /.*?"""/, token: "gd-string", next: "start"},
+    {regex: /.*/, token: "gd-string"}
   ],
   meta: {lineComment: "#"}
 });
@@ -197,10 +289,16 @@ try { savedCode = localStorage.getItem("gdpocket_code"); } catch (e) {}
 // Fichier GitHub actuellement ouvert : {path, sha, base} (base = texte tel que sur GitHub)
 let ghFile = store.get("ghfile", null);
 
+// Préférences d'affichage : thème et retour à la ligne
+const prefs = Object.assign({theme: "godot", wrap: false}, store.get("prefs", {}));
+document.body.style.background = prefs.theme === "godot" ? "#1d2229" : "";
+
 const cm = CodeMirror($("editor"), {
   value: savedCode || SAMPLE,
   mode: "gdscript",
-  theme: "dracula",
+  theme: prefs.theme,
+  lineWrapping: prefs.wrap,
+  styleActiveLine: true,
   lineNumbers: true,
   indentUnit: 4, tabSize: 4, indentWithTabs: true,
   autoCloseBrackets: true, matchBrackets: true,
@@ -452,6 +550,18 @@ $("saveSettings").onclick = async () => {
     alert("Échec : " + friendly(e));
   } finally { $("saveSettings").disabled = false; }
 };
+$("prefTheme").value = prefs.theme;
+$("prefWrap").checked = prefs.wrap;
+$("prefTheme").onchange = () => {
+  prefs.theme = $("prefTheme").value; store.set("prefs", prefs);
+  cm.setOption("theme", prefs.theme);
+  document.body.style.background = prefs.theme === "godot" ? "#1d2229" : "";
+};
+$("prefWrap").onchange = () => {
+  prefs.wrap = $("prefWrap").checked; store.set("prefs", prefs);
+  cm.setOption("lineWrapping", prefs.wrap);
+};
+
 $("forget").onclick = () => {
   const c = cfg(); delete c.token; store.set("gh", c);
   $("ghToken").value = ""; store.del("tree");
