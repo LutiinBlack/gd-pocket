@@ -182,6 +182,7 @@
       <option value="dracula">Dracula</option>
     </select>
     <label class="check"><input id="prefWrap" type="checkbox"> Retour à la ligne automatique des lignes longues</label>
+    <label class="check"><input id="prefStart" type="checkbox"> Ouvrir sur la liste des fichiers au démarrage</label>
   </div>
   <input id="file" type="file" accept=".gd,.gdshader,.txt,text/plain" hidden>
 </div>
@@ -236,7 +237,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
 <script>
 // ---------- Version et rapport d'erreurs (utile sur les vieux appareils) ----------
-var APP_VERSION = "0.7.3";
+var APP_VERSION = "0.7.4";
 function showError(msg) {
   var t = "⚠ Erreur : " + msg;
   var s = document.getElementById("status"), h = document.getElementById("filesHint");
@@ -374,7 +375,7 @@ function gdHint(cm) {
 }
 
 // ---------- Préférences d'affichage ----------
-const prefs = Object.assign({theme: "godot", wrap: false}, store.get("prefs", {}));
+const prefs = Object.assign({theme: "godot", wrap: false, startFiles: true}, store.get("prefs", {}));
 document.body.style.background = prefs.theme === "godot" ? "#1d2229" : "";
 
 // ---------- Onglets ----------
@@ -908,6 +909,8 @@ $("saveSettings").onclick = async () => {
 };
 $("prefTheme").value = prefs.theme;
 $("prefWrap").checked = prefs.wrap;
+$("prefStart").checked = prefs.startFiles;
+$("prefStart").onchange = () => { prefs.startFiles = $("prefStart").checked; store.set("prefs", prefs); };
 $("prefTheme").onchange = () => {
   prefs.theme = $("prefTheme").value; store.set("prefs", prefs);
   cm.setOption("theme", prefs.theme);
@@ -928,6 +931,15 @@ window.addEventListener("beforeunload", e => { saveTabs(true); if (tabs.some(isD
 
 renderTabs();
 refreshStatus();
+
+// Écran de démarrage : la liste des fichiers (option dans Réglages › Affichage)
+if (prefs.startFiles) {
+  openPanel();
+  if (cfg().token) {
+    showTab("files");
+    if (navigator.onLine && tree.length) loadTree();   // liste à jour à chaque ouverture (sinon openPanel la charge déjà)
+  }
+}
 
 // ---------- Mode appli (PWA) ----------
 if ("serviceWorker" in navigator && location.protocol === "https:") {
