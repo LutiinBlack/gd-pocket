@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
 <title>GD Pocket</title>
 <meta name="theme-color" content="#282a36">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="GD Pocket">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -30,7 +33,7 @@
   #status.dirty::before { content:"● "; color:var(--warn); }
 
   /* Panneau GitHub */
-  #panel { position:fixed; inset:0; background:var(--bg); z-index:100; display:none; flex-direction:column; }
+  #panel { position:fixed; top:0; right:0; bottom:0; left:0; background:var(--bg); z-index:100; display:none; flex-direction:column; }
   #panel.open { display:flex; }
   #panel .top { display:flex; gap:6px; padding:8px; background:var(--bar); align-items:center; }
   #panel .top h2 { flex:1; margin:0; font-size:17px; }
@@ -107,12 +110,19 @@
   header input[readonly] { opacity:.85; }
 
   /* Fenêtre « Nouveau script » */
-  #newDlg, #renDlg { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:200; display:none; align-items:flex-start; justify-content:center; padding-top:10vh; }
+  #newDlg, #renDlg { position:fixed; top:0; right:0; bottom:0; left:0; background:rgba(0,0,0,.55); z-index:200; display:none; align-items:flex-start; justify-content:center; padding-top:10vh; }
   #newDlg.open, #renDlg.open { display:flex; }
   #newDlg .box, #renDlg .box { background:var(--bar); border-radius:10px; padding:14px; width:min(92vw,420px); }
   #newDlg h2, #renDlg h2 { margin:0 0 4px; font-size:17px; }
   #newDlg input, #newDlg select, #renDlg input, #renDlg select { width:100%; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:10px; font-size:15px; }
   #newPreview, #renPreview { font-family:ui-monospace, monospace; font-size:13px; opacity:.8; margin-top:8px; word-break:break-all; }
+
+  /* Anciens Safari (iOS 12-14) : pas de « gap » en flexbox → marges à la place */
+  .no-gap header > * + *, .no-gap #panel .top > * + *, .no-gap #list li > * + * { margin-left:6px; }
+  .no-gap #keys > * + *, .no-gap #tabbar > * + * { margin-left:4px; }
+  .no-gap .ftab > * + * { margin-left:2px; }
+  .no-gap .check > * + * { margin-left:8px; }
+  .no-gap .row > * { margin:0 8px 8px 0; }
 </style>
 </head>
 <body>
@@ -225,6 +235,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
 <script>
+// Détecte si le navigateur gère « gap » en flexbox (sinon : marges de secours)
+(function () {
+  var d = document.createElement("div");
+  d.style.cssText = "display:flex;flex-direction:column;row-gap:1px;position:absolute;visibility:hidden";
+  d.appendChild(document.createElement("div")); d.appendChild(document.createElement("div"));
+  document.body.appendChild(d);
+  if (d.scrollHeight !== 1) document.documentElement.className += " no-gap";
+  document.body.removeChild(d);
+})();
 // ---------- Petits utilitaires de stockage ----------
 const store = {
   get(k, d) { try { const v = localStorage.getItem("gdpocket_" + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
@@ -371,7 +390,7 @@ function loadTabs() {
   let code = null;
   try { code = localStorage.getItem("gdpocket_code"); } catch (e) {}
   const old = store.get("ghfile", null);
-  if (old) tabs = [{kind: "gh", name: old.path.split("/").pop(), path: old.path, sha: old.sha, base: old.base, doc: newDoc(code ?? old.base)}];
+  if (old) tabs = [{kind: "gh", name: old.path.split("/").pop(), path: old.path, sha: old.sha, base: old.base, doc: newDoc(code != null ? code : old.base)}];
   else tabs = [{kind: "local", name: store.get("name", "script.gd"), doc: newDoc(code || SAMPLE)}];
   active = 0;
 }

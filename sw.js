@@ -1,6 +1,6 @@
 // GD Pocket – service worker : met l'appli en cache pour qu'elle marche hors ligne.
 // Change VERSION à chaque mise à jour de l'appli pour forcer le rafraîchissement.
-const VERSION = "gd-pocket-v0.7";
+const VERSION = "gd-pocket-v0.7.1";
 const CDN = "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/";
 const FILES = [
   "./", "./index.html", "./manifest.webmanifest",
