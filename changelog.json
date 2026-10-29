@@ -1,0 +1,22 @@
+{
+  "versions": [
+    {
+      "version": "0.8.0",
+      "date": "29/10/2026",
+      "notes": [
+        "Bouton ＋ des onglets : créer un nouveau script, ouvrir un script du dépôt dans une liste déroulante, ou ouvrir un fichier de l'appareil.",
+        "Recherche dans le script (🔍 en haut, Ctrl+F) : toutes les occurrences surlignées, compteur, ▲ ▼ ou Entrée pour passer de l'une à l'autre ; Aa pour respecter majuscules / minuscules.",
+        "Remplacer (⇄ ou Ctrl+H) : « Remplacer » une occurrence ou « Tout » remplacer ; Ctrl+Z annule.",
+        "Barre du bas repliable : ▾ pour la cacher, ▴ en bas à droite pour la remettre.",
+        "Cette fenêtre : chaque mise à jour est annoncée avec ses nouveautés, et tu choisis quand l'installer."
+      ]
+    },
+    {
+      "version": "0.7.4",
+      "date": "29/10/2026",
+      "notes": [
+        "Démarrage sur la liste des fichiers (option dans Réglages › Affichage)."
+      ]
+    }
+  ]
+}

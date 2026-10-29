@@ -1,18 +1,32 @@
 // GD Pocket – service worker : met l'appli en cache pour qu'elle marche hors ligne.
-// Change VERSION à chaque mise à jour de l'appli pour forcer le rafraîchissement.
-const VERSION = "gd-pocket-v0.7.4";
+// Change VERSION à chaque mise à jour de l'appli (et APP_VERSION dans index.html, et changelog.json).
+// Une nouvelle version s'installe en arrière-plan puis ATTEND : l'appli affiche la fenêtre
+// « Nouvelle version » et ne passe à la nouvelle version que si l'utilisateur appuie sur « Mettre à jour ».
+const VERSION = "gd-pocket-v0.8.0";
 const CDN = "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/";
-const FILES = [
-  "./", "./index.html", "./manifest.webmanifest",
-  "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png",
+const CDN_FILES = [
   CDN + "codemirror.min.css", CDN + "theme/dracula.min.css", CDN + "addon/hint/show-hint.min.css",
   CDN + "codemirror.min.js", CDN + "addon/mode/simple.min.js", CDN + "addon/hint/show-hint.min.js",
   CDN + "addon/edit/closebrackets.min.js", CDN + "addon/edit/matchbrackets.min.js",
   CDN + "addon/selection/active-line.min.js"
 ];
+const LOCAL_FILES = ["./index.html", "./manifest.webmanifest",
+  "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png"];
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(VERSION).then(c => Promise.all([
+    c.addAll(CDN_FILES),
+    // « ?v= » évite de récupérer une ancienne copie gardée par GitHub Pages (cache de 10 min)
+    ...LOCAL_FILES.map(u => fetch(u + "?v=" + VERSION).then(r => {
+      if (!r.ok) throw new Error("Téléchargement impossible : " + u);
+      return c.put(u, r);
+    }))
+  ])));
+  // Pas de skipWaiting ici : on attend l'accord de l'utilisateur
+});
+
+self.addEventListener("message", e => {
+  if (e.data === "skipWaiting") self.skipWaiting();
 });
 
 self.addEventListener("activate", e => {
@@ -23,19 +37,16 @@ self.addEventListener("activate", e => {
   );
 });
 
-// Réseau d'abord pour la page (pour avoir la dernière version), cache sinon.
-// Cache d'abord pour les bibliothèques et icônes (elles ne changent pas).
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
-  if (new URL(e.request.url).hostname === "api.github.com") return; // jamais de cache pour GitHub
-  const isPage = e.request.mode === "navigate";
-  if (isPage) {
-    e.respondWith(
-      fetch(new Request(e.request.url, {cache: "no-cache"}))   // toujours vérifier s'il y a une nouvelle version
-        .then(r => { const copy = r.clone(); caches.open(VERSION).then(c => c.put("./index.html", copy)); return r; })
-        .catch(() => caches.match("./index.html"))
-    );
+  const url = new URL(e.request.url);
+  if (url.hostname === "api.github.com") return;                 // jamais de cache pour GitHub
+  if (url.pathname.endsWith("/changelog.json")) return;          // toujours la liste à jour
+  const fromMyCache = req => caches.open(VERSION).then(c => c.match(req));
+  if (e.request.mode === "navigate") {
+    // La page vient de la version installée : elle ne change qu'après « Mettre à jour »
+    e.respondWith(fromMyCache("./index.html").then(hit => hit || fetch(e.request)));
   } else {
-    e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request)));
+    e.respondWith(fromMyCache(e.request).then(hit => hit || fetch(e.request)));
   }
 });

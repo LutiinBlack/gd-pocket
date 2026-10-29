@@ -29,7 +29,7 @@
   .CodeMirror-hints { font-size:15px; z-index:50; }
   #keys { display:flex; gap:4px; overflow-x:auto; padding:6px; background:var(--bar); }
   #keys button { background:var(--mut); min-width:42px; font-family:monospace; padding:8px; }
-  #status { font-size:12px; opacity:.8; padding:0 8px 6px; background:var(--bar); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #status { flex:1; min-width:0; font-size:12px; opacity:.8; padding:0 8px 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   #status.dirty::before { content:"● "; color:var(--warn); }
 
   /* Panneau GitHub */
@@ -109,17 +109,44 @@
   #newTab { flex:0 0 auto; background:var(--mut); padding:6px 12px; }
   header input[readonly] { opacity:.85; }
 
+  /* En-tête : nom plus court + recherche */
+  header #name { flex:0 1 34%; max-width:240px; min-width:70px; }
+  header #find { flex:1 1 0; min-width:60px; -webkit-appearance:none; appearance:none; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:8px; font-size:15px; }
+  #findBar, #replBar { display:none; align-items:center; gap:6px; padding:0 8px 6px; background:var(--bar); }
+  .finding #findBar, .replacing #replBar { display:flex; }
+  #findBar button, #replBar button { padding:6px 10px; }
+  #findCount { flex:1; font-size:13px; opacity:.8; white-space:nowrap; }
+  #replBar input { flex:1; min-width:0; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:8px; font-size:15px; }
+  #replToggle.on, #findCase.on { background:var(--acc); }
+  .cm-find { background:rgba(255,214,102,.28); border-radius:2px; }
+  .cm-find-cur { background:rgba(255,170,0,.65); color:#1d2229 !important; border-radius:2px; }
+  .cm-find-cur span { color:#1d2229 !important; }
+
+  /* Barre du bas repliable */
+  #statusRow { display:flex; align-items:center; background:var(--bar); }
+  #bottomToggle { background:transparent; padding:0 12px 6px; font-size:15px; opacity:.8; }
+  #bottomShow { display:none; position:fixed; right:10px; bottom:10px; z-index:60; background:var(--mut); opacity:.85; padding:6px 12px; }
+  #bottomShow.dirty::after { content:" ●"; color:var(--warn); }
+  .bottom-collapsed #bottom { display:none; }
+  .bottom-collapsed #bottomShow { display:block; }
+
+  /* Menu ＋ et fenêtre de mise à jour */
+  .wide { display:block; width:100%; margin-top:10px; text-align:left; }
+  #updNotes { margin:8px 0 0; padding-left:20px; font-size:14px; line-height:1.45; max-height:50vh; overflow-y:auto; }
+  #updNotes li { margin-bottom:4px; }
+
   /* Fenêtre « Nouveau script » */
-  #newDlg, #renDlg { position:fixed; top:0; right:0; bottom:0; left:0; background:rgba(0,0,0,.55); z-index:200; display:none; align-items:flex-start; justify-content:center; padding-top:10vh; }
-  #newDlg.open, #renDlg.open { display:flex; }
-  #newDlg .box, #renDlg .box { background:var(--bar); border-radius:10px; padding:14px; width:min(92vw,420px); }
-  #newDlg h2, #renDlg h2 { margin:0 0 4px; font-size:17px; }
-  #newDlg input, #newDlg select, #renDlg input, #renDlg select { width:100%; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:10px; font-size:15px; }
+  #newDlg, #renDlg, #addDlg, #updDlg { position:fixed; top:0; right:0; bottom:0; left:0; background:rgba(0,0,0,.55); z-index:200; display:none; align-items:flex-start; justify-content:center; padding-top:10vh; }
+  #newDlg.open, #renDlg.open, #addDlg.open, #updDlg.open { display:flex; }
+  #newDlg .box, #renDlg .box, #addDlg .box, #updDlg .box { background:var(--bar); border-radius:10px; padding:14px; width:min(92vw,420px); }
+  #newDlg h2, #renDlg h2, #addDlg h2, #updDlg h2 { margin:0 0 4px; font-size:17px; }
+  #newDlg input, #newDlg select, #renDlg input, #renDlg select, #addDlg select { width:100%; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:10px; font-size:15px; }
   #newPreview, #renPreview { font-family:ui-monospace, monospace; font-size:13px; opacity:.8; margin-top:8px; word-break:break-all; }
 
   /* Anciens Safari (iOS 12-14) : pas de « gap » en flexbox → marges à la place */
   .no-gap header > * + *, .no-gap #panel .top > * + *, .no-gap #list li > * + * { margin-left:6px; }
   .no-gap #keys > * + *, .no-gap #tabbar > * + * { margin-left:4px; }
+  .no-gap #findBar > * + *, .no-gap #replBar > * + * { margin-left:6px; }
   .no-gap .ftab > * + * { margin-left:2px; }
   .no-gap .check > * + * { margin-left:8px; }
   .no-gap .row > * { margin:0 8px 8px 0; }
@@ -129,12 +156,32 @@
 <header>
   <button id="btnFiles" class="ghost" aria-label="Fichiers GitHub">📁</button>
   <input id="name" type="text" value="script.gd" aria-label="Nom du fichier">
+  <input id="find" type="search" placeholder="🔍 Rechercher" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Rechercher dans le script">
   <button id="save">Enregistrer</button>
 </header>
+<div id="findBar">
+  <span id="findCount"></span>
+  <button id="findCase" class="ghost" aria-label="Respecter majuscules et minuscules">Aa</button>
+  <button id="findPrev" class="ghost" aria-label="Précédent">▲</button>
+  <button id="findNext" class="ghost" aria-label="Suivant">▼</button>
+  <button id="replToggle" class="ghost">⇄ Remplacer</button>
+  <button id="findClose" class="ghost" aria-label="Fermer la recherche">✕</button>
+</div>
+<div id="replBar">
+  <input id="repl" type="text" placeholder="Remplacer par" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+  <button id="replOne">Remplacer</button>
+  <button id="replAll">Tout</button>
+</div>
 <div id="tabbar"></div>
 <div id="editor"></div>
-<div id="keys"></div>
-<div id="status">Prêt</div>
+<div id="bottom">
+  <div id="keys"></div>
+  <div id="statusRow">
+    <div id="status">Prêt</div>
+    <button id="bottomToggle" aria-label="Replier la barre du bas">▾</button>
+  </div>
+</div>
+<button id="bottomShow" aria-label="Déplier la barre du bas">▴</button>
 
 <!-- Panneau : fichiers et réglages -->
 <div id="panel">
@@ -151,7 +198,7 @@
     <div class="row" style="margin-top:0">
       <button id="newScript">＋ Nouveau script</button>
       <button id="refresh" class="ghost">↻ Actualiser</button>
-      <button id="openLocal" class="ghost">Ouvrir un fichier du téléphone</button>
+      <button id="openLocal" class="ghost">Ouvrir un fichier de l'appareil</button>
       <button id="download" class="ghost">Télécharger l'onglet actuel</button>
     </div>
     <input id="filter" type="search" placeholder="Filtrer (ex. voiture)" style="margin-top:10px">
@@ -211,6 +258,33 @@
   </div>
 </div>
 
+<!-- Fenêtre : bouton ＋ des onglets -->
+<div id="addDlg">
+  <div class="box">
+    <h2>Nouvel onglet</h2>
+    <button id="addNew" class="wide">＋ Créer un nouveau script</button>
+    <label for="addPick">Ouvrir un script du dépôt</label>
+    <select id="addPick"></select>
+    <button id="addOpen" class="wide">Ouvrir ce script</button>
+    <button id="addLocal" class="wide ghost">📱 Ouvrir un fichier de l'appareil</button>
+    <p class="hint" id="addHint"></p>
+    <div class="row"><button id="addCancel" class="ghost">Annuler</button></div>
+  </div>
+</div>
+
+<!-- Fenêtre : nouvelle version -->
+<div id="updDlg">
+  <div class="box">
+    <h2 id="updTitle">Nouvelle version disponible</h2>
+    <ul id="updNotes"></ul>
+    <div class="row">
+      <button id="updOk">Mettre à jour</button>
+      <button id="updLater" class="ghost">Plus tard</button>
+    </div>
+    <p class="hint">Tes onglets et tes modifications non envoyées sont conservés.</p>
+  </div>
+</div>
+
 <!-- Fenêtre : renommer / déplacer -->
 <div id="renDlg">
   <div class="box">
@@ -237,7 +311,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
 <script>
 // ---------- Version et rapport d'erreurs (utile sur les vieux appareils) ----------
-var APP_VERSION = "0.7.4";
+var APP_VERSION = "0.8.0";
 function showError(msg) {
   var t = "⚠ Erreur : " + msg;
   var s = document.getElementById("status"), h = document.getElementById("filesHint");
@@ -375,7 +449,7 @@ function gdHint(cm) {
 }
 
 // ---------- Préférences d'affichage ----------
-const prefs = Object.assign({theme: "godot", wrap: false, startFiles: true}, store.get("prefs", {}));
+const prefs = Object.assign({theme: "godot", wrap: false, startFiles: true, bottomCollapsed: false}, store.get("prefs", {}));
 document.body.style.background = prefs.theme === "godot" ? "#1d2229" : "";
 
 // ---------- Onglets ----------
@@ -440,19 +514,21 @@ const cm = CodeMirror($("editor"), {
       c.replaceSelection("\n" + ind);
     },
     "Ctrl-Space": c => c.showHint({hint: gdHint, completeSingle: false}),
-    "Ctrl-S": () => save()
+    "Ctrl-S": () => save(),
+    "Cmd-S": () => save()
   }
 });
 cm.on("inputRead", (c, ch) => {
   if (/[\w@]/.test(ch.text.join(""))) c.showHint({hint: gdHint, completeSingle: false});
 });
-cm.on("change", () => { saveTabs(); refreshTabLabel(active); refreshStatus(); });
+cm.on("change", () => { saveTabs(); refreshTabLabel(active); refreshStatus(); scheduleFind(); });
 
 function switchTab(i) {
   if (i < 0 || i >= tabs.length) return;
   active = i;
   cm.swapDoc(tabs[i].doc);
   renderTabs(); refreshStatus(); saveTabs(true);
+  if ($("find").value) runFind(false);
   const el = $("tabbar").children[i];
   if (el) el.scrollIntoView({inline: "nearest", block: "nearest"});
 }
@@ -484,8 +560,8 @@ function renderTabs() {
     d.append(l, x); bar.appendChild(d);
   });
   const plus = document.createElement("button");
-  plus.id = "newTab"; plus.textContent = "＋"; plus.setAttribute("aria-label", "Nouveau script");
-  plus.onclick = openNewDlg;
+  plus.id = "newTab"; plus.textContent = "＋"; plus.setAttribute("aria-label", "Nouvel onglet");
+  plus.onclick = openAddDlg;
   bar.appendChild(plus);
   tabs.forEach((_, i) => refreshTabLabel(i));
 }
@@ -518,6 +594,7 @@ function refreshStatus(msg) {
   nameInput.readOnly = t.kind === "gh";
   $("save").textContent = t.kind === "gh" ? "Envoyer" : "Enregistrer";
   s.classList.toggle("dirty", isDirty(t));
+  $("bottomShow").classList.toggle("dirty", isDirty(t));
   if (msg) { s.textContent = msg; return; }
   if (t.kind === "gh") s.textContent = (t.isNew ? "Nouveau, pas encore envoyé — " : isDirty(t) ? "Modifié — " : "À jour — ") + "GitHub : " + t.path;
   else s.textContent = "Fichier local (sauvegarde auto dans l'appli)";
@@ -611,6 +688,7 @@ async function openGh(path) {
   if (already >= 0) { switchTab(already); closePanel(); return; }
   const c = cfg();
   $("filesHint").textContent = "Ouverture de " + path + "…";
+  refreshStatus("Ouverture de " + path + "…");
   try {
     const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(path)}?ref=${encodeURIComponent(c.branch)}`);
     const text = b64ToText(f.content);
@@ -622,6 +700,7 @@ async function openGh(path) {
     closePanel();
   } catch (e) {
     $("filesHint").textContent = "Erreur : " + friendly(e);
+    refreshStatus("Erreur : " + friendly(e));
   }
 }
 
@@ -927,7 +1006,8 @@ $("forget").onclick = () => {
 };
 
 // Prévenir avant de quitter s'il reste des modifications non envoyées
-window.addEventListener("beforeunload", e => { saveTabs(true); if (tabs.some(isDirty)) e.preventDefault(); });
+let skipUnloadWarn = false;
+window.addEventListener("beforeunload", e => { saveTabs(true); if (!skipUnloadWarn && tabs.some(isDirty)) e.preventDefault(); });
 
 renderTabs();
 refreshStatus();
@@ -941,9 +1021,225 @@ if (prefs.startFiles) {
   }
 }
 
+
+// ---------- Recherche / remplacement (Ctrl+F / Ctrl+H) ----------
+let findMatches = [], findIdx = -1, findMarks = [], curMark = null, findTimer = null, replacing = false, matchCase = false;
+const cmpPos = (a, b) => a.line - b.line || a.ch - b.ch;
+function clearFindMarks() {
+  cm.operation(() => { findMarks.forEach(m => m.clear()); if (curMark) curMark.clear(); });
+  findMarks = []; curMark = null;
+}
+function computeMatches() {
+  clearFindMarks(); findMatches = [];
+  const q = $("find").value; if (!q) return;
+  const ql = matchCase ? q : q.toLowerCase(), n = cm.lineCount();
+  for (let i = 0; i < n && findMatches.length < 5000; i++) {
+    const t = matchCase ? cm.getLine(i) : cm.getLine(i).toLowerCase();
+    let k = t.indexOf(ql);
+    while (k !== -1 && findMatches.length < 5000) {
+      findMatches.push({from: CodeMirror.Pos(i, k), to: CodeMirror.Pos(i, k + q.length)});
+      k = t.indexOf(ql, k + q.length);
+    }
+  }
+  cm.operation(() => { findMarks = findMatches.map(m => cm.markText(m.from, m.to, {className: "cm-find"})); });
+}
+function findFrom(pos, dir) {
+  if (dir > 0) { for (let i = 0; i < findMatches.length; i++) if (cmpPos(findMatches[i].from, pos) >= 0) return i; return 0; }
+  for (let i = findMatches.length - 1; i >= 0; i--) if (cmpPos(findMatches[i].from, pos) < 0) return i;
+  return findMatches.length - 1;
+}
+function showMatch(i, select, scroll) {
+  if (curMark) { curMark.clear(); curMark = null; }
+  if (!findMatches.length) { findIdx = -1; refreshFindUI(); return; }
+  findIdx = (i + findMatches.length) % findMatches.length;
+  const m = findMatches[findIdx];
+  curMark = cm.markText(m.from, m.to, {className: "cm-find-cur"});
+  if (select) cm.setSelection(m.from, m.to);
+  if (scroll) cm.scrollIntoView({from: m.from, to: m.to}, 80);
+  refreshFindUI();
+}
+function runFind(scroll) {
+  computeMatches();
+  showMatch(findMatches.length ? findFrom(cm.getCursor("from"), 1) : 0, false, scroll);
+}
+function scheduleFind() {
+  if (!$("find").value) return;
+  clearTimeout(findTimer);
+  findTimer = setTimeout(() => runFind(false), 300);
+}
+function refreshFindUI() {
+  const q = $("find").value, n = findMatches.length;
+  const cls = document.documentElement.classList;
+  cls.toggle("finding", !!q || replacing);
+  cls.toggle("replacing", replacing);
+  $("replToggle").classList.toggle("on", replacing);
+  $("findCase").classList.toggle("on", matchCase);
+  $("findCount").textContent = !q ? "Tape un mot à chercher" : n ? (findIdx + 1) + " / " + n + (n >= 5000 ? "+" : "") : "Aucun résultat";
+  cm.refresh();
+}
+function findStep(dir) {
+  if (!findMatches.length) return;
+  showMatch(findIdx < 0 ? findFrom(cm.getCursor("from"), dir) : findIdx + dir, true, true);
+}
+function openFind(withReplace) {
+  if (withReplace) replacing = true;
+  refreshFindUI();
+  const sel = cm.getSelection();
+  if (sel && sel.indexOf("\n") === -1) { $("find").value = sel; runFind(true); }
+  const el = withReplace && $("find").value ? $("repl") : $("find");
+  setTimeout(() => { el.focus(); try { el.select(); } catch (e) {} }, 0);
+}
+function closeFind() {
+  $("find").value = ""; replacing = false;
+  clearFindMarks(); findMatches = []; findIdx = -1;
+  refreshFindUI();
+}
+function replaceOne() {
+  if (findIdx < 0 || !findMatches.length) return;
+  const m = findMatches[findIdx], rep = $("repl").value;
+  cm.replaceRange(rep, m.from, m.to, "+replace");
+  computeMatches();
+  showMatch(findFrom(CodeMirror.Pos(m.from.line, m.from.ch + rep.length), 1), true, true);
+}
+function replaceAll() {
+  const n = findMatches.length; if (!n) return;
+  const rep = $("repl").value, list = findMatches.slice();
+  clearFindMarks();
+  cm.operation(() => { for (let i = list.length - 1; i >= 0; i--) cm.replaceRange(rep, list[i].from, list[i].to, "+replaceAll"); });
+  runFind(false);
+  refreshStatus(n + " remplacement" + (n > 1 ? "s" : "") + " (Ctrl+Z ou ↶ pour annuler)");
+}
+$("find").addEventListener("input", () => runFind(true));
+$("find").addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); findStep(e.shiftKey ? -1 : 1); }
+  else if (e.key === "Escape") { e.preventDefault(); closeFind(); cm.focus(); }
+});
+$("repl").addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); replaceOne(); }
+  else if (e.key === "Escape") { e.preventDefault(); closeFind(); cm.focus(); }
+});
+["findCase", "findPrev", "findNext", "replToggle", "findClose", "replOne", "replAll"].forEach(id =>
+  $(id).addEventListener("mousedown", e => e.preventDefault()));   // garde le clavier ouvert
+$("findCase").onclick = () => { matchCase = !matchCase; runFind(false); };
+$("findPrev").onclick = () => findStep(-1);
+$("findNext").onclick = () => findStep(1);
+$("findClose").onclick = closeFind;
+$("replToggle").onclick = () => { replacing = !replacing; refreshFindUI(); if (replacing) $("repl").focus(); };
+$("replOne").onclick = replaceOne;
+$("replAll").onclick = replaceAll;
+// Raccourcis valables même quand le curseur n'est pas dans le code
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && document.documentElement.classList.contains("finding")) {
+    e.preventDefault(); e.stopPropagation(); closeFind(); cm.focus(); return;
+  }
+  if (!(e.ctrlKey || e.metaKey)) return;
+  const k = (e.key || "").toLowerCase();
+  if (k === "f" && !e.altKey) { e.preventDefault(); e.stopPropagation(); openFind(false); }
+  else if (k === "h" || (k === "f" && e.altKey)) { e.preventDefault(); e.stopPropagation(); openFind(true); }
+}, true);
+
+// ---------- Barre du bas repliable ----------
+function setBottom(collapsed) {
+  prefs.bottomCollapsed = collapsed; store.set("prefs", prefs);
+  document.documentElement.classList.toggle("bottom-collapsed", collapsed);
+  cm.refresh();
+}
+$("bottomToggle").onclick = () => setBottom(true);
+$("bottomShow").onclick = () => setBottom(false);
+document.documentElement.classList.toggle("bottom-collapsed", prefs.bottomCollapsed);
+
+// ---------- Bouton ＋ : créer ou ouvrir ----------
+function fillAddPick() {
+  const sel = $("addPick"); sel.innerHTML = "";
+  const re = $("allText").checked ? TEXT_RE : GD_RE;
+  const files = tree.filter(p => re.test(p));
+  const openPaths = new Set(tabs.filter(t => t.kind === "gh").map(t => t.path));
+  const groups = {};
+  files.forEach(p => {
+    const i = p.lastIndexOf("/"), d = i >= 0 ? p.slice(0, i) + "/" : "(racine du dépôt)";
+    (groups[d] = groups[d] || []).push(p);
+  });
+  Object.keys(groups).sort().forEach(d => {
+    const g = document.createElement("optgroup"); g.label = d;
+    groups[d].forEach(p => {
+      const o = document.createElement("option"); o.value = p;
+      o.textContent = p.slice(p.lastIndexOf("/") + 1) + (openPaths.has(p) ? "  • ouvert" : "");
+      g.appendChild(o);
+    });
+    sel.appendChild(g);
+  });
+  if (!files.length) { const o = document.createElement("option"); o.value = ""; o.textContent = "(aucun script)"; sel.appendChild(o); }
+  const firstClosed = files.find(p => !openPaths.has(p));
+  if (firstClosed) sel.value = firstClosed;
+}
+async function openAddDlg() {
+  const hasTok = !!cfg().token;
+  fillAddPick();
+  $("addPick").disabled = $("addOpen").disabled = !hasTok;
+  $("addHint").textContent = hasTok ? "" : "Configure d'abord la connexion GitHub (📁 › Réglages) pour ouvrir les scripts du dépôt.";
+  $("addDlg").classList.add("open");
+  if (hasTok && !tree.length) {
+    $("addHint").textContent = "Chargement de la liste…";
+    await loadTree(); fillAddPick();
+    $("addHint").textContent = tree.length ? "" : "Impossible de charger la liste (connexion Internet ?).";
+  }
+}
+$("addNew").onclick = () => { $("addDlg").classList.remove("open"); openNewDlg(); };
+$("addOpen").onclick = () => { const p = $("addPick").value; if (!p) return; $("addDlg").classList.remove("open"); openGh(p); };
+$("addLocal").onclick = () => { $("addDlg").classList.remove("open"); $("file").click(); };
+$("addCancel").onclick = () => $("addDlg").classList.remove("open");
+
+// ---------- Mises à jour : fenêtre « Nouvelle version » ----------
+let pendingWorker = null, updateAccepted = false;
+function verCmp(a, b) {
+  const x = String(a).split(".").map(Number), y = String(b).split(".").map(Number);
+  for (let i = 0; i < Math.max(x.length, y.length); i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d; }
+  return 0;
+}
+async function showUpdate(worker) {
+  if (pendingWorker === worker) return;
+  pendingWorker = worker;
+  let title = "Nouvelle version disponible", notes = [];
+  try {
+    const r = await fetch("changelog.json?t=" + Date.now(), {cache: "no-store"});
+    const j = await r.json();
+    let vs = j.versions.filter(v => verCmp(v.version, APP_VERSION) > 0);
+    if (!vs.length) vs = j.versions.slice(0, 1);
+    title = "Nouvelle version v" + vs[0].version;
+    vs.forEach(v => v.notes.forEach(n => notes.push((vs.length > 1 ? "v" + v.version + " — " : "") + n)));
+  } catch (e) {}
+  if (!notes.length) notes = ["Améliorations et corrections."];
+  $("updTitle").textContent = title;
+  const ul = $("updNotes"); ul.innerHTML = "";
+  notes.forEach(n => { const li = document.createElement("li"); li.textContent = n; ul.appendChild(li); });
+  $("updDlg").classList.add("open");
+}
+$("updOk").onclick = () => {
+  updateAccepted = true; saveTabs(true);
+  $("updOk").disabled = true; $("updOk").textContent = "Mise à jour…";
+  if (pendingWorker) pendingWorker.postMessage("skipWaiting");
+  setTimeout(() => { skipUnloadWarn = true; location.reload(); }, 4000);   // au cas où
+};
+$("updLater").onclick = () => $("updDlg").classList.remove("open");
+
 // ---------- Mode appli (PWA) ----------
 if ("serviceWorker" in navigator && location.protocol === "https:") {
-  navigator.serviceWorker.register("sw.js").catch(() => {});
+  navigator.serviceWorker.register("sw.js").then(reg => {
+    if (reg.waiting && navigator.serviceWorker.controller) showUpdate(reg.waiting);
+    reg.addEventListener("updatefound", () => {
+      const w = reg.installing; if (!w) return;
+      w.addEventListener("statechange", () => {
+        if (w.state === "installed" && navigator.serviceWorker.controller) showUpdate(w);
+      });
+    });
+    const check = () => reg.update().catch(() => {});
+    check();
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) check(); });
+  }).catch(() => {});
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!updateAccepted) return;
+    skipUnloadWarn = true; location.reload();
+  });
 }
 </script>
 </body>
