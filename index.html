@@ -35,12 +35,12 @@
   /* Panneau GitHub */
   #panel { position:fixed; top:0; right:0; bottom:0; left:0; background:var(--bg); z-index:100; display:none; flex-direction:column; }
   #panel.open { display:flex; }
-  #panel .top { display:flex; gap:6px; padding:8px; background:var(--bar); align-items:center; }
+  #panel .top { position:relative; z-index:2; flex-shrink:0; display:flex; gap:6px; padding:8px; background:var(--bar); align-items:center; }
   #panel .top h2 { flex:1; margin:0; font-size:17px; }
-  .tabs { display:flex; background:var(--bar); }
+  .tabs { position:relative; z-index:2; flex-shrink:0; display:flex; background:var(--bar); }
   .tabs button { flex:1; border-radius:0; background:transparent; border-bottom:2px solid transparent; }
   .tabs button.on { border-bottom-color:var(--acc); }
-  .pane { flex:1; overflow:auto; padding:10px; display:none; }
+  .pane { flex:1 1 0; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; position:relative; z-index:1; padding:10px; display:none; }
   .pane.on { display:block; }
   label { display:block; font-size:13px; opacity:.8; margin:12px 0 4px; }
   .pane input[type=text], .pane input[type=password], .pane input[type=search] {
@@ -49,7 +49,7 @@
   .hint { font-size:13px; opacity:.75; line-height:1.4; }
   #list { list-style:none; margin:10px 0 0; padding:0; }
   #list li { display:flex; align-items:center; gap:6px; padding:4px 0 4px 8px; border-bottom:1px solid var(--mut); font-family:ui-monospace, monospace; font-size:14px; word-break:break-all; }
-  #list li .path { flex:1; padding:8px 0; }
+  #list li .path { flex:1; padding:8px 0; background:transparent; color:inherit; font:inherit; text-align:left; border-radius:0; word-break:break-all; cursor:pointer; -webkit-tap-highlight-color:rgba(255,255,255,.1); }
   #list li .del, #list li .ren { background:transparent; padding:10px 12px; font-size:17px; opacity:.6; }
   #list li .dir { opacity:.55; }
   #list li.current { color:var(--ok); }
@@ -102,7 +102,7 @@
   .ftab { display:flex; align-items:center; gap:2px; flex:0 0 auto; max-width:60vw; background:var(--mut);
           border-radius:6px; padding:0 0 0 10px; font-size:14px; opacity:.75; }
   .ftab.on { opacity:1; box-shadow:inset 0 -2px 0 var(--acc); }
-  .ftab .lbl { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:7px 0; }
+  .ftab .lbl { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:7px 0; cursor:pointer; }
   .ftab .lbl.dirty::before { content:"● "; color:var(--warn); }
   .ftab .lbl.new::after { content:" (nouveau)"; opacity:.6; font-size:12px; }
   .ftab .x { background:transparent; padding:7px 10px; font-size:15px; opacity:.8; }
@@ -574,7 +574,7 @@ function renderList() {
   items.forEach(p => {
     const li = document.createElement("li");
     const i = p.lastIndexOf("/");
-    li.innerHTML = `<span class="path"><span class="dir"></span><span></span></span><button class="ren">✏️</button><button class="del">🗑</button>`;
+    li.innerHTML = `<button class="path"><span class="dir"></span><span></span></button><button class="ren">✏️</button><button class="del">🗑</button>`;
     const path = li.children[0], ren = li.children[1], del = li.children[2];
     path.children[0].textContent = i >= 0 ? p.slice(0, i + 1) : "";
     path.children[1].textContent = p.slice(i + 1) + (openPaths.has(p) ? "  • ouvert" : "");
