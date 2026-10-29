@@ -84,8 +84,6 @@
   .ftab .rtag { font-size:11px; opacity:.6; margin-right:5px; }
 
   /* Annuler / Rétablir */
-  #keys button.hist { background:var(--acc); }
-  #keys button.hist:disabled { background:var(--mut); opacity:.4; }
   .pane select { width:100%; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:10px; font-size:15px; }
 
   /* ---------- Thème « Godot » : couleurs par défaut de l'éditeur de script Godot 4 ---------- */
@@ -141,7 +139,39 @@
   header input[readonly] { opacity:.85; }
 
   /* En-tête : nom plus court + recherche */
-  header #name { flex:0 1 34%; max-width:240px; min-width:70px; }
+  header .hbtn { padding:8px 10px; font-size:17px; line-height:1; }
+  header .hbtn:disabled { opacity:.35; }
+  @media (max-width: 380px) { header .hbtn { padding:8px 7px; } #save { padding:8px 8px; } }
+
+  /* Taille du texte du code */
+  .CodeMirror { font-size:var(--code-size, 15px) !important; }
+
+  /* Bouton ↻ et onglet changé sur GitHub */
+  #reloadBtn { background:transparent; padding:0 10px 6px; font-size:16px; opacity:.8; }
+  .ftab .lbl.remote::after { content:" ⟳"; color:#57b3ff; }
+
+  /* Plan du script */
+  #outlineList { list-style:none; margin:10px 0 0; padding:0; max-height:60vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  #outlineList li button { display:flex; align-items:baseline; width:100%; text-align:left; background:transparent; border-radius:0; border-bottom:1px solid var(--mut); padding:10px 4px; font-family:ui-monospace, monospace; font-size:14px; }
+  #outlineList .kind { flex:0 0 78px; font-size:11px; opacity:.9; }
+  #outlineList .nm { flex:1; min-width:0; word-break:break-all; }
+  #outlineList .ln { font-size:12px; opacity:.5; margin-left:8px; }
+  #outlineList .k-func { color:#66e6ff; } #outlineList .k-signal, #outlineList .k-export { color:#ffb373; }
+  #outlineList .k-const, #outlineList .k-enum { color:#a1ffe0; } #outlineList .k-class { color:#8fffdb; }
+  #outlineList li.inner button { padding-left:20px; }
+  .cm-flash { background:rgba(87,179,255,.25) !important; }
+
+  /* Différences avant envoi */
+  #diffStats { font-size:13px; margin-top:4px; word-break:break-all; }
+  #diffStats .a { color:#50fa7b; } #diffStats .d { color:#ff6b6b; }
+  #diffView { margin-top:8px; max-height:48vh; overflow:auto; -webkit-overflow-scrolling:touch; background:#1d2229; border-radius:6px; font-family:ui-monospace, monospace; font-size:12.5px; line-height:1.45; padding:4px 0; }
+  #diffView .dl { white-space:pre; padding-right:8px; }
+  #diffView .dl .n { display:inline-block; min-width:34px; padding-right:6px; text-align:right; opacity:.45; -webkit-user-select:none; user-select:none; }
+  #diffView .add { background:rgba(80,250,123,.14); color:#c8ffd8; }
+  #diffView .del { background:rgba(255,107,107,.16); color:#ffd0d0; }
+  #diffView .gap { opacity:.5; padding-left:40px; white-space:normal; }
+  #diffMsg { width:100%; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:10px; font-size:15px; }
+  #diffDlg .box, #outlineDlg .box { width:min(94vw,640px); }
   header #find { flex:1 1 0; min-width:60px; -webkit-appearance:none; appearance:none; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:8px; font-size:15px; }
   #findBar, #replBar { display:none; align-items:center; gap:6px; padding:0 8px 6px; background:var(--bar); }
   .finding #findBar, .replacing #replBar { display:flex; }
@@ -167,10 +197,11 @@
   #updNotes li { margin-bottom:4px; }
 
   /* Fenêtre « Nouveau script » */
-  #newDlg, #renDlg, #addDlg, #updDlg { position:fixed; top:0; right:0; bottom:0; left:0; background:rgba(0,0,0,.55); z-index:200; display:none; align-items:flex-start; justify-content:center; padding-top:10vh; }
-  #newDlg.open, #renDlg.open, #addDlg.open, #updDlg.open { display:flex; }
-  #newDlg .box, #renDlg .box, #addDlg .box, #updDlg .box { background:var(--bar); border-radius:10px; padding:14px; width:min(92vw,420px); }
-  #newDlg h2, #renDlg h2, #addDlg h2, #updDlg h2 { margin:0 0 4px; font-size:17px; }
+  #newDlg, #renDlg, #addDlg, #updDlg, #outlineDlg, #diffDlg { position:fixed; top:0; right:0; bottom:0; left:0; background:rgba(0,0,0,.55); z-index:200; display:none; align-items:flex-start; justify-content:center; padding-top:10vh; }
+  #newDlg.open, #renDlg.open, #addDlg.open, #updDlg.open, #outlineDlg.open, #diffDlg.open { display:flex; }
+  #outlineDlg, #diffDlg { padding-top:6vh; }
+  #newDlg .box, #renDlg .box, #addDlg .box, #updDlg .box, #outlineDlg .box, #diffDlg .box { background:var(--bar); border-radius:10px; padding:14px; width:min(92vw,420px); }
+  #newDlg h2, #renDlg h2, #addDlg h2, #updDlg h2, #outlineDlg h2, #diffDlg h2 { margin:0 0 4px; font-size:17px; }
   #newDlg input, #newDlg select, #renDlg input, #renDlg select, #addDlg select { width:100%; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:10px; font-size:15px; }
   #newPreview, #renPreview { font-family:ui-monospace, monospace; font-size:13px; opacity:.8; margin-top:8px; word-break:break-all; }
 
@@ -187,7 +218,9 @@
 <body>
 <header>
   <button id="btnFiles" class="ghost" aria-label="Fichiers GitHub">📁</button>
-  <input id="name" type="text" value="script.gd" aria-label="Nom du fichier">
+  <button id="undoBtn" class="ghost hbtn" aria-label="Annuler (Ctrl+Z)">↶</button>
+  <button id="redoBtn" class="ghost hbtn" aria-label="Rétablir (Ctrl+Y)">↷</button>
+  <button id="outlineBtn" class="ghost hbtn" aria-label="Plan du script">☰</button>
   <input id="find" type="search" placeholder="🔍 Rechercher" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Rechercher dans le script">
   <button id="save">Enregistrer</button>
 </header>
@@ -210,6 +243,7 @@
   <div id="keys"></div>
   <div id="statusRow">
     <div id="status">Prêt</div>
+    <button id="reloadBtn" aria-label="Recharger depuis GitHub">↻</button>
     <button id="bottomToggle" aria-label="Replier la barre du bas">▾</button>
   </div>
 </div>
@@ -291,6 +325,16 @@
           </select>
           <label class="check"><input id="prefWrap" type="checkbox"> Retour à la ligne automatique des lignes longues</label>
           <label class="check"><input id="prefStart" type="checkbox"> Ouvrir sur la liste des fichiers au démarrage</label>
+          <label for="prefSize">Taille du texte du code</label>
+          <select id="prefSize">
+            <option value="12">Très petite (12)</option>
+            <option value="13">Petite (13)</option>
+            <option value="15">Normale (15)</option>
+            <option value="17">Grande (17)</option>
+            <option value="19">Très grande (19)</option>
+            <option value="22">Énorme (22)</option>
+          </select>
+          <label class="check"><input id="prefDiff" type="checkbox"> Voir les différences avant d'envoyer</label>
         </section>
       </div>
     </div>
@@ -336,6 +380,31 @@
   </div>
 </div>
 
+<!-- Fenêtre : plan du script -->
+<div id="outlineDlg">
+  <div class="box">
+    <h2>Plan du script</h2>
+    <div class="hint" id="outlineInfo"></div>
+    <ul id="outlineList"></ul>
+    <div class="row"><button id="outlineClose" class="ghost">Fermer</button></div>
+  </div>
+</div>
+
+<!-- Fenêtre : différences avant envoi -->
+<div id="diffDlg">
+  <div class="box">
+    <h2 id="diffTitle">Vérifier avant d'envoyer</h2>
+    <div id="diffStats"></div>
+    <div id="diffView"></div>
+    <label for="diffMsg">Message du commit</label>
+    <input id="diffMsg" type="text" autocomplete="off">
+    <div class="row">
+      <button id="diffSend">Envoyer</button>
+      <button id="diffCancel" class="ghost">Annuler</button>
+    </div>
+  </div>
+</div>
+
 <!-- Fenêtre : nouvelle version -->
 <div id="updDlg">
   <div class="box">
@@ -375,7 +444,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
 <script>
 // ---------- Version et rapport d'erreurs (utile sur les vieux appareils) ----------
-var APP_VERSION = "0.9.0";
+var APP_VERSION = "0.10.0";
 function showError(msg) {
   var t = "⚠ Erreur : " + msg;
   var s = document.getElementById("status"), h = document.getElementById("filesHint");
@@ -513,8 +582,9 @@ function gdHint(cm) {
 }
 
 // ---------- Préférences d'affichage ----------
-const prefs = Object.assign({theme: "godot", wrap: false, startFiles: true, bottomCollapsed: false, viewMode: "all", sortMode: "az", setSec: "repos"}, store.get("prefs", {}));
+const prefs = Object.assign({theme: "godot", wrap: false, startFiles: true, bottomCollapsed: false, viewMode: "all", sortMode: "az", setSec: "repos", fontSize: 15, showDiff: true}, store.get("prefs", {}));
 document.body.style.background = prefs.theme === "godot" ? "#1d2229" : "";
+document.documentElement.style.setProperty("--code-size", prefs.fontSize + "px");
 
 // ---------- Onglets ----------
 // Un onglet = {kind: "gh" | "local", name, path?, sha?, base?, isNew?, doc}
@@ -662,7 +732,7 @@ function renderTabs() {
     }
     const x = document.createElement("button"); x.className = "x"; x.textContent = "×";
     x.setAttribute("aria-label", "Fermer " + t.name);
-    l.onclick = () => switchTab(i);
+    l.onclick = () => { if (i === active && t.kind === "local") renameLocal(); else switchTab(i); };
     x.onclick = e => { e.stopPropagation(); closeTab(i); };
     d.append(l, x); bar.appendChild(d);
   });
@@ -677,19 +747,20 @@ function refreshTabLabel(i) {
   const l = el.querySelector(".lbl"), t = tabs[i];
   l.classList.toggle("dirty", isDirty(t) && !t.isNew);
   l.classList.toggle("new", !!t.isNew);
+  l.classList.toggle("remote", !!t.remoteChanged);
+}
+function renameLocal() {
+  const t = cur(); if (!t || t.kind !== "local") return;
+  const n = prompt("Nom du fichier (utilisé pour le téléchargement) :", t.name);
+  if (n === null || !n.trim()) return;
+  t.name = n.trim(); renderTabs(); saveTabs(true); refreshStatus();
 }
 
 // ---------- Barre de touches ----------
-function histBtn(label, aria, fn) {
-  const b = document.createElement("button");
-  b.className = "hist"; b.textContent = label; b.setAttribute("aria-label", aria);
-  b.addEventListener("mousedown", e => e.preventDefault());
-  b.addEventListener("click", () => { fn(); refreshHist(); });
-  $("keys").appendChild(b);
-  return b;
-}
-const undoBtn = histBtn("↶", "Annuler (Ctrl+Z)", () => cm.undo());
-const redoBtn = histBtn("↷", "Rétablir (Ctrl+Y)", () => cm.redo());
+const undoBtn = $("undoBtn"), redoBtn = $("redoBtn");
+[undoBtn, redoBtn].forEach(b => b.addEventListener("mousedown", e => e.preventDefault()));
+undoBtn.onclick = () => { cm.undo(); refreshHist(); };
+redoBtn.onclick = () => { cm.redo(); refreshHist(); };
 function refreshHist() {
   const h = cm.historySize();
   undoBtn.disabled = !h.undo; redoBtn.disabled = !h.redo;
@@ -703,22 +774,16 @@ KEYS.forEach(k => {
   $("keys").appendChild(b);
 });
 
-// ---------- Nom du fichier et barre d'état ----------
-const nameInput = $("name");
-nameInput.oninput = () => {               // renommer un onglet local (nom de téléchargement)
-  const t = cur(); if (t.kind !== "local") return;
-  t.name = nameInput.value || "script.gd"; renderTabs(); saveTabs();
-};
+// ---------- Barre d'état ----------
 function refreshStatus(msg) {
   const t = cur(), s = $("status");
-  nameInput.value = t.name;
-  nameInput.readOnly = t.kind === "gh";
   $("save").textContent = t.kind === "gh" ? "Envoyer" : "Enregistrer";
+  $("reloadBtn").style.display = t.kind === "gh" && !t.isNew ? "" : "none";
   s.classList.toggle("dirty", isDirty(t));
   $("bottomShow").classList.toggle("dirty", isDirty(t));
   if (msg) { s.textContent = msg; return; }
-  if (t.kind === "gh") s.textContent = (t.isNew ? "Nouveau, pas encore envoyé — " : isDirty(t) ? "Modifié — " : "À jour — ") + repoName(t.repoId) + " / " + t.path;
-  else s.textContent = "Fichier local (sauvegarde auto dans l'appli)";
+  if (t.kind === "gh") s.textContent = (t.remoteChanged ? "⚠ Changé sur GitHub (↻ pour recharger) — " : "") + (t.isNew ? "Nouveau, pas encore envoyé — " : isDirty(t) ? "Modifié — " : "À jour — ") + repoName(t.repoId) + " / " + t.path;
+  else s.textContent = "Fichier local « " + t.name + " » — touche son onglet pour le renommer";
 }
 
 // ---------- GitHub : API ----------
@@ -870,7 +935,10 @@ async function pushGh(force = false, presetMsg = null) {
   const text = t.doc.getValue();
   if (!isDirty(t) && !force) { refreshStatus("Rien à envoyer, déjà à jour ✔"); return; }
   const verb = t.isNew ? "ajoute" : "modifie";
-  const message = presetMsg !== null ? presetMsg : prompt("Message du commit :", `GD Pocket : ${verb} ${t.name}`);
+  const defMsg = `GD Pocket : ${verb} ${t.name}`;
+  const message = presetMsg !== null ? presetMsg
+    : prefs.showDiff ? await askSend(t, text, defMsg)
+    : prompt("Message du commit :", defMsg);
   if (message === null) return;
   $("save").disabled = true;
   refreshStatus("Envoi vers GitHub…");
@@ -879,7 +947,7 @@ async function pushGh(force = false, presetMsg = null) {
     if (t.sha) body.sha = t.sha;
     const r = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(t.path)}`, {method: "PUT", body: JSON.stringify(body)}, c);
     const wasNew = t.isNew;
-    Object.assign(t, {sha: r.content.sha, base: text, isNew: false});
+    Object.assign(t, {sha: r.content.sha, base: text, isNew: false, remoteChanged: false});
     if (wasNew && t.repoId === activeId() && !tree.includes(t.path)) { tree.push(t.path); tree.sort(); saveTree(); }
     saveTabs(true); renderTabs();
     refreshStatus((wasNew ? "Créé" : "Envoyé") + " sur GitHub ✔ (pense à faire un pull sur le PC)");
@@ -1240,6 +1308,14 @@ $("prefTheme").onchange = () => {
   cm.setOption("theme", prefs.theme);
   document.body.style.background = prefs.theme === "godot" ? "#1d2229" : "";
 };
+$("prefSize").value = String(prefs.fontSize);
+$("prefSize").onchange = () => {
+  prefs.fontSize = parseInt($("prefSize").value, 10) || 15; store.set("prefs", prefs);
+  document.documentElement.style.setProperty("--code-size", prefs.fontSize + "px");
+  cm.refresh();
+};
+$("prefDiff").checked = prefs.showDiff;
+$("prefDiff").onchange = () => { prefs.showDiff = $("prefDiff").checked; store.set("prefs", prefs); };
 $("prefWrap").onchange = () => {
   prefs.wrap = $("prefWrap").checked; store.set("prefs", prefs);
   cm.setOption("lineWrapping", prefs.wrap);
@@ -1431,6 +1507,166 @@ $("addNew").onclick = () => { $("addDlg").classList.remove("open"); openNewDlg()
 $("addOpen").onclick = () => { const p = $("addPick").value; if (!p) return; $("addDlg").classList.remove("open"); openGh(p); };
 $("addLocal").onclick = () => { $("addDlg").classList.remove("open"); $("file").click(); };
 $("addCancel").onclick = () => $("addDlg").classList.remove("open");
+
+
+// ---------- Différences avant envoi ----------
+function lineDiff(a, b) {
+  const A = a.split("\n"), B = b.split("\n");
+  let pre = 0; while (pre < A.length && pre < B.length && A[pre] === B[pre]) pre++;
+  let suf = 0; while (suf < A.length - pre && suf < B.length - pre && A[A.length - 1 - suf] === B[B.length - 1 - suf]) suf++;
+  const a2 = A.slice(pre, A.length - suf), b2 = B.slice(pre, B.length - suf), n = a2.length, m = b2.length;
+  const out = [];
+  for (let i = 0; i < pre; i++) out.push({t: " ", s: A[i], o: i + 1, nn: i + 1});
+  if (n * m > 0 && n * m <= 4000000) {
+    const W = m + 1, L = new Uint16Array((n + 1) * W);
+    for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
+      L[i * W + j] = a2[i] === b2[j] ? L[(i + 1) * W + j + 1] + 1 : Math.max(L[(i + 1) * W + j], L[i * W + j + 1]);
+    let i = 0, j = 0;
+    while (i < n || j < m) {
+      if (i < n && j < m && a2[i] === b2[j]) { out.push({t: " ", s: a2[i], o: pre + i + 1, nn: pre + j + 1}); i++; j++; }
+      else if (j < m && (i >= n || L[i * W + j + 1] >= L[(i + 1) * W + j])) { out.push({t: "+", s: b2[j], nn: pre + j + 1}); j++; }
+      else { out.push({t: "-", s: a2[i], o: pre + i + 1}); i++; }
+    }
+  } else {
+    a2.forEach((x, k) => out.push({t: "-", s: x, o: pre + k + 1}));
+    b2.forEach((x, k) => out.push({t: "+", s: x, nn: pre + k + 1}));
+  }
+  for (let k = 0; k < suf; k++) out.push({t: " ", s: A[A.length - suf + k], o: A.length - suf + k + 1, nn: B.length - suf + k + 1});
+  return out;
+}
+function renderDiff(lines) {
+  const view = $("diffView"); view.innerHTML = "";
+  const CTX = 2, show = new Array(lines.length).fill(false);
+  lines.forEach((l, i) => { if (l.t !== " ") for (let k = Math.max(0, i - CTX); k <= Math.min(lines.length - 1, i + CTX); k++) show[k] = true; });
+  let hidden = 0;
+  const flush = () => { if (hidden) { const g = document.createElement("div"); g.className = "dl gap"; g.textContent = "⋯ " + hidden + " ligne" + (hidden > 1 ? "s" : "") + " sans changement"; view.appendChild(g); hidden = 0; } };
+  lines.forEach((l, i) => {
+    if (!show[i]) { hidden++; return; }
+    flush();
+    const d = document.createElement("div");
+    d.className = "dl" + (l.t === "+" ? " add" : l.t === "-" ? " del" : "");
+    const nEl = document.createElement("span"); nEl.className = "n"; nEl.textContent = l.t === "-" ? l.o : l.nn;
+    d.appendChild(nEl);
+    d.appendChild(document.createTextNode((l.t === " " ? "  " : (l.t === "-" ? "− " : "+ ")) + l.s.replace(/\t/g, "    ")));
+    view.appendChild(d);
+  });
+  flush();
+  if (!view.children.length) { const e = document.createElement("div"); e.className = "dl gap"; e.textContent = "Aucune différence avec la version GitHub."; view.appendChild(e); }
+}
+function askSend(t, text, defMsg) {
+  return new Promise(resolve => {
+    const lines = lineDiff(t.isNew ? "" : (t.base || ""), text);
+    const add = lines.filter(l => l.t === "+").length, del = lines.filter(l => l.t === "-").length;
+    $("diffTitle").textContent = "Vérifier avant d'envoyer — " + t.name;
+    const st = $("diffStats"); st.innerHTML = "";
+    const sa = document.createElement("span"); sa.className = "a"; sa.textContent = "+" + add;
+    const sd = document.createElement("span"); sd.className = "d"; sd.textContent = "−" + del;
+    st.append(sa, " ajoutée" + (add > 1 ? "s" : "") + " · ", sd, " supprimée" + (del > 1 ? "s" : "") + " · " + repoName(t.repoId) + " / " + t.path);
+    renderDiff(lines);
+    $("diffMsg").value = defMsg;
+    $("diffDlg").classList.add("open");
+    const done = v => { $("diffDlg").classList.remove("open"); resolve(v); };
+    $("diffSend").onclick = () => done($("diffMsg").value.trim() || defMsg);
+    $("diffCancel").onclick = () => done(null);
+    $("diffMsg").onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); $("diffSend").click(); } };
+  });
+}
+
+// ---------- Recharger depuis GitHub ----------
+async function fetchRemote(t) {
+  const c = repoById(t.repoId);
+  if (!c || !c.token) throw new Error("Le dépôt de cet onglet n'est plus configuré.");
+  return gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(t.path)}?ref=${encodeURIComponent(c.branch)}`, {}, c);
+}
+function applyRemote(t, sha, text) {
+  t.doc.setValue(text);          // annulable : ↶ rend la version d'avant
+  t.base = text; t.sha = sha; t.remoteChanged = false;
+  saveTabs(true); renderTabs(); refreshStatus(); refreshHist();
+}
+async function reloadTab() {
+  const t = cur(); if (!t || t.kind !== "gh" || t.isNew) return;
+  refreshStatus("Vérification sur GitHub…");
+  try {
+    const f = await fetchRemote(t);
+    if (f.sha === t.sha && !t.remoteChanged) { refreshStatus("Déjà à jour avec GitHub ✔"); return; }
+    const text = b64ToText(f.content);
+    if (isDirty(t) && !confirm("Tu as des modifications non envoyées dans « " + t.name + " ».\n\nOK = charger la version GitHub (↶ Annuler te rendra ta version)\nAnnuler = garder ta version")) {
+      t.remoteChanged = f.sha !== t.sha; renderTabs(); refreshStatus(); return;
+    }
+    applyRemote(t, f.sha, text);
+    refreshStatus("Rechargé depuis GitHub ✔ (↶ pour revenir à la version d'avant)");
+  } catch (e) { refreshStatus("Erreur : " + friendly(e)); }
+}
+$("reloadBtn").onclick = reloadTab;
+let lastRemoteCheck = 0;
+async function checkRemoteAll() {
+  if (!navigator.onLine || Date.now() - lastRemoteCheck < 60000) return;
+  lastRemoteCheck = Date.now();
+  let updated = 0, warned = 0;
+  for (const t of tabs.slice()) {
+    if (t.kind !== "gh" || t.isNew || !repoById(t.repoId)) continue;
+    try {
+      const f = await fetchRemote(t);
+      if (f.sha === t.sha) continue;
+      if (!isDirty(t)) { applyRemote(t, f.sha, b64ToText(f.content)); updated++; }
+      else if (!t.remoteChanged) { t.remoteChanged = true; warned++; }
+    } catch (e) { /* hors ligne, fichier supprimé… : on ignore */ }
+  }
+  if (updated || warned) {
+    saveTabs(true); renderTabs();
+    const parts = [];
+    if (updated) parts.push(updated + " onglet" + (updated > 1 ? "s" : "") + " mis à jour depuis GitHub");
+    if (warned) parts.push("⚠ " + warned + " modifié" + (warned > 1 ? "s" : "") + " sur GitHub alors que tu as des changements (↻)");
+    refreshStatus(parts.join(" · "));
+  }
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkRemoteAll(); });
+setTimeout(checkRemoteAll, 1500);
+
+// ---------- Plan du script ----------
+function buildOutline() {
+  const out = [], n = cm.lineCount();
+  const re = /^(\t| {4})?((?:@export\w*(?:\([^)]*\))?\s+)?(?:@onready\s+)?)(static\s+)?(func|signal|class_name|class|enum|const|var)\s+([A-Za-z_]\w*)/;
+  for (let i = 0; i < n; i++) {
+    const m = cm.getLine(i).match(re);
+    if (!m) continue;
+    const inner = !!m[1], kw = m[4], name = m[5], exp = /@export/.test(m[2]);
+    if (kw === "var" && !exp) continue;            // seulement les variables @export
+    if (inner && kw !== "func") continue;          // dans une classe interne : seulement ses func
+    const kind = exp ? "export" : kw === "class_name" ? "class" : kw;
+    const label = kw === "func" ? (m[3] ? "static func" : "func") : exp ? "@export" : kw;
+    out.push({line: i, kind, label, name, inner});
+  }
+  return out;
+}
+function openOutline() {
+  const items = buildOutline(), ul = $("outlineList"); ul.innerHTML = "";
+  $("outlineInfo").textContent = items.length ? cur().name + " — " + items.length + " élément" + (items.length > 1 ? "s" : "") : "Aucune func, signal ni @export dans ce fichier.";
+  const curLine = cm.getCursor().line;
+  items.forEach(it => {
+    const li = document.createElement("li"); if (it.inner) li.className = "inner";
+    const b = document.createElement("button");
+    const k = document.createElement("span"); k.className = "kind k-" + it.kind; k.textContent = it.label;
+    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = it.name;
+    const ln = document.createElement("span"); ln.className = "ln"; ln.textContent = "l." + (it.line + 1);
+    b.append(k, nm, ln);
+    b.onclick = () => gotoLine(it.line);
+    li.appendChild(b); ul.appendChild(li);
+  });
+  $("outlineDlg").classList.add("open");
+  const near = items.filter(it => it.line <= curLine).pop();
+  if (near) { const el = ul.children[items.indexOf(near)]; if (el && el.scrollIntoView) el.scrollIntoView(false); }
+}
+function gotoLine(line) {
+  $("outlineDlg").classList.remove("open");
+  cm.setCursor({line, ch: 0});
+  const top = cm.charCoords({line, ch: 0}, "local").top;
+  cm.scrollTo(null, Math.max(0, top - cm.getScrollInfo().clientHeight / 4));
+  const h = cm.addLineClass(line, "background", "cm-flash");
+  setTimeout(() => cm.removeLineClass(h, "background", "cm-flash"), 1400);
+}
+$("outlineBtn").onclick = openOutline;
+$("outlineClose").onclick = () => $("outlineDlg").classList.remove("open");
 
 // ---------- Mises à jour : fenêtre « Nouvelle version » ----------
 let pendingWorker = null, updateAccepted = false;

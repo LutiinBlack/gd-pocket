@@ -1,6 +1,17 @@
 {
   "versions": [
     {
+      "version": "0.10.0",
+      "date": "30/10/2026",
+      "notes": [
+        "En-tête : le champ du nom disparaît (l'onglet bleu suffit) ; ↶ Annuler et ↷ Rétablir y sont maintenant, toujours visibles. Pour renommer un fichier local, touche son onglet actif.",
+        "↻ en bas à droite recharge l'onglet depuis GitHub. À l'ouverture de l'appli, les onglets modifiés ailleurs (sur le PC…) se mettent à jour tout seuls, ou sont signalés par ⟳ si tu as des changements non envoyés.",
+        "Avant d'envoyer : une fenêtre montre les lignes ajoutées (vert) et supprimées (rouge), avec le message du commit. Désactivable dans Réglages › Affichage.",
+        "☰ dans l'en-tête : le plan du script (func, signal, @export, const, enum…) ; touche un élément pour y aller.",
+        "Taille du texte du code réglable dans Réglages › Affichage."
+      ]
+    },
+    {
       "version": "0.9.0",
       "date": "29/10/2026",
       "notes": [
