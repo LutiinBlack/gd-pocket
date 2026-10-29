@@ -55,6 +55,37 @@
   #list li.current { color:var(--ok); }
   .check { display:flex; align-items:center; gap:8px; margin-top:10px; font-size:14px; }
   .pane h3 { font-size:15px; margin:22px 0 4px; padding-top:14px; border-top:1px solid var(--mut); }
+
+  /* Réglages en deux colonnes */
+  .setwrap { display:flex; align-items:flex-start; min-height:100%; }
+  .setnav { flex:0 0 28%; max-width:190px; min-width:92px; position:-webkit-sticky; position:sticky; top:0; display:flex; flex-direction:column; }
+  .setnav button { background:transparent; text-align:left; border-radius:6px; padding:10px 8px; font-size:14px; margin-bottom:4px; opacity:.75; border-left:3px solid transparent; word-break:break-word; }
+  .setnav button.on { background:var(--mut); opacity:1; border-left-color:var(--acc); }
+  .setbody { flex:1 1 0; min-width:0; padding-left:12px; margin-left:10px; border-left:1px solid var(--mut); }
+  .setbody section { display:none; }
+  .setbody section.on { display:block; }
+  .setbody h3 { margin-top:2px; padding-top:0; border-top:0; }
+  .setbody h4 { font-size:14px; margin:18px 0 2px; padding-top:12px; border-top:1px solid var(--mut); word-break:break-all; }
+  .repoItem { display:block; width:100%; text-align:left; background:var(--bar); margin-top:6px; font-size:14px; word-break:break-all; border-left:3px solid transparent; }
+  .repoItem.editing { border-left-color:var(--acc); background:var(--mut); }
+  .repoItem .badge { font-size:11px; background:var(--ok); color:#1d2229; border-radius:4px; padding:1px 5px; margin-left:6px; }
+  #repoAdd { margin-top:8px; }
+
+  /* Liste des fichiers : options, dossiers */
+  .listopts { display:flex; gap:8px; margin-top:10px; }
+  .listopts select { flex:1 1 0; min-width:0; padding:8px; font-size:14px; }
+  #repoSel { margin-top:10px; }
+  #list li.dirrow { padding:0; border-bottom:1px solid var(--mut); background:var(--bar); }
+  #list li .dirbtn { flex:1; background:transparent; color:var(--txt); text-align:left; font:inherit; font-weight:bold; padding:10px 8px; border-radius:0; }
+  #list li .dirbtn .cnt { opacity:.55; font-weight:normal; margin-left:6px; }
+  #list li.infolder { padding-left:22px; }
+
+  /* Onglets : nom du dépôt */
+  .ftab .rtag { font-size:11px; opacity:.6; margin-right:5px; }
+
+  /* Annuler / Rétablir */
+  #keys button.hist { background:var(--acc); }
+  #keys button.hist:disabled { background:var(--mut); opacity:.4; }
   .pane select { width:100%; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:10px; font-size:15px; }
 
   /* ---------- Thème « Godot » : couleurs par défaut de l'éditeur de script Godot 4 ---------- */
@@ -150,6 +181,7 @@
   .no-gap .ftab > * + * { margin-left:2px; }
   .no-gap .check > * + * { margin-left:8px; }
   .no-gap .row > * { margin:0 8px 8px 0; }
+  .no-gap .listopts > * + * { margin-left:8px; }
 </style>
 </head>
 <body>
@@ -195,6 +227,7 @@
   </div>
 
   <div class="pane on" id="pane-files">
+    <select id="repoSel" aria-label="Dépôt affiché" style="margin:0 0 10px"></select>
     <div class="row" style="margin-top:0">
       <button id="newScript">＋ Nouveau script</button>
       <button id="refresh" class="ghost">↻ Actualiser</button>
@@ -202,34 +235,65 @@
       <button id="download" class="ghost">Télécharger l'onglet actuel</button>
     </div>
     <input id="filter" type="search" placeholder="Filtrer (ex. voiture)" style="margin-top:10px">
+    <div class="listopts">
+      <select id="viewMode" aria-label="Style d'affichage">
+        <option value="all">Affichage : Tout</option>
+        <option value="dirs">Affichage : Par dossier</option>
+      </select>
+      <select id="sortMode" aria-label="Tri">
+        <option value="az">Tri : Nom A → Z</option>
+        <option value="za">Tri : Nom Z → A</option>
+        <option value="type">Tri : Type de fichier</option>
+        <option value="recent">Tri : Récemment ouverts</option>
+      </select>
+    </div>
     <label class="check"><input id="allText" type="checkbox"> Afficher aussi .tscn, .tres, .cfg, .json, .md…</label>
     <ul id="list"></ul>
     <p class="hint" id="filesHint">Renseigne d'abord l'onglet Réglages.</p>
   </div>
 
   <div class="pane" id="pane-settings">
-    <label for="ghOwner">Propriétaire du dépôt</label>
-    <input id="ghOwner" type="text" autocomplete="off" autocapitalize="off" placeholder="LutiinBlack">
-    <label for="ghRepo">Nom du dépôt</label>
-    <input id="ghRepo" type="text" autocomplete="off" autocapitalize="off" placeholder="Micro-Racer-Mobile-">
-    <label for="ghBranch">Branche (vide = branche principale)</label>
-    <input id="ghBranch" type="text" autocomplete="off" autocapitalize="off" placeholder="main">
-    <label for="ghToken">Jeton GitHub (fine-grained)</label>
-    <input id="ghToken" type="password" autocomplete="off" placeholder="github_pat_…">
-    <div class="row">
-      <button id="saveSettings">Enregistrer et tester</button>
-      <button id="forget" class="ghost">Effacer le jeton</button>
+    <div class="setwrap">
+      <nav class="setnav">
+        <button data-sec="repos" class="on">🔗 Dépôts GitHub</button>
+        <button data-sec="display">🎨 Affichage</button>
+      </nav>
+      <div class="setbody">
+        <section id="sec-repos" class="on">
+          <h3>Dépôts GitHub</h3>
+          <div id="repoList"></div>
+          <button id="repoAdd" class="ghost">＋ Ajouter un dépôt</button>
+          <div id="repoForm">
+            <h4 id="repoFormTitle">Nouveau dépôt</h4>
+            <label for="ghOwner">Propriétaire du dépôt</label>
+            <input id="ghOwner" type="text" autocomplete="off" autocapitalize="off" placeholder="LutiinBlack">
+            <label for="ghRepo">Nom du dépôt</label>
+            <input id="ghRepo" type="text" autocomplete="off" autocapitalize="off" placeholder="Micro-Racer-Mobile-">
+            <label for="ghBranch">Branche (vide = branche principale)</label>
+            <input id="ghBranch" type="text" autocomplete="off" autocapitalize="off" placeholder="main">
+            <label for="ghToken">Jeton GitHub (fine-grained)</label>
+            <input id="ghToken" type="password" autocomplete="off" placeholder="github_pat_…">
+            <div class="row">
+              <button id="saveSettings">Enregistrer et tester</button>
+              <button id="forget" class="ghost">Effacer le jeton</button>
+              <button id="repoUse" class="ghost">Utiliser ce dépôt</button>
+              <button id="repoRemove" class="ghost">Retirer de la liste</button>
+            </div>
+            <p class="hint">Le jeton reste uniquement dans cette appli, sur cet appareil, et n'est envoyé qu'à api.github.com. Un même jeton peut servir à plusieurs dépôts s'il y a accès.</p>
+          </div>
+        </section>
+        <section id="sec-display">
+          <h3>Affichage</h3>
+          <label for="prefTheme">Couleurs du code</label>
+          <select id="prefTheme">
+            <option value="godot">Godot (comme l'éditeur de script)</option>
+            <option value="dracula">Dracula</option>
+          </select>
+          <label class="check"><input id="prefWrap" type="checkbox"> Retour à la ligne automatique des lignes longues</label>
+          <label class="check"><input id="prefStart" type="checkbox"> Ouvrir sur la liste des fichiers au démarrage</label>
+        </section>
+      </div>
     </div>
-    <p class="hint">Le jeton reste uniquement dans cette appli, sur ce téléphone, et n'est envoyé qu'à api.github.com.</p>
-
-    <h3>Affichage</h3>
-    <label for="prefTheme">Couleurs du code</label>
-    <select id="prefTheme">
-      <option value="godot">Godot (comme l'éditeur de script)</option>
-      <option value="dracula">Dracula</option>
-    </select>
-    <label class="check"><input id="prefWrap" type="checkbox"> Retour à la ligne automatique des lignes longues</label>
-    <label class="check"><input id="prefStart" type="checkbox"> Ouvrir sur la liste des fichiers au démarrage</label>
   </div>
   <input id="file" type="file" accept=".gd,.gdshader,.txt,text/plain" hidden>
 </div>
@@ -263,7 +327,7 @@
   <div class="box">
     <h2>Nouvel onglet</h2>
     <button id="addNew" class="wide">＋ Créer un nouveau script</button>
-    <label for="addPick">Ouvrir un script du dépôt</label>
+    <label for="addPick" id="addPickLabel">Ouvrir un script du dépôt</label>
     <select id="addPick"></select>
     <button id="addOpen" class="wide">Ouvrir ce script</button>
     <button id="addLocal" class="wide ghost">📱 Ouvrir un fichier de l'appareil</button>
@@ -311,7 +375,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
 <script>
 // ---------- Version et rapport d'erreurs (utile sur les vieux appareils) ----------
-var APP_VERSION = "0.8.0";
+var APP_VERSION = "0.9.0";
 function showError(msg) {
   var t = "⚠ Erreur : " + msg;
   var s = document.getElementById("status"), h = document.getElementById("filesHint");
@@ -449,7 +513,7 @@ function gdHint(cm) {
 }
 
 // ---------- Préférences d'affichage ----------
-const prefs = Object.assign({theme: "godot", wrap: false, startFiles: true, bottomCollapsed: false}, store.get("prefs", {}));
+const prefs = Object.assign({theme: "godot", wrap: false, startFiles: true, bottomCollapsed: false, viewMode: "all", sortMode: "az", setSec: "repos"}, store.get("prefs", {}));
 document.body.style.background = prefs.theme === "godot" ? "#1d2229" : "";
 
 // ---------- Onglets ----------
@@ -495,7 +559,45 @@ function saveTabs(now) {
 const cur = () => tabs[active];
 const isDirty = t => !!t && t.kind === "gh" && (t.isNew || t.doc.getValue() !== t.base);
 
+// ---------- Dépôts GitHub (plusieurs) ----------
+// repos = [{id, owner, repo, branch, token}] ; activeRepo = id du dépôt affiché dans 📁
+function loadRepos() {
+  let list = store.get("repos", null);
+  if (!list) {
+    const old = store.get("gh", null);   // réglages de la v0.8 (un seul dépôt)
+    list = old && (old.owner || old.repo || old.token)
+      ? [{id: "r" + Date.now().toString(36), owner: old.owner || "", repo: old.repo || "", branch: old.branch || "", token: old.token || ""}]
+      : [];
+    store.set("repos", list);
+    if (list[0]) {
+      store.set("activeRepo", list[0].id);
+      const oldTree = store.get("tree", null);
+      if (oldTree) store.set("tree:" + list[0].id, oldTree);
+    }
+  }
+  return list;
+}
+let repos = loadRepos();
+function saveRepos() { store.set("repos", repos); }
+function repoById(id) { return repos.find(r => r.id === id) || null; }
+function activeId() {
+  const a = store.get("activeRepo", null);
+  return repoById(a) ? a : (repos[0] ? repos[0].id : null);
+}
+function cfg() { return repoById(activeId()) || {}; }
+function repoName(id) { const r = repoById(id); return r ? (r.repo || "?") : "dépôt retiré"; }
+function treeKey(id) { return "tree:" + (id || activeId() || "none"); }
+function recentKey(id) { return "recent:" + (id || activeId() || "none"); }
+function markRecent(repoId, path) {
+  const r = store.get(recentKey(repoId), {});
+  r[path] = Date.now();
+  const keys = Object.keys(r);
+  if (keys.length > 200) keys.sort((a, b) => r[a] - r[b]).slice(0, keys.length - 200).forEach(k => delete r[k]);
+  store.set(recentKey(repoId), r);
+}
+
 loadTabs();
+tabs.forEach(t => { if (t.kind === "gh" && !t.repoId) t.repoId = activeId(); });   // onglets d'avant la v0.9
 
 const cm = CodeMirror($("editor"), {
   value: tabs[active].doc,
@@ -521,13 +623,14 @@ const cm = CodeMirror($("editor"), {
 cm.on("inputRead", (c, ch) => {
   if (/[\w@]/.test(ch.text.join(""))) c.showHint({hint: gdHint, completeSingle: false});
 });
-cm.on("change", () => { saveTabs(); refreshTabLabel(active); refreshStatus(); scheduleFind(); });
+cm.on("change", () => { saveTabs(); refreshTabLabel(active); refreshStatus(); scheduleFind(); refreshHist(); });
 
 function switchTab(i) {
   if (i < 0 || i >= tabs.length) return;
   active = i;
   cm.swapDoc(tabs[i].doc);
-  renderTabs(); refreshStatus(); saveTabs(true);
+  renderTabs(); refreshStatus(); saveTabs(true); refreshHist();
+  if (tabs[i].kind === "gh" && !tabs[i].isNew) markRecent(tabs[i].repoId, tabs[i].path);
   if ($("find").value) runFind(false);
   const el = $("tabbar").children[i];
   if (el) el.scrollIntoView({inline: "nearest", block: "nearest"});
@@ -553,6 +656,10 @@ function renderTabs() {
     d.className = "ftab" + (i === active ? " on" : "");
     d.title = t.path || t.name;
     const l = document.createElement("span"); l.className = "lbl"; l.textContent = t.name;
+    if (t.kind === "gh" && repos.length > 1) {
+      const rt = document.createElement("span"); rt.className = "rtag"; rt.textContent = repoName(t.repoId) + " ›";
+      l.insertBefore(rt, l.firstChild);
+    }
     const x = document.createElement("button"); x.className = "x"; x.textContent = "×";
     x.setAttribute("aria-label", "Fermer " + t.name);
     l.onclick = () => switchTab(i);
@@ -573,6 +680,20 @@ function refreshTabLabel(i) {
 }
 
 // ---------- Barre de touches ----------
+function histBtn(label, aria, fn) {
+  const b = document.createElement("button");
+  b.className = "hist"; b.textContent = label; b.setAttribute("aria-label", aria);
+  b.addEventListener("mousedown", e => e.preventDefault());
+  b.addEventListener("click", () => { fn(); refreshHist(); });
+  $("keys").appendChild(b);
+  return b;
+}
+const undoBtn = histBtn("↶", "Annuler (Ctrl+Z)", () => cm.undo());
+const redoBtn = histBtn("↷", "Rétablir (Ctrl+Y)", () => cm.redo());
+function refreshHist() {
+  const h = cm.historySize();
+  undoBtn.disabled = !h.undo; redoBtn.disabled = !h.redo;
+}
 const KEYS = ["⇥", ":", "(", ")", "_", "\"", "$", "@", "=", ".", "[", "]", "{", "}", "->", "#"];
 KEYS.forEach(k => {
   const b = document.createElement("button");
@@ -596,15 +717,14 @@ function refreshStatus(msg) {
   s.classList.toggle("dirty", isDirty(t));
   $("bottomShow").classList.toggle("dirty", isDirty(t));
   if (msg) { s.textContent = msg; return; }
-  if (t.kind === "gh") s.textContent = (t.isNew ? "Nouveau, pas encore envoyé — " : isDirty(t) ? "Modifié — " : "À jour — ") + "GitHub : " + t.path;
+  if (t.kind === "gh") s.textContent = (t.isNew ? "Nouveau, pas encore envoyé — " : isDirty(t) ? "Modifié — " : "À jour — ") + repoName(t.repoId) + " / " + t.path;
   else s.textContent = "Fichier local (sauvegarde auto dans l'appli)";
 }
 
 // ---------- GitHub : API ----------
-function cfg() { return store.get("gh", {}); }
 function encPath(p) { return p.split("/").map(encodeURIComponent).join("/"); }
-async function gh(path, opts = {}) {
-  const c = cfg();
+async function gh(path, opts = {}, conf = null) {
+  const c = conf || cfg();
   if (!c.token) throw new Error("Aucun jeton : va dans Réglages.");
   const r = await fetch("https://api.github.com" + path, {
     ...opts,
@@ -641,50 +761,88 @@ function friendly(e) {
 }
 
 // ---------- GitHub : liste des fichiers ----------
-let tree = store.get("tree", []);
+let tree = store.get(treeKey(), []);
+function saveTree() { store.set(treeKey(), tree); }
 const GD_RE = /\.(gd|gdshader)$/i;
 const TEXT_RE = /\.(gd|gdshader|tscn|tres|cfg|godot|json|md|txt|csv|import)$/i;
 async function loadTree() {
   const c = cfg();
-  if (!c.token || !c.owner || !c.repo) { $("filesHint").textContent = "Renseigne d'abord l'onglet Réglages."; return; }
+  if (!c.token || !c.owner || !c.repo) { $("filesHint").textContent = "Ajoute d'abord un dépôt dans Réglages › Dépôts GitHub."; return; }
   $("filesHint").textContent = "Chargement…";
   try {
     const t = await gh(`/repos/${c.owner}/${c.repo}/git/trees/${encodeURIComponent(c.branch)}?recursive=1`);
+    if (c !== cfg()) return;   // on a changé de dépôt entre-temps
     tree = t.tree.filter(x => x.type === "blob").map(x => x.path).sort();
-    store.set("tree", tree);
+    saveTree();
     renderList();
     $("filesHint").textContent = t.truncated ? "Dépôt très gros : liste incomplète." : "";
   } catch (e) {
     $("filesHint").textContent = "Erreur : " + friendly(e);
   }
 }
+const baseName = p => p.slice(p.lastIndexOf("/") + 1);
+const dirName = p => p.lastIndexOf("/") >= 0 ? p.slice(0, p.lastIndexOf("/")) : "";
+const extName = p => { const m = p.match(/\.([^./]+)$/); return m ? m[1].toLowerCase() : ""; };
+const cmpName = (a, b) => baseName(a).localeCompare(baseName(b), "fr", {sensitivity: "base"}) || (a < b ? -1 : a > b ? 1 : 0);
+function sortFiles(list) {
+  const m = prefs.sortMode, out = list.slice();
+  if (m === "za") return out.sort((a, b) => -cmpName(a, b));
+  if (m === "type") return out.sort((a, b) => (extName(a) < extName(b) ? -1 : extName(a) > extName(b) ? 1 : 0) || cmpName(a, b));
+  if (m === "recent") { const r = store.get(recentKey(), {}); return out.sort((a, b) => (r[b] || 0) - (r[a] || 0) || cmpName(a, b)); }
+  return out.sort(cmpName);
+}
+function fileRow(p, openPaths, inFolder) {
+  const li = document.createElement("li");
+  li.innerHTML = `<button class="path"><span class="dir"></span><span></span></button><button class="ren">✏️</button><button class="del">🗑</button>`;
+  const path = li.children[0], ren = li.children[1], del = li.children[2];
+  path.children[0].textContent = inFolder ? "" : (dirName(p) ? dirName(p) + "/" : "");
+  path.children[1].textContent = baseName(p) + (openPaths.has(p) ? "  • ouvert" : "");
+  if (openPaths.has(p)) li.classList.add("current");
+  if (inFolder) li.classList.add("infolder");
+  path.onclick = () => { $("filesHint").textContent = "Toucher reçu : " + p; openGh(p); };
+  ren.setAttribute("aria-label", "Renommer " + p);
+  ren.onclick = e => { e.stopPropagation(); openRenDlg(p); };
+  del.setAttribute("aria-label", "Supprimer " + p);
+  del.onclick = e => { e.stopPropagation(); deleteGh(p); };
+  return li;
+}
 function renderList() {
   const q = $("filter").value.trim().toLowerCase();
   const re = $("allText").checked ? TEXT_RE : GD_RE;
-  const items = tree.filter(p => re.test(p) && p.toLowerCase().includes(q));
-  const openPaths = new Set(tabs.filter(t => t.kind === "gh").map(t => t.path));
+  const items = sortFiles(tree.filter(p => re.test(p) && p.toLowerCase().indexOf(q) !== -1));
+  const aid = activeId();
+  const openPaths = new Set(tabs.filter(t => t.kind === "gh" && t.repoId === aid).map(t => t.path));
   const ul = $("list"); ul.innerHTML = "";
-  items.forEach(p => {
-    const li = document.createElement("li");
-    const i = p.lastIndexOf("/");
-    li.innerHTML = `<button class="path"><span class="dir"></span><span></span></button><button class="ren">✏️</button><button class="del">🗑</button>`;
-    const path = li.children[0], ren = li.children[1], del = li.children[2];
-    path.children[0].textContent = i >= 0 ? p.slice(0, i + 1) : "";
-    path.children[1].textContent = p.slice(i + 1) + (openPaths.has(p) ? "  • ouvert" : "");
-    if (openPaths.has(p)) li.classList.add("current");
-    path.onclick = () => { $("filesHint").textContent = "Toucher reçu : " + p; openGh(p); };
-    ren.setAttribute("aria-label", "Renommer " + p);
-    ren.onclick = e => { e.stopPropagation(); openRenDlg(p); };
-    del.setAttribute("aria-label", "Supprimer " + p);
-    del.onclick = e => { e.stopPropagation(); deleteGh(p); };
-    ul.appendChild(li);
-  });
+  if (prefs.viewMode === "dirs") {
+    const groups = {}, order = [];
+    items.forEach(p => { const d = dirName(p); if (!groups[d]) { groups[d] = []; order.push(d); } groups[d].push(p); });
+    if (prefs.sortMode !== "recent") order.sort((a, b) => (prefs.sortMode === "za" ? -1 : 1) * a.localeCompare(b, "fr", {sensitivity: "base"}));
+    const collapsed = store.get("collapsed:" + aid, []);
+    order.forEach(d => {
+      const isClosed = !q && collapsed.indexOf(d) !== -1;
+      const li = document.createElement("li"); li.className = "dirrow";
+      const b = document.createElement("button"); b.className = "dirbtn";
+      b.textContent = (isClosed ? "▸ 📁 " : "▾ 📂 ") + (d ? d + "/" : "(racine du dépôt)");
+      const cnt = document.createElement("span"); cnt.className = "cnt"; cnt.textContent = groups[d].length;
+      b.appendChild(cnt);
+      b.onclick = () => {
+        const c2 = store.get("collapsed:" + aid, []), k = c2.indexOf(d);
+        if (k === -1) c2.push(d); else c2.splice(k, 1);
+        store.set("collapsed:" + aid, c2); renderList();
+      };
+      li.appendChild(b); ul.appendChild(li);
+      if (!isClosed) groups[d].forEach(p => ul.appendChild(fileRow(p, openPaths, true)));
+    });
+  } else {
+    items.forEach(p => ul.appendChild(fileRow(p, openPaths, false)));
+  }
   if (!items.length && tree.length) $("filesHint").textContent = "Aucun fichier ne correspond.";
 }
 
 // ---------- GitHub : ouvrir (dans un onglet) ----------
 async function openGh(path) {
-  const already = tabs.findIndex(t => t.kind === "gh" && t.path === path);
+  const aid = activeId();
+  const already = tabs.findIndex(t => t.kind === "gh" && t.path === path && t.repoId === aid);
   if (already >= 0) { switchTab(already); closePanel(); return; }
   const c = cfg();
   $("filesHint").textContent = "Ouverture de " + path + "…";
@@ -695,7 +853,8 @@ async function openGh(path) {
     // Remplace l'onglet de départ s'il est vide et inutilisé
     const t0 = cur();
     if (tabs.length === 1 && t0.kind === "local" && !t0.doc.getValue().trim()) tabs = [];
-    addTab({kind: "gh", name: path.split("/").pop(), path, sha: f.sha, base: text, doc: newDoc(text)});
+    markRecent(aid, path);
+    addTab({kind: "gh", repoId: aid, name: path.split("/").pop(), path, sha: f.sha, base: text, doc: newDoc(text)});
     $("filesHint").textContent = "";
     closePanel();
   } catch (e) {
@@ -706,7 +865,8 @@ async function openGh(path) {
 
 // ---------- GitHub : envoyer l'onglet actif ----------
 async function pushGh(force = false, presetMsg = null) {
-  const c = cfg(), t = cur();
+  const t = cur(), c = repoById(t.repoId);
+  if (!c) { refreshStatus("Le dépôt de cet onglet a été retiré des Réglages : ajoute-le à nouveau pour envoyer."); return; }
   const text = t.doc.getValue();
   if (!isDirty(t) && !force) { refreshStatus("Rien à envoyer, déjà à jour ✔"); return; }
   const verb = t.isNew ? "ajoute" : "modifie";
@@ -717,10 +877,10 @@ async function pushGh(force = false, presetMsg = null) {
   try {
     const body = {message: message || `GD Pocket : ${verb} ${t.name}`, content: textToB64(text), branch: c.branch};
     if (t.sha) body.sha = t.sha;
-    const r = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(t.path)}`, {method: "PUT", body: JSON.stringify(body)});
+    const r = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(t.path)}`, {method: "PUT", body: JSON.stringify(body)}, c);
     const wasNew = t.isNew;
     Object.assign(t, {sha: r.content.sha, base: text, isNew: false});
-    if (wasNew && !tree.includes(t.path)) { tree.push(t.path); tree.sort(); store.set("tree", tree); }
+    if (wasNew && t.repoId === activeId() && !tree.includes(t.path)) { tree.push(t.path); tree.sort(); saveTree(); }
     saveTabs(true); renderTabs();
     refreshStatus((wasNew ? "Créé" : "Envoyé") + " sur GitHub ✔ (pense à faire un pull sur le PC)");
   } catch (e) {
@@ -729,7 +889,7 @@ async function pushGh(force = false, presetMsg = null) {
     } else if (e.status === 409 || e.status === 422) {
       if (confirm("Ce fichier a été modifié sur GitHub depuis que tu l'as ouvert.\n\nOK = écraser avec ta version\nAnnuler = ne rien envoyer")) {
         try {
-          const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(t.path)}?ref=${encodeURIComponent(c.branch)}`);
+          const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(t.path)}?ref=${encodeURIComponent(c.branch)}`, {}, c);
           t.sha = f.sha;
           $("save").disabled = false;
           return pushGh(true, message);
@@ -745,7 +905,7 @@ async function deleteGh(path) {
   const name = path.split("/").pop();
   const uid = path + ".uid";                       // fichier compagnon Godot 4.4+
   const withUid = tree.includes(uid);
-  const ti = tabs.findIndex(t => t.kind === "gh" && t.path === path);
+  const ti = tabs.findIndex(t => t.kind === "gh" && t.path === path && t.repoId === activeId());
   let warn = `Supprimer « ${path} » du dépôt GitHub ?`;
   if (withUid) warn += `\n\nSon fichier compagnon « ${name}.uid » sera aussi supprimé.`;
   if (/\.gd$/i.test(path)) warn += "\n\nAttention : si une scène Godot utilise ce script, elle affichera une erreur. Détache-le d'abord dans Godot si besoin.";
@@ -764,9 +924,9 @@ async function deleteGh(path) {
       });
       tree = tree.filter(x => x !== p);
     }
-    store.set("tree", tree);
+    saveTree();
     // Fermer l'onglet du fichier supprimé, sans redemander
-    const j = tabs.findIndex(t => t.kind === "gh" && t.path === path);
+    const j = tabs.findIndex(t => t.kind === "gh" && t.path === path && t.repoId === activeId());
     if (j >= 0) {
       tabs.splice(j, 1);
       if (!tabs.length) tabs.push({kind: "local", name: "script.gd", doc: newDoc("")});
@@ -779,7 +939,7 @@ async function deleteGh(path) {
     $("filesHint").textContent = e.status === 404
       ? "Ce fichier n'existe plus sur GitHub : touche ↻ Actualiser."
       : "Erreur : " + friendly(e);
-    if (e.status === 404) { tree = tree.filter(x => x !== path); store.set("tree", tree); renderList(); }
+    if (e.status === 404) { tree = tree.filter(x => x !== path); saveTree(); renderList(); }
   }
 }
 
@@ -821,10 +981,10 @@ async function renameGh() {
   const from = renSrc, to = renPath();
   if (!to) { alert("Donne un nom au fichier."); return; }
   if (to === from) { $("renDlg").classList.remove("open"); return; }
-  if (tree.includes(to) || tabs.some(t => t.kind === "gh" && t.path === to)) { alert("Un fichier « " + to + " » existe déjà."); return; }
+  if (tree.includes(to) || tabs.some(t => t.kind === "gh" && t.path === to && t.repoId === activeId())) { alert("Un fichier « " + to + " » existe déjà."); return; }
   const moves = [[from, to]];
   if (tree.includes(from + ".uid")) moves.push([from + ".uid", to + ".uid"]);
-  const ti = tabs.findIndex(t => t.kind === "gh" && t.path === from);
+  const ti = tabs.findIndex(t => t.kind === "gh" && t.path === from && t.repoId === activeId());
   const isGd = /\.gd$/i.test(from);
   let warn = `Renommer « ${from} »\nen « ${to} » ?`;
   if (moves.length > 1) warn += "\n\nSon fichier .uid suit le script : les scènes Godot le retrouveront automatiquement.";
@@ -865,8 +1025,9 @@ async function renameGh() {
     }
     // 3. Mettre à jour la liste et les onglets
     moves.forEach(([a, b]) => { tree = tree.filter(x => x !== a); tree.push(b); });
-    tree.sort(); store.set("tree", tree);
-    tabs.forEach(t => { if (t.kind === "gh" && t.path === from) { t.path = to; t.name = toName; } });
+    tree.sort(); saveTree();
+    const aid2 = activeId();
+    tabs.forEach(t => { if (t.kind === "gh" && t.path === from && t.repoId === aid2) { t.path = to; t.name = toName; } });
     saveTabs(true); renderTabs(); refreshStatus(); renderList();
     $("filesHint").textContent = `Renommé en « ${to} » ✔ (pense à faire un pull sur le PC)`;
   } catch (e) {
@@ -915,11 +1076,11 @@ $("newCreate").onclick = () => {
   const p = newPath();
   if (!p) { alert("Donne un nom au script."); return; }
   if (tree.includes(p) || tabs.some(t => t.path === p)) { alert("Un fichier « " + p + " » existe déjà."); return; }
-  if (!cfg().token) { alert("Configure d'abord la connexion GitHub dans Réglages."); return; }
+  if (!cfg().token) { alert("Ajoute d'abord un dépôt dans Réglages › Dépôts GitHub."); return; }
   store.set("lastDir", $("newDir").value);
   $("newDlg").classList.remove("open");
   closePanel();
-  addTab({kind: "gh", name: p.split("/").pop(), path: p, sha: null, base: null, isNew: true, doc: newDoc(TEMPLATE($("newBase").value))});
+  addTab({kind: "gh", repoId: activeId(), name: p.split("/").pop(), path: p, sha: null, base: null, isNew: true, doc: newDoc(TEMPLATE($("newBase").value))});
 };
 $("newScript").onclick = openNewDlg;
 
@@ -948,7 +1109,7 @@ $("save").onclick = save;
 // ---------- Panneau ----------
 function openPanel() {
   $("panel").classList.add("open");
-  renderList();
+  fillRepoSel(); renderList();
   if (!cfg().token) showTab("settings"); else if (!tree.length) loadTree();
 }
 function closePanel() { $("panel").classList.remove("open"); }
@@ -962,30 +1123,114 @@ document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => showTab
 $("refresh").onclick = loadTree;
 $("filter").oninput = renderList;
 $("allText").onchange = renderList;
+$("viewMode").value = prefs.viewMode;
+$("sortMode").value = prefs.sortMode;
+$("viewMode").onchange = () => { prefs.viewMode = $("viewMode").value; store.set("prefs", prefs); renderList(); };
+$("sortMode").onchange = () => { prefs.sortMode = $("sortMode").value; store.set("prefs", prefs); renderList(); };
+function fillRepoSel() {
+  const sel = $("repoSel"); sel.innerHTML = "";
+  repos.forEach(r => {
+    const o = document.createElement("option"); o.value = r.id;
+    o.textContent = "Dépôt : " + (r.owner ? r.owner + "/" : "") + (r.repo || "?");
+    sel.appendChild(o);
+  });
+  const m = document.createElement("option"); m.value = "__manage"; m.textContent = "＋ Gérer les dépôts…"; sel.appendChild(m);
+  sel.value = activeId() || "__manage";
+}
+function switchRepo(id) {
+  if (!repoById(id)) return;
+  store.set("activeRepo", id);
+  tree = store.get(treeKey(), []);
+  $("filter").value = ""; $("filesHint").textContent = "";
+  fillRepoSel(); renderList(); renderTabs(); refreshStatus();
+  if (navigator.onLine || !tree.length) loadTree();
+}
+$("repoSel").onchange = () => {
+  const v = $("repoSel").value;
+  if (v === "__manage") { fillRepoSel(); showTab("settings"); showSec("repos"); return; }
+  switchRepo(v);
+};
 
-// ---------- Réglages ----------
-(function fillSettings() {
-  const c = cfg();
-  $("ghOwner").value = c.owner || "LutiinBlack";
-  $("ghRepo").value = c.repo || "Micro-Racer-Mobile-";
-  $("ghBranch").value = c.branch || "";
-  $("ghToken").value = c.token || "";
-})();
+// ---------- Réglages : deux colonnes ----------
+function showSec(sec) {
+  prefs.setSec = sec; store.set("prefs", prefs);
+  document.querySelectorAll(".setnav button").forEach(b => b.classList.toggle("on", b.dataset.sec === sec));
+  document.querySelectorAll(".setbody section").forEach(x => x.classList.toggle("on", x.id === "sec-" + sec));
+}
+document.querySelectorAll(".setnav button").forEach(b => b.onclick = () => showSec(b.dataset.sec));
+showSec(prefs.setSec === "display" ? "display" : "repos");
+
+// ---------- Réglages : dépôts ----------
+let editingId = null;   // null = nouveau dépôt
+function renderRepoList() {
+  const box = $("repoList"); box.innerHTML = "";
+  if (!repos.length) { const p = document.createElement("p"); p.className = "hint"; p.textContent = "Aucun dépôt pour l'instant : remplis le formulaire ci-dessous."; box.appendChild(p); }
+  const aid = activeId();
+  repos.forEach(r => {
+    const b = document.createElement("button"); b.className = "repoItem" + (r.id === editingId ? " editing" : "");
+    b.textContent = (r.owner ? r.owner + "/" : "") + (r.repo || "?") + (r.branch ? " (" + r.branch + ")" : "");
+    if (r.id === aid) { const s2 = document.createElement("span"); s2.className = "badge"; s2.textContent = "actif"; b.appendChild(s2); }
+    b.onclick = () => editRepo(r.id);
+    box.appendChild(b);
+  });
+}
+function editRepo(id) {
+  editingId = id;
+  const r = id ? repoById(id) : null, a = cfg();
+  $("repoFormTitle").textContent = r ? "Modifier : " + (r.owner ? r.owner + "/" : "") + r.repo : "Nouveau dépôt";
+  $("ghOwner").value = r ? r.owner : (a.owner || "LutiinBlack");
+  $("ghRepo").value = r ? r.repo : (repos.length ? "" : "Micro-Racer-Mobile-");
+  $("ghBranch").value = r ? r.branch : "";
+  $("ghToken").value = r ? r.token : (a.token || "");   // nouveau dépôt : propose le même jeton
+  $("repoUse").style.display = r && r.id !== activeId() ? "" : "none";
+  $("repoRemove").style.display = r ? "" : "none";
+  $("forget").style.display = r ? "" : "none";
+  renderRepoList();
+}
+$("repoAdd").onclick = () => { editRepo(null); $("ghRepo").focus(); };
 $("saveSettings").onclick = async () => {
   const c = {owner: $("ghOwner").value.trim(), repo: $("ghRepo").value.trim(),
              branch: $("ghBranch").value.trim(), token: $("ghToken").value.trim()};
-  store.set("gh", c);
+  if (!c.owner || !c.repo) { alert("Indique le propriétaire et le nom du dépôt."); return; }
+  const dup = repos.find(r => r.id !== editingId && r.owner.toLowerCase() === c.owner.toLowerCase() && r.repo.toLowerCase() === c.repo.toLowerCase() && (r.branch || "") === c.branch);
+  if (dup) { alert("Ce dépôt est déjà dans la liste."); editRepo(dup.id); return; }
+  let r = editingId ? repoById(editingId) : null;
+  const isNew = !r;
+  if (isNew) { r = {id: "r" + Date.now().toString(36)}; repos.push(r); }
+  Object.assign(r, c); saveRepos(); editingId = r.id;
   $("saveSettings").disabled = true;
   try {
-    const info = await gh(`/repos/${c.owner}/${c.repo}`);
-    if (!c.branch) { c.branch = info.default_branch; $("ghBranch").value = c.branch; store.set("gh", c); }
-    store.del("tree"); tree = [];
-    alert("Connexion réussie ✔\nDépôt : " + info.full_name + "\nBranche : " + c.branch);
-    showTab("files"); loadTree();
+    const info = await gh(`/repos/${c.owner}/${c.repo}`, {}, r);
+    if (!r.branch) { r.branch = info.default_branch; $("ghBranch").value = r.branch; saveRepos(); }
+    store.del(treeKey(r.id));
+    const becomeActive = isNew || r.id === activeId() || repos.length === 1;
+    alert("Connexion réussie ✔\nDépôt : " + info.full_name + "\nBranche : " + r.branch + (isNew ? "\n\nC'est maintenant le dépôt affiché dans 📁." : ""));
+    editRepo(r.id);
+    if (becomeActive) { switchRepo(r.id); showTab("files"); }
   } catch (e) {
-    alert("Échec : " + friendly(e));
+    alert("Échec : " + friendly(e) + "\n\nLes informations sont enregistrées : corrige-les puis réessaie.");
+    editRepo(r.id);
   } finally { $("saveSettings").disabled = false; }
 };
+$("repoUse").onclick = () => { if (editingId) { switchRepo(editingId); editRepo(editingId); showTab("files"); } };
+$("repoRemove").onclick = () => {
+  const r = repoById(editingId); if (!r) return;
+  const n = tabs.filter(t => t.kind === "gh" && t.repoId === r.id).length;
+  if (n) { alert("Ferme d'abord les " + n + " onglet(s) ouverts de ce dépôt."); return; }
+  if (!confirm("Retirer « " + r.repo + " » de la liste ?\n\nRien n'est supprimé sur GitHub.")) return;
+  repos = repos.filter(x => x.id !== r.id); saveRepos();
+  store.del(treeKey(r.id)); store.del(recentKey(r.id)); store.del("collapsed:" + r.id);
+  if (store.get("activeRepo", null) === r.id) { if (repos[0]) switchRepo(repos[0].id); else { store.del("activeRepo"); tree = []; renderList(); } }
+  editRepo(repos[0] ? repos[0].id : null);
+};
+$("forget").onclick = () => {
+  const r = repoById(editingId); if (!r) return;
+  r.token = ""; saveRepos();
+  $("ghToken").value = "";
+  if (r.id === activeId()) { store.del(treeKey(r.id)); tree = []; renderList(); }
+  alert("Jeton effacé pour ce dépôt.");
+};
+editRepo(activeId());
 $("prefTheme").value = prefs.theme;
 $("prefWrap").checked = prefs.wrap;
 $("prefStart").checked = prefs.startFiles;
@@ -999,11 +1244,6 @@ $("prefWrap").onchange = () => {
   prefs.wrap = $("prefWrap").checked; store.set("prefs", prefs);
   cm.setOption("lineWrapping", prefs.wrap);
 };
-$("forget").onclick = () => {
-  const c = cfg(); delete c.token; store.set("gh", c);
-  $("ghToken").value = ""; store.del("tree"); tree = [];
-  alert("Jeton effacé de l'appli.");
-};
 
 // Prévenir avant de quitter s'il reste des modifications non envoyées
 let skipUnloadWarn = false;
@@ -1011,6 +1251,7 @@ window.addEventListener("beforeunload", e => { saveTabs(true); if (!skipUnloadWa
 
 renderTabs();
 refreshStatus();
+refreshHist();
 
 // Écran de démarrage : la liste des fichiers (option dans Réglages › Affichage)
 if (prefs.startFiles) {
@@ -1153,7 +1394,9 @@ function fillAddPick() {
   const sel = $("addPick"); sel.innerHTML = "";
   const re = $("allText").checked ? TEXT_RE : GD_RE;
   const files = tree.filter(p => re.test(p));
-  const openPaths = new Set(tabs.filter(t => t.kind === "gh").map(t => t.path));
+  const aid = activeId();
+  const openPaths = new Set(tabs.filter(t => t.kind === "gh" && t.repoId === aid).map(t => t.path));
+  $("addPickLabel").textContent = "Ouvrir un script du dépôt « " + repoName(aid) + " »";
   const groups = {};
   files.forEach(p => {
     const i = p.lastIndexOf("/"), d = i >= 0 ? p.slice(0, i) + "/" : "(racine du dépôt)";
@@ -1176,7 +1419,7 @@ async function openAddDlg() {
   const hasTok = !!cfg().token;
   fillAddPick();
   $("addPick").disabled = $("addOpen").disabled = !hasTok;
-  $("addHint").textContent = hasTok ? "" : "Configure d'abord la connexion GitHub (📁 › Réglages) pour ouvrir les scripts du dépôt.";
+  $("addHint").textContent = hasTok ? "" : "Ajoute d'abord un dépôt (📁 › Réglages › Dépôts GitHub) pour ouvrir ses scripts.";
   $("addDlg").classList.add("open");
   if (hasTok && !tree.length) {
     $("addHint").textContent = "Chargement de la liste…";

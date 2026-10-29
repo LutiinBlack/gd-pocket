@@ -1,6 +1,17 @@
 {
   "versions": [
     {
+      "version": "0.9.0",
+      "date": "29/10/2026",
+      "notes": [
+        "Plusieurs dépôts GitHub : ajoute-les dans Réglages › Dépôts GitHub et passe de l'un à l'autre avec le menu en haut de 📁. Chaque onglet retient son dépôt (nom affiché sur l'onglet) et envoie toujours au bon endroit.",
+        "Réglages en deux colonnes : les sections à gauche (Dépôts GitHub, Affichage), leur contenu à droite.",
+        "Liste des fichiers : affichage « Tout » ou « Par dossier » (dossiers repliables, nombre de fichiers).",
+        "Tri de la liste : Nom A → Z, Nom Z → A, Type de fichier, ou Récemment ouverts.",
+        "Boutons ↶ Annuler et ↷ Rétablir au début de la barre de touches."
+      ]
+    },
+    {
       "version": "0.8.0",
       "date": "29/10/2026",
       "notes": [
