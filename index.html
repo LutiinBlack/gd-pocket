@@ -139,7 +139,7 @@
 <!-- Panneau : fichiers et réglages -->
 <div id="panel">
   <div class="top">
-    <h2>GD Pocket</h2>
+    <h2>GD Pocket <span id="appVer" style="font-size:12px;opacity:.6;font-weight:normal"></span></h2>
     <button id="closePanel" class="ghost">Fermer</button>
   </div>
   <div class="tabs">
@@ -235,6 +235,21 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
 <script>
+// ---------- Version et rapport d'erreurs (utile sur les vieux appareils) ----------
+var APP_VERSION = "0.7.3";
+function showError(msg) {
+  var t = "⚠ Erreur : " + msg;
+  var s = document.getElementById("status"), h = document.getElementById("filesHint");
+  if (s) s.textContent = t;
+  if (h) h.textContent = t;
+}
+window.addEventListener("error", function (e) {
+  showError((e.message || "inconnue") + (e.lineno ? " (ligne " + e.lineno + ")" : ""));
+});
+window.addEventListener("unhandledrejection", function (e) {
+  showError(e.reason && e.reason.message ? e.reason.message : String(e.reason));
+});
+document.getElementById("appVer").textContent = "v" + APP_VERSION;
 // Détecte si le navigateur gère « gap » en flexbox (sinon : marges de secours)
 (function () {
   var d = document.createElement("div");
@@ -579,7 +594,7 @@ function renderList() {
     path.children[0].textContent = i >= 0 ? p.slice(0, i + 1) : "";
     path.children[1].textContent = p.slice(i + 1) + (openPaths.has(p) ? "  • ouvert" : "");
     if (openPaths.has(p)) li.classList.add("current");
-    path.onclick = () => openGh(p);
+    path.onclick = () => { $("filesHint").textContent = "Toucher reçu : " + p; openGh(p); };
     ren.setAttribute("aria-label", "Renommer " + p);
     ren.onclick = e => { e.stopPropagation(); openRenDlg(p); };
     del.setAttribute("aria-label", "Supprimer " + p);

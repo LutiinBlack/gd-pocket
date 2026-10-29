@@ -1,6 +1,6 @@
 // GD Pocket – service worker : met l'appli en cache pour qu'elle marche hors ligne.
 // Change VERSION à chaque mise à jour de l'appli pour forcer le rafraîchissement.
-const VERSION = "gd-pocket-v0.7.2";
+const VERSION = "gd-pocket-v0.7.3";
 const CDN = "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/";
 const FILES = [
   "./", "./index.html", "./manifest.webmanifest",
@@ -31,7 +31,7 @@ self.addEventListener("fetch", e => {
   const isPage = e.request.mode === "navigate";
   if (isPage) {
     e.respondWith(
-      fetch(e.request)
+      fetch(new Request(e.request.url, {cache: "no-cache"}))   // toujours vérifier s'il y a une nouvelle version
         .then(r => { const copy = r.clone(); caches.open(VERSION).then(c => c.put("./index.html", copy)); return r; })
         .catch(() => caches.match("./index.html"))
     );
