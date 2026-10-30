@@ -2,7 +2,7 @@
 // Change VERSION à chaque mise à jour de l'appli (et APP_VERSION dans index.html, et changelog.json).
 // Une nouvelle version s'installe en arrière-plan puis ATTEND : l'appli affiche la fenêtre
 // « Nouvelle version » et ne passe à la nouvelle version que si l'utilisateur appuie sur « Mettre à jour ».
-const VERSION = "gd-pocket-v0.10.0";
+const VERSION = "gd-pocket-v0.11.0";
 const CDN = "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/";
 const CDN_FILES = [
   CDN + "codemirror.min.css", CDN + "theme/dracula.min.css", CDN + "addon/hint/show-hint.min.css",

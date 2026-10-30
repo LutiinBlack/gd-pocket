@@ -164,14 +164,36 @@
   /* Différences avant envoi */
   #diffStats { font-size:13px; margin-top:4px; word-break:break-all; }
   #diffStats .a { color:#50fa7b; } #diffStats .d { color:#ff6b6b; }
-  #diffView { margin-top:8px; max-height:48vh; overflow:auto; -webkit-overflow-scrolling:touch; background:#1d2229; border-radius:6px; font-family:ui-monospace, monospace; font-size:12.5px; line-height:1.45; padding:4px 0; }
-  #diffView .dl { white-space:pre; padding-right:8px; }
-  #diffView .dl .n { display:inline-block; min-width:34px; padding-right:6px; text-align:right; opacity:.45; -webkit-user-select:none; user-select:none; }
-  #diffView .add { background:rgba(80,250,123,.14); color:#c8ffd8; }
-  #diffView .del { background:rgba(255,107,107,.16); color:#ffd0d0; }
-  #diffView .gap { opacity:.5; padding-left:40px; white-space:normal; }
+  #diffView, .diffbox { margin-top:8px; max-height:48vh; overflow:auto; -webkit-overflow-scrolling:touch; background:#1d2229; border-radius:6px; font-family:ui-monospace, monospace; font-size:12.5px; line-height:1.45; padding:4px 0; }
+  #diffView .dl, .diffbox .dl { white-space:pre; padding-right:8px; }
+  #diffView .dl .n, .diffbox .dl .n { display:inline-block; min-width:34px; padding-right:6px; text-align:right; opacity:.45; -webkit-user-select:none; user-select:none; }
+  #diffView .add, .diffbox .add { background:rgba(80,250,123,.14); color:#c8ffd8; }
+  #diffView .del, .diffbox .del { background:rgba(255,107,107,.16); color:#ffd0d0; }
+  #diffView .gap, .diffbox .gap { opacity:.5; padding-left:40px; white-space:normal; }
   #diffMsg { width:100%; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:10px; font-size:15px; }
-  #diffDlg .box, #outlineDlg .box { width:min(94vw,640px); }
+  #diffDlg .box, #outlineDlg .box, #snipDlg .box, #histDlg .box { width:min(94vw,640px); }
+
+  /* Erreurs en direct */
+  .lint-gutter { width:14px; }
+  .lint-marker { color:#ff5c5c; font-size:11px; line-height:inherit; text-align:center; cursor:pointer; }
+  .cm-lint-line { background:rgba(255,80,80,.16) !important; }
+  #status.lint { color:#ff8a8a; opacity:1; }
+  #diffLint { margin-top:8px; padding:8px 10px; border-radius:6px; background:rgba(255,80,80,.14); color:#ffc4c4; font-size:13px; line-height:1.45; }
+  #diffLint .lh { font-weight:bold; margin-bottom:2px; }
+  #diffOthers { margin-top:8px; font-size:14px; }
+  #diffOthers .check { margin-top:6px; }
+
+  /* Modèles et historique */
+  #snipList, #histList { list-style:none; margin:10px 0 0; padding:0; max-height:60vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  #snipList li button, #histList li button { display:block; width:100%; text-align:left; background:transparent; border-radius:0; border-bottom:1px solid var(--mut); padding:9px 4px; }
+  #snipList .nm, #histList .nm { display:block; font-size:14px; }
+  #snipList .pv, #histList .pv { display:block; font-size:12px; opacity:.6; font-family:ui-monospace, monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+  #keys button.snip { background:var(--acc); }
+  #histBtn { background:transparent; padding:0 8px 6px; font-size:15px; opacity:.8; }
+
+  /* Liste : nouveaux fichiers, fichiers non texte */
+  #list li .isnew { font-size:11px; background:#57b3ff; color:#1d2229; border-radius:4px; padding:1px 5px; margin-left:6px; font-family:system-ui, sans-serif; }
+  #list li.binary .path { opacity:.45; }
   header #find { flex:1 1 0; min-width:60px; -webkit-appearance:none; appearance:none; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:8px; font-size:15px; }
   #findBar, #replBar { display:none; align-items:center; gap:6px; padding:0 8px 6px; background:var(--bar); }
   .finding #findBar, .replacing #replBar { display:flex; }
@@ -197,11 +219,11 @@
   #updNotes li { margin-bottom:4px; }
 
   /* Fenêtre « Nouveau script » */
-  #newDlg, #renDlg, #addDlg, #updDlg, #outlineDlg, #diffDlg { position:fixed; top:0; right:0; bottom:0; left:0; background:rgba(0,0,0,.55); z-index:200; display:none; align-items:flex-start; justify-content:center; padding-top:10vh; }
-  #newDlg.open, #renDlg.open, #addDlg.open, #updDlg.open, #outlineDlg.open, #diffDlg.open { display:flex; }
-  #outlineDlg, #diffDlg { padding-top:6vh; }
-  #newDlg .box, #renDlg .box, #addDlg .box, #updDlg .box, #outlineDlg .box, #diffDlg .box { background:var(--bar); border-radius:10px; padding:14px; width:min(92vw,420px); }
-  #newDlg h2, #renDlg h2, #addDlg h2, #updDlg h2, #outlineDlg h2, #diffDlg h2 { margin:0 0 4px; font-size:17px; }
+  #newDlg, #renDlg, #addDlg, #updDlg, #outlineDlg, #diffDlg, #snipDlg, #histDlg { position:fixed; top:0; right:0; bottom:0; left:0; background:rgba(0,0,0,.55); z-index:200; display:none; align-items:flex-start; justify-content:center; padding-top:10vh; }
+  #newDlg.open, #renDlg.open, #addDlg.open, #updDlg.open, #outlineDlg.open, #diffDlg.open, #snipDlg.open, #histDlg.open { display:flex; }
+  #outlineDlg, #diffDlg, #snipDlg, #histDlg { padding-top:6vh; }
+  #newDlg .box, #renDlg .box, #addDlg .box, #updDlg .box, #outlineDlg .box, #diffDlg .box, #snipDlg .box, #histDlg .box { background:var(--bar); border-radius:10px; padding:14px; width:min(92vw,420px); }
+  #newDlg h2, #renDlg h2, #addDlg h2, #updDlg h2, #outlineDlg h2, #diffDlg h2, #snipDlg h2, #histDlg h2 { margin:0 0 4px; font-size:17px; }
   #newDlg input, #newDlg select, #renDlg input, #renDlg select, #addDlg select { width:100%; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:10px; font-size:15px; }
   #newPreview, #renPreview { font-family:ui-monospace, monospace; font-size:13px; opacity:.8; margin-top:8px; word-break:break-all; }
 
@@ -243,7 +265,8 @@
   <div id="keys"></div>
   <div id="statusRow">
     <div id="status">Prêt</div>
-    <button id="reloadBtn" aria-label="Recharger depuis GitHub">↻</button>
+    <button id="histBtn" aria-label="Historique du fichier" title="Historique de ce fichier">🕘</button>
+    <button id="reloadBtn" aria-label="Recharger cet onglet depuis GitHub" title="Recharger cet onglet depuis GitHub">↻</button>
     <button id="bottomToggle" aria-label="Replier la barre du bas">▾</button>
   </div>
 </div>
@@ -281,7 +304,11 @@
         <option value="recent">Tri : Récemment ouverts</option>
       </select>
     </div>
-    <label class="check"><input id="allText" type="checkbox"> Afficher aussi .tscn, .tres, .cfg, .json, .md…</label>
+    <select id="typeSel" aria-label="Types de fichiers affichés" style="margin-top:8px">
+      <option value="gd">Fichiers : scripts (.gd, .gdshader)</option>
+      <option value="text">Fichiers : scripts + scènes, ressources, textes</option>
+      <option value="all">Fichiers : tous (images, sons… visibles mais non ouvrables)</option>
+    </select>
     <ul id="list"></ul>
     <p class="hint" id="filesHint">Renseigne d'abord l'onglet Réglages.</p>
   </div>
@@ -335,6 +362,7 @@
             <option value="22">Énorme (22)</option>
           </select>
           <label class="check"><input id="prefDiff" type="checkbox"> Voir les différences avant d'envoyer</label>
+          <label class="check"><input id="prefLint" type="checkbox"> Signaler les erreurs en direct (lignes rouges)</label>
         </section>
       </div>
     </div>
@@ -396,12 +424,42 @@
     <h2 id="diffTitle">Vérifier avant d'envoyer</h2>
     <div id="diffStats"></div>
     <div id="diffView"></div>
+    <div id="diffLint" style="display:none"></div>
+    <div id="diffOthers" style="display:none"></div>
     <label for="diffMsg">Message du commit</label>
     <input id="diffMsg" type="text" autocomplete="off">
     <div class="row">
       <button id="diffSend">Envoyer</button>
       <button id="diffCancel" class="ghost">Annuler</button>
     </div>
+  </div>
+</div>
+
+<!-- Fenêtre : modèles de code -->
+<div id="snipDlg">
+  <div class="box">
+    <h2>Modèles de code</h2>
+    <div class="hint">Le modèle est inséré à la ligne du curseur, avec la bonne indentation.</div>
+    <ul id="snipList"></ul>
+    <div class="row"><button id="snipClose" class="ghost">Fermer</button></div>
+  </div>
+</div>
+
+<!-- Fenêtre : historique d'un fichier -->
+<div id="histDlg">
+  <div class="box">
+    <h2 id="histTitle">Historique</h2>
+    <div class="hint" id="histInfo"></div>
+    <ul id="histList"></ul>
+    <div id="histDetail" style="display:none">
+      <div id="histView" class="diffbox"></div>
+      <div class="row">
+        <button id="histRestore">Restaurer dans l'onglet</button>
+        <button id="histBack" class="ghost">← Versions</button>
+      </div>
+      <p class="hint">Restaurer remplace le contenu de l'onglet (↶ pour annuler). Rien n'est envoyé tant que tu n'appuies pas sur « Envoyer ».</p>
+    </div>
+    <div class="row"><button id="histClose" class="ghost">Fermer</button></div>
   </div>
 </div>
 
@@ -444,7 +502,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
 <script>
 // ---------- Version et rapport d'erreurs (utile sur les vieux appareils) ----------
-var APP_VERSION = "0.10.0";
+var APP_VERSION = "0.11.0";
 function showError(msg) {
   var t = "⚠ Erreur : " + msg;
   var s = document.getElementById("status"), h = document.getElementById("filesHint");
@@ -582,7 +640,7 @@ function gdHint(cm) {
 }
 
 // ---------- Préférences d'affichage ----------
-const prefs = Object.assign({theme: "godot", wrap: false, startFiles: true, bottomCollapsed: false, viewMode: "all", sortMode: "az", setSec: "repos", fontSize: 15, showDiff: true}, store.get("prefs", {}));
+const prefs = Object.assign({theme: "godot", wrap: false, startFiles: true, bottomCollapsed: false, viewMode: "all", sortMode: "az", setSec: "repos", fontSize: 15, showDiff: true, lint: true, typeFilter: "gd"}, store.get("prefs", {}));
 document.body.style.background = prefs.theme === "godot" ? "#1d2229" : "";
 document.documentElement.style.setProperty("--code-size", prefs.fontSize + "px");
 
@@ -675,6 +733,7 @@ const cm = CodeMirror($("editor"), {
   lineWrapping: prefs.wrap,
   styleActiveLine: true,
   lineNumbers: true,
+  gutters: ["lint-gutter", "CodeMirror-linenumbers"],
   indentUnit: 4, tabSize: 4, indentWithTabs: true,
   autoCloseBrackets: true, matchBrackets: true,
   inputStyle: "contenteditable",
@@ -693,13 +752,13 @@ const cm = CodeMirror($("editor"), {
 cm.on("inputRead", (c, ch) => {
   if (/[\w@]/.test(ch.text.join(""))) c.showHint({hint: gdHint, completeSingle: false});
 });
-cm.on("change", () => { saveTabs(); refreshTabLabel(active); refreshStatus(); scheduleFind(); refreshHist(); });
+cm.on("change", () => { saveTabs(); refreshTabLabel(active); refreshStatus(); scheduleFind(); refreshHist(); scheduleLint(); });
 
 function switchTab(i) {
   if (i < 0 || i >= tabs.length) return;
   active = i;
   cm.swapDoc(tabs[i].doc);
-  renderTabs(); refreshStatus(); saveTabs(true); refreshHist();
+  renderTabs(); refreshStatus(); saveTabs(true); refreshHist(); runLint();
   if (tabs[i].kind === "gh" && !tabs[i].isNew) markRecent(tabs[i].repoId, tabs[i].path);
   if ($("find").value) runFind(false);
   const el = $("tabbar").children[i];
@@ -749,6 +808,7 @@ function refreshTabLabel(i) {
   l.classList.toggle("new", !!t.isNew);
   l.classList.toggle("remote", !!t.remoteChanged);
 }
+function otherDirty(t) { return tabs.filter(x => x !== t && x.kind === "gh" && x.repoId === t.repoId && isDirty(x)); }
 function renameLocal() {
   const t = cur(); if (!t || t.kind !== "local") return;
   const n = prompt("Nom du fichier (utilisé pour le téléchargement) :", t.name);
@@ -765,6 +825,13 @@ function refreshHist() {
   const h = cm.historySize();
   undoBtn.disabled = !h.undo; redoBtn.disabled = !h.redo;
 }
+(function () {
+  const b = document.createElement("button");
+  b.className = "snip"; b.textContent = "🧩"; b.setAttribute("aria-label", "Modèles de code");
+  b.addEventListener("mousedown", e => e.preventDefault());
+  b.onclick = () => openSnippets();
+  $("keys").appendChild(b);
+})();
 const KEYS = ["⇥", ":", "(", ")", "_", "\"", "$", "@", "=", ".", "[", "]", "{", "}", "->", "#"];
 KEYS.forEach(k => {
   const b = document.createElement("button");
@@ -779,11 +846,14 @@ function refreshStatus(msg) {
   const t = cur(), s = $("status");
   $("save").textContent = t.kind === "gh" ? "Envoyer" : "Enregistrer";
   $("reloadBtn").style.display = t.kind === "gh" && !t.isNew ? "" : "none";
+  $("histBtn").style.display = $("reloadBtn").style.display;
+  const nErr = (typeof lintErrs !== "undefined" && lintErrs) ? lintErrs.length : 0;
+  const errTxt = nErr ? "⛔ " + nErr + " erreur" + (nErr > 1 ? "s" : "") + " — " : "";
   s.classList.toggle("dirty", isDirty(t));
   $("bottomShow").classList.toggle("dirty", isDirty(t));
   if (msg) { s.textContent = msg; return; }
-  if (t.kind === "gh") s.textContent = (t.remoteChanged ? "⚠ Changé sur GitHub (↻ pour recharger) — " : "") + (t.isNew ? "Nouveau, pas encore envoyé — " : isDirty(t) ? "Modifié — " : "À jour — ") + repoName(t.repoId) + " / " + t.path;
-  else s.textContent = "Fichier local « " + t.name + " » — touche son onglet pour le renommer";
+  if (t.kind === "gh") s.textContent = errTxt + (t.remoteChanged ? "⚠ Changé sur GitHub (↻ pour recharger) — " : "") + (t.isNew ? "Nouveau, pas encore envoyé — " : isDirty(t) ? "Modifié — " : "À jour — ") + repoName(t.repoId) + " / " + t.path;
+  else s.textContent = errTxt + "Fichier local « " + t.name + " » — touche son onglet pour le renommer";
 }
 
 // ---------- GitHub : API ----------
@@ -791,7 +861,10 @@ function encPath(p) { return p.split("/").map(encodeURIComponent).join("/"); }
 async function gh(path, opts = {}, conf = null) {
   const c = conf || cfg();
   if (!c.token) throw new Error("Aucun jeton : va dans Réglages.");
-  const r = await fetch("https://api.github.com" + path, {
+  const isGet = !opts.method || opts.method === "GET";
+  const url = "https://api.github.com" + path + (isGet ? (path.indexOf("?") === -1 ? "?" : "&") + "_=" + Date.now() : "");
+  const r = await fetch(url, {
+    cache: isGet ? "no-store" : "default",
     ...opts,
     headers: {
       "Accept": "application/vnd.github+json",
@@ -830,20 +903,38 @@ let tree = store.get(treeKey(), []);
 function saveTree() { store.set(treeKey(), tree); }
 const GD_RE = /\.(gd|gdshader)$/i;
 const TEXT_RE = /\.(gd|gdshader|tscn|tres|cfg|godot|json|md|txt|csv|import)$/i;
+const OPEN_RE = /\.(gd|gdshader|shader|tscn|tres|cfg|godot|json|md|txt|csv|import|uid|ini|xml|ya?ml|html|css|js|py|cs|lua|cpp|c|h|hpp|svg|gdextension|gitignore|gitattributes)$/i;
+function typeRe() { return prefs.typeFilter === "all" ? /./ : prefs.typeFilter === "text" ? TEXT_RE : GD_RE; }
+let newFiles = new Set(), lastTreeLoad = 0;
 async function loadTree() {
   const c = cfg();
   if (!c.token || !c.owner || !c.repo) { $("filesHint").textContent = "Ajoute d'abord un dépôt dans Réglages › Dépôts GitHub."; return; }
-  $("filesHint").textContent = "Chargement…";
+  const btn = $("refresh");
+  btn.disabled = true; btn.textContent = "⏳ Actualisation…";
+  $("filesHint").textContent = "Chargement de la liste depuis GitHub…";
   try {
     const t = await gh(`/repos/${c.owner}/${c.repo}/git/trees/${encodeURIComponent(c.branch)}?recursive=1`);
     if (c !== cfg()) return;   // on a changé de dépôt entre-temps
-    tree = t.tree.filter(x => x.type === "blob").map(x => x.path).sort();
-    saveTree();
+    const fresh = t.tree.filter(x => x.type === "blob").map(x => x.path).sort();
+    const had = tree.length > 0, before = new Set(tree), after = new Set(fresh);
+    const added = fresh.filter(p => !before.has(p)), removed = tree.filter(p => !after.has(p));
+    tree = fresh; saveTree(); lastTreeLoad = Date.now();
+    if (had) newFiles = new Set(added);
     renderList();
-    $("filesHint").textContent = t.truncated ? "Dépôt très gros : liste incomplète." : "";
+    const now = new Date().toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"});
+    let msg = "Liste à jour ✔ " + now + " — " + tree.length + " fichier" + (tree.length > 1 ? "s" : "") + " dans le dépôt";
+    if (had && added.length) {
+      const hidden = added.filter(p => !typeRe().test(p)).length;
+      msg += " · " + (added.length > 1 ? "nouveaux" : "nouveau") + " : " + added.map(baseName).slice(0, 4).join(", ") + (added.length > 4 ? "…" : "");
+      if (hidden) msg += " (" + hidden + " masqué" + (hidden > 1 ? "s" : "") + " par le choix « Fichiers : … »)";
+    }
+    if (had && removed.length) msg += " · " + removed.length + " retiré" + (removed.length > 1 ? "s" : "");
+    if (had && !added.length && !removed.length) msg += " · aucun changement";
+    if (t.truncated) msg += " · dépôt très gros : liste incomplète";
+    $("filesHint").textContent = msg;
   } catch (e) {
     $("filesHint").textContent = "Erreur : " + friendly(e);
-  }
+  } finally { btn.disabled = false; btn.textContent = "↻ Actualiser"; }
 }
 const baseName = p => p.slice(p.lastIndexOf("/") + 1);
 const dirName = p => p.lastIndexOf("/") >= 0 ? p.slice(0, p.lastIndexOf("/")) : "";
@@ -862,9 +953,15 @@ function fileRow(p, openPaths, inFolder) {
   const path = li.children[0], ren = li.children[1], del = li.children[2];
   path.children[0].textContent = inFolder ? "" : (dirName(p) ? dirName(p) + "/" : "");
   path.children[1].textContent = baseName(p) + (openPaths.has(p) ? "  • ouvert" : "");
+  if (newFiles.has(p)) { const nb = document.createElement("span"); nb.className = "isnew"; nb.textContent = "nouveau"; path.appendChild(nb); }
   if (openPaths.has(p)) li.classList.add("current");
+  const canOpen = OPEN_RE.test(p);
+  if (!canOpen) li.classList.add("binary");
   if (inFolder) li.classList.add("infolder");
-  path.onclick = () => { $("filesHint").textContent = "Toucher reçu : " + p; openGh(p); };
+  path.onclick = () => {
+    if (!canOpen) { $("filesHint").textContent = "« " + baseName(p) + " » n'est pas un fichier texte : GD Pocket ne peut pas l'ouvrir (✏️ et 🗑 restent possibles)."; return; }
+    $("filesHint").textContent = "Toucher reçu : " + p; openGh(p);
+  };
   ren.setAttribute("aria-label", "Renommer " + p);
   ren.onclick = e => { e.stopPropagation(); openRenDlg(p); };
   del.setAttribute("aria-label", "Supprimer " + p);
@@ -873,7 +970,7 @@ function fileRow(p, openPaths, inFolder) {
 }
 function renderList() {
   const q = $("filter").value.trim().toLowerCase();
-  const re = $("allText").checked ? TEXT_RE : GD_RE;
+  const re = typeRe();
   const items = sortFiles(tree.filter(p => re.test(p) && p.toLowerCase().indexOf(q) !== -1));
   const aid = activeId();
   const openPaths = new Set(tabs.filter(t => t.kind === "gh" && t.repoId === aid).map(t => t.path));
@@ -936,10 +1033,26 @@ async function pushGh(force = false, presetMsg = null) {
   if (!isDirty(t) && !force) { refreshStatus("Rien à envoyer, déjà à jour ✔"); return; }
   const verb = t.isNew ? "ajoute" : "modifie";
   const defMsg = `GD Pocket : ${verb} ${t.name}`;
-  const message = presetMsg !== null ? presetMsg
-    : prefs.showDiff ? await askSend(t, text, defMsg)
-    : prompt("Message du commit :", defMsg);
-  if (message === null) return;
+  let message = presetMsg, others = [];
+  if (message === null && prefs.showDiff) {
+    const r = await askSend(t, text, defMsg);
+    if (!r) return;
+    message = r.msg; others = r.others;
+  } else if (message === null) {
+    const errs = prefs.lint && /\.gd$/i.test(t.name) ? lintText(text) : [];
+    if (errs.length && !confirm("⛔ " + errs.length + " erreur" + (errs.length > 1 ? "s" : "") + " dans « " + t.name + " » (ligne " + (errs[0].line + 1) + " : " + errs[0].msg + ").\n\nEnvoyer quand même ?")) return;
+    const oth = otherDirty(t);
+    if (oth.length && confirm("Envoyer aussi les autres onglets modifiés de ce dépôt dans le même commit ?\n\n" + oth.map(x => "• " + x.name).join("\n"))) others = oth;
+    message = prompt("Message du commit :", others.length ? "GD Pocket : modifie " + [t].concat(others).map(x => x.name).join(", ") : defMsg);
+    if (message === null) return;
+  }
+  if (others.length) {
+    $("save").disabled = true;
+    try { await commitMany([t].concat(others), message || defMsg, c); }
+    catch (e) { refreshStatus(e.conflict ? e.message : "Erreur : " + friendly(e)); }
+    finally { $("save").disabled = false; }
+    return;
+  }
   $("save").disabled = true;
   refreshStatus("Envoi vers GitHub…");
   try {
@@ -1190,7 +1303,11 @@ $("closePanel").onclick = closePanel;
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
 $("refresh").onclick = loadTree;
 $("filter").oninput = renderList;
-$("allText").onchange = renderList;
+$("typeSel").value = prefs.typeFilter;
+$("typeSel").onchange = () => { prefs.typeFilter = $("typeSel").value; store.set("prefs", prefs); renderList(); };
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && navigator.onLine && cfg().token && Date.now() - lastTreeLoad > 60000) loadTree();
+});
 $("viewMode").value = prefs.viewMode;
 $("sortMode").value = prefs.sortMode;
 $("viewMode").onchange = () => { prefs.viewMode = $("viewMode").value; store.set("prefs", prefs); renderList(); };
@@ -1314,6 +1431,8 @@ $("prefSize").onchange = () => {
   document.documentElement.style.setProperty("--code-size", prefs.fontSize + "px");
   cm.refresh();
 };
+$("prefLint").checked = prefs.lint;
+$("prefLint").onchange = () => { prefs.lint = $("prefLint").checked; store.set("prefs", prefs); runLint(); refreshStatus(); };
 $("prefDiff").checked = prefs.showDiff;
 $("prefDiff").onchange = () => { prefs.showDiff = $("prefDiff").checked; store.set("prefs", prefs); };
 $("prefWrap").onchange = () => {
@@ -1468,8 +1587,8 @@ document.documentElement.classList.toggle("bottom-collapsed", prefs.bottomCollap
 // ---------- Bouton ＋ : créer ou ouvrir ----------
 function fillAddPick() {
   const sel = $("addPick"); sel.innerHTML = "";
-  const re = $("allText").checked ? TEXT_RE : GD_RE;
-  const files = tree.filter(p => re.test(p));
+  const re = typeRe();
+  const files = tree.filter(p => re.test(p) && OPEN_RE.test(p));
   const aid = activeId();
   const openPaths = new Set(tabs.filter(t => t.kind === "gh" && t.repoId === aid).map(t => t.path));
   $("addPickLabel").textContent = "Ouvrir un script du dépôt « " + repoName(aid) + " »";
@@ -1534,8 +1653,8 @@ function lineDiff(a, b) {
   for (let k = 0; k < suf; k++) out.push({t: " ", s: A[A.length - suf + k], o: A.length - suf + k + 1, nn: B.length - suf + k + 1});
   return out;
 }
-function renderDiff(lines) {
-  const view = $("diffView"); view.innerHTML = "";
+function renderDiff(lines, view) {
+  view = view || $("diffView"); view.innerHTML = "";
   const CTX = 2, show = new Array(lines.length).fill(false);
   lines.forEach((l, i) => { if (l.t !== " ") for (let k = Math.max(0, i - CTX); k <= Math.min(lines.length - 1, i + CTX); k++) show[k] = true; });
   let hidden = 0;
@@ -1563,10 +1682,38 @@ function askSend(t, text, defMsg) {
     const sd = document.createElement("span"); sd.className = "d"; sd.textContent = "−" + del;
     st.append(sa, " ajoutée" + (add > 1 ? "s" : "") + " · ", sd, " supprimée" + (del > 1 ? "s" : "") + " · " + repoName(t.repoId) + " / " + t.path);
     renderDiff(lines);
+    const errs = prefs.lint && /\.gd$/i.test(t.name) ? lintText(text) : [];
+    const lb = $("diffLint"); lb.innerHTML = "";
+    lb.style.display = errs.length ? "" : "none";
+    if (errs.length) {
+      const h = document.createElement("div"); h.className = "lh";
+      h.textContent = "⛔ " + errs.length + " erreur" + (errs.length > 1 ? "s" : "") + " dans ce fichier :"; lb.appendChild(h);
+      errs.slice(0, 6).forEach(e => { const d = document.createElement("div"); d.textContent = "Ligne " + (e.line + 1) + " : " + e.msg; lb.appendChild(d); });
+      if (errs.length > 6) { const d = document.createElement("div"); d.textContent = "… et " + (errs.length - 6) + " autre(s)"; lb.appendChild(d); }
+    }
+    $("diffSend").textContent = errs.length ? "Envoyer quand même" : "Envoyer";
+    const oth = otherDirty(t), ob = $("diffOthers"); ob.innerHTML = "";
+    ob.style.display = oth.length ? "" : "none";
+    const boxes = [];
+    const autoMsg = () => { const sel = [t].concat(oth.filter((x, k) => boxes[k].checked)); return sel.length > 1 ? "GD Pocket : modifie " + sel.map(x => x.name).join(", ") : defMsg; };
+    let lastAuto = defMsg;
+    if (oth.length) {
+      const h = document.createElement("div"); h.textContent = "Envoyer aussi dans le même commit :"; ob.appendChild(h);
+      oth.forEach(x => {
+        const l = lineDiff(x.isNew ? "" : (x.base || ""), x.doc.getValue());
+        const a = l.filter(z => z.t === "+").length, d = l.filter(z => z.t === "-").length;
+        const ne = prefs.lint && /\.gd$/i.test(x.name) ? lintText(x.doc.getValue()).length : 0;
+        const lab = document.createElement("label"); lab.className = "check";
+        const cb = document.createElement("input"); cb.type = "checkbox"; boxes.push(cb);
+        cb.onchange = () => { if ($("diffMsg").value === lastAuto) { lastAuto = autoMsg(); $("diffMsg").value = lastAuto; } };
+        lab.append(cb, " " + x.name + "  (+" + a + " −" + d + (x.isNew ? ", nouveau" : "") + (ne ? ", ⛔ " + ne + " erreur" + (ne > 1 ? "s" : "") : "") + ")");
+        ob.appendChild(lab);
+      });
+    }
     $("diffMsg").value = defMsg;
     $("diffDlg").classList.add("open");
     const done = v => { $("diffDlg").classList.remove("open"); resolve(v); };
-    $("diffSend").onclick = () => done($("diffMsg").value.trim() || defMsg);
+    $("diffSend").onclick = () => done({msg: $("diffMsg").value.trim() || defMsg, others: oth.filter((x, k) => boxes[k].checked)});
     $("diffCancel").onclick = () => done(null);
     $("diffMsg").onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); $("diffSend").click(); } };
   });
@@ -1588,7 +1735,7 @@ async function reloadTab() {
   refreshStatus("Vérification sur GitHub…");
   try {
     const f = await fetchRemote(t);
-    if (f.sha === t.sha && !t.remoteChanged) { refreshStatus("Déjà à jour avec GitHub ✔"); return; }
+    if (f.sha === t.sha && !t.remoteChanged) { refreshStatus("Cet onglet est déjà à jour avec GitHub ✔ (pour la liste des fichiers : 📁 › ↻ Actualiser)"); return; }
     const text = b64ToText(f.content);
     if (isDirty(t) && !confirm("Tu as des modifications non envoyées dans « " + t.name + " ».\n\nOK = charger la version GitHub (↶ Annuler te rendra ta version)\nAnnuler = garder ta version")) {
       t.remoteChanged = f.sha !== t.sha; renderTabs(); refreshStatus(); return;
@@ -1667,6 +1814,300 @@ function gotoLine(line) {
 }
 $("outlineBtn").onclick = openOutline;
 $("outlineClose").onclick = () => $("outlineDlg").classList.remove("open");
+
+// ---------- Vérification du code (erreurs de forme, comme Godot) ----------
+var LINT_PAIRS = {"(": ")", "[": "]", "{": "}"};
+const LINT_BLOCK = /^(?:if|elif|else|for|while|match|func|static\s+func|class)\b/;
+const LINT_COND = /^(?:if|elif|while)\b/;
+function lintText(text) {
+  const lines = text.split("\n"), errs = [];
+  const add = (line, msg) => { if (errs.length < 300) errs.push({line, msg}); };
+  const stack = [];                 // crochets ouverts {ch, line}
+  let triple = null, tripleLine = 0, cont = false;
+  let stmt = null;                  // instruction logique en cours
+  let indentChar = null;            // "\t" ou " " : le premier utilisé dans le fichier
+  const levels = [0];               // niveaux d'indentation ouverts
+  let prev = null;                  // dernière instruction terminée {line, indent, opens, kw}
+  const finish = s => {
+    const head = s.code.replace(/^\s+/, "");
+    const kw = (head.match(LINT_BLOCK) || [""])[0].replace(/\s+/g, " ");
+    if (kw && !s.colons.length) add(s.line, kw === "func" || kw === "static func"
+      ? "Il manque « : » à la fin de la déclaration de la fonction"
+      : "Il manque « : » à la fin de la ligne « " + kw + " »");
+    if (LINT_COND.test(head)) {
+      const c = s.code;
+      for (let k = 0; k < c.length; k++) {
+        if (c[k] !== "=") continue;
+        const a = c[k - 1] || "", b = c[k + 1] || "";
+        if (b === "=") { k++; continue; }
+        if ("=!<>:+-*/%&|^".indexOf(a) !== -1) continue;
+        add(s.line, "« = » donne une valeur : pour comparer, utilise « == »"); break;
+      }
+    }
+    const last = s.colons.length ? s.colons[s.colons.length - 1] : -1;
+    const opens = (last !== -1 && !s.code.slice(last + 1).trim()) || (!!kw && !s.colons.length);
+    prev = {line: s.line, indent: s.indent, opens, kw};
+  };
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i];
+    const startsStmt = !triple && !stack.length && !cont;
+    if (startsStmt) {
+      const ind = raw.match(/^[ \t]*/)[0], rest = raw.slice(ind.length);
+      if (!rest || rest[0] === "#") continue;      // ligne vide ou commentaire
+      let badInd = false;
+      if (ind.indexOf("\t") !== -1 && ind.indexOf(" ") !== -1) { add(i, "Indentation qui mélange tabulations et espaces"); badInd = true; }
+      else if (ind) {
+        const ch = ind[0];
+        if (!indentChar) indentChar = ch;
+        else if (ch !== indentChar) { badInd = true; add(i, indentChar === "\t"
+          ? "Indentation avec des espaces alors que le fichier utilise des tabulations (utilise ⇥)"
+          : "Indentation avec des tabulations alors que le fichier utilise des espaces"); }
+      }
+      const w = ind.length;
+      if (badInd) { /* niveau impossible à comparer : on passe */ }
+      else if (prev) {
+        if (prev.opens) {
+          if (w <= prev.indent) add(i, "Bloc vide : la ligne " + (prev.line + 1) + " finit par « : », il faut au moins une ligne plus indentée en dessous (par exemple pass)");
+          else levels.push(w);
+        } else if (w > levels[levels.length - 1]) {
+          add(i, "Indentation inattendue : la ligne au-dessus ne finit pas par « : »");
+        }
+        if (w < levels[levels.length - 1]) {
+          while (levels.length > 1 && levels[levels.length - 1] > w) levels.pop();
+          if (levels[levels.length - 1] !== w) { add(i, "Indentation incohérente : ce niveau ne correspond à aucun bloc ouvert au-dessus"); levels.push(w); }
+        }
+      } else if (w > 0) add(i, "Indentation inattendue en début de fichier");
+      stmt = {line: i, indent: w, code: "", colons: []};
+    }
+    let j = 0;
+    while (j < raw.length) {
+      const ch = raw[j];
+      if (triple) {
+        const k = raw.indexOf(triple, j);
+        if (k === -1) { j = raw.length; break; }
+        j = k + 3; triple = null; if (stmt) stmt.code += "S"; continue;
+      }
+      if (ch === "#") break;
+      if (ch === '"' || ch === "'") {
+        if (raw.substr(j, 3) === ch + ch + ch) { triple = ch + ch + ch; tripleLine = i; j += 3; continue; }
+        let k = j + 1;
+        while (k < raw.length && raw[k] !== ch) { if (raw[k] === "\\") k++; k++; }
+        if (k >= raw.length) {
+          add(i, "Texte non fermé : il manque " + ch + " à la fin");
+          while (stack.length && stack[stack.length - 1].line === i) stack.pop();
+          j = raw.length; break;
+        }
+        if (stmt) stmt.code += "S"; j = k + 1; continue;
+      }
+      if (ch === "(" || ch === "[" || ch === "{") stack.push({ch, line: i});
+      else if (ch === ")" || ch === "]" || ch === "}") {
+        const o = stack.pop();
+        if (!o) add(i, "« " + ch + " » en trop : rien d'ouvert ne lui correspond");
+        else if (LINT_PAIRS[o.ch] !== ch) add(i, "« " + ch + " » ferme « " + o.ch + " » ouvert ligne " + (o.line + 1) + " : il faudrait « " + LINT_PAIRS[o.ch] + " »");
+      } else if (ch === ":" && !stack.length && raw[j + 1] !== "=" && stmt) stmt.colons.push(stmt.code.length);
+      if (stmt) stmt.code += ch;
+      j++;
+    }
+    const trimmed = raw.replace(/#.*$/, "").replace(/\s+$/, "");
+    cont = !triple && /\\$/.test(trimmed);
+    if (stmt && !triple && !stack.length && !cont) { finish(stmt); stmt = null; }
+    else if (stmt) stmt.code += " ";
+  }
+  if (triple) add(tripleLine, "Texte sur plusieurs lignes jamais fermé : il manque " + triple);
+  stack.forEach(o => add(o.line, "« " + o.ch + " » ouvert ici n'est jamais fermé"));
+  if (stmt && !stack.length) finish(stmt);
+  if (!stack.length && !triple && prev && prev.opens) add(prev.line, "Bloc vide à la fin du fichier : ajoute au moins une ligne indentée (par exemple pass)");
+  const seen = {};
+  return errs.filter(e => { const k = e.line + "|" + e.msg; if (seen[k]) return false; seen[k] = 1; return true; })
+             .sort((a, b) => a.line - b.line);
+}
+
+// ---------- Erreurs en direct (lignes rouges) ----------
+var lintErrs = []; let lintHandles = [], lintTimer = null, lastLintLine = -1;
+function clearLint() {
+  cm.operation(() => {
+    lintHandles.forEach(h => cm.removeLineClass(h, "background", "cm-lint-line"));
+    cm.clearGutter("lint-gutter");
+  });
+  lintHandles = [];
+}
+function runLint() {
+  clearLint();
+  const t = cur();
+  lintErrs = prefs.lint && t && /\.gd$/i.test(t.name) ? lintText(cm.getValue()) : [];
+  cm.operation(() => {
+    const byLine = {};
+    lintErrs.forEach(e => { (byLine[e.line] = byLine[e.line] || []).push(e.msg); });
+    Object.keys(byLine).forEach(k => {
+      const line = +k;
+      if (line >= cm.lineCount()) return;
+      lintHandles.push(cm.addLineClass(line, "background", "cm-lint-line"));
+      const m = document.createElement("div");
+      m.className = "lint-marker"; m.textContent = "●"; m.title = byLine[k].join("\n");
+      cm.setGutterMarker(line, "lint-gutter", m);
+    });
+  });
+  lastLintLine = -1; lintCursor(true);
+}
+function scheduleLint() { clearTimeout(lintTimer); lintTimer = setTimeout(runLint, 450); }
+function lintMsgFor(line) { return lintErrs.filter(e => e.line === line).map(e => e.msg); }
+function lintCursor(force) {
+  const line = cm.getCursor().line;
+  if (!force && line === lastLintLine) return;
+  lastLintLine = line;
+  const m = lintMsgFor(line);
+  if (m.length) { refreshStatus("⛔ Ligne " + (line + 1) + " : " + m.join(" · ")); $("status").classList.add("lint"); }
+  else { $("status").classList.remove("lint"); refreshStatus(); }
+}
+cm.on("cursorActivity", () => lintCursor(false));
+cm.on("gutterClick", (c, line, gutter) => { if (gutter === "lint-gutter" || lintMsgFor(line).length) { cm.setCursor({line, ch: 0}); lintCursor(true); } });
+
+// ---------- Modèles de code ----------
+const SNIPPETS = [
+  ["En-tête de script", "class_name ¦MaClasse\nextends Node"],
+  ["func", "func ¦nom() -> void:\n\tpass"],
+  ["func avec paramètre et retour", "func ¦nom(valeur: float) -> float:\n\treturn valeur"],
+  ["func _ready", "func _ready() -> void:\n\t¦pass"],
+  ["func _process", "func _process(delta: float) -> void:\n\t¦pass"],
+  ["func _physics_process", "func _physics_process(delta: float) -> void:\n\t¦pass"],
+  ["func _input (action)", "func _input(event: InputEvent) -> void:\n\tif event.is_action_pressed(\"¦action\"):\n\t\tpass"],
+  ["signal", "signal ¦nom_du_signal"],
+  ["signal avec paramètre", "signal ¦nom_du_signal(valeur)"],
+  ["émettre un signal", "¦nom_du_signal.emit()"],
+  ["connecter un signal", "¦noeud.nom_du_signal.connect(_on_nom_du_signal)"],
+  ["@export var", "@export var ¦nom: float = 0.0"],
+  ["@export_range", "@export_range(0.0, 1.0, 0.1) var ¦nom: float = 0.5"],
+  ["@export_group", "@export_group(\"¦Groupe\")"],
+  ["@onready var", "@onready var ¦nom := $Noeud"],
+  ["const", "const ¦NOM := 0"],
+  ["enum", "enum ¦Etat { ARRET, MARCHE }"],
+  ["if / elif / else", "if ¦condition:\n\tpass\nelif autre_condition:\n\tpass\nelse:\n\tpass"],
+  ["for (range)", "for i in range(¦10):\n\tpass"],
+  ["for (tableau)", "for element in ¦tableau:\n\tpass"],
+  ["while", "while ¦condition:\n\tpass"],
+  ["match", "match ¦valeur:\n\t1:\n\t\tpass\n\t_:\n\t\tpass"],
+  ["attendre (timer)", "await get_tree().create_timer(¦1.0).timeout"],
+  ["précharger une scène", "const ¦SCENE := preload(\"res://scenes/ma_scene.tscn\")"],
+  ["instancier une scène", "var ¦instance := SCENE.instantiate()\nadd_child(instance)"],
+];
+function insertSnippet(code) {
+  const c = cm.getCursor(), line = cm.getLine(c.line), ind = line.match(/^[ \t]*/)[0];
+  let text = code.split("\n").map((l, i) => i === 0 ? l : ind + l).join("\n");
+  const mark = text.indexOf("¦"); text = text.replace("¦", "");
+  let from;
+  if (!line.trim()) { from = {line: c.line, ch: ind.length}; cm.replaceRange(text, from, {line: c.line, ch: line.length}); }
+  else { text = "\n" + ind + text; from = {line: c.line, ch: line.length}; cm.replaceRange(text, from); }
+  const base = cm.indexFromPos(from) + (line.trim() ? 1 + ind.length : 0);
+  cm.setCursor(cm.posFromIndex(base + (mark < 0 ? text.length : mark)));
+  $("snipDlg").classList.remove("open");
+  cm.focus();
+}
+function openSnippets() {
+  const ul = $("snipList"); ul.innerHTML = "";
+  SNIPPETS.forEach(s => {
+    const li = document.createElement("li"), b = document.createElement("button");
+    const t = document.createElement("span"); t.className = "nm"; t.textContent = s[0];
+    const pre = document.createElement("span"); pre.className = "pv"; pre.textContent = s[1].replace("¦", "").replace(/\t/g, "  ").split("\n")[0];
+    b.append(t, pre); b.onclick = () => insertSnippet(s[1]);
+    li.appendChild(b); ul.appendChild(li);
+  });
+  $("snipDlg").classList.add("open");
+}
+$("snipClose").onclick = () => $("snipDlg").classList.remove("open");
+
+// ---------- Envoi de plusieurs onglets en un seul commit ----------
+async function gitBlobSha(text) {
+  try {
+    const body = new TextEncoder().encode(text), head = new TextEncoder().encode("blob " + body.length + "\0");
+    const all = new Uint8Array(head.length + body.length); all.set(head); all.set(body, head.length);
+    const d = await crypto.subtle.digest("SHA-1", all);
+    return Array.from(new Uint8Array(d)).map(b => b.toString(16).padStart(2, "0")).join("");
+  } catch (e) { return null; }
+}
+async function commitMany(list, message, c) {
+  const R = `/repos/${c.owner}/${c.repo}`, br = encPath(c.branch);
+  refreshStatus("Vérification des " + list.length + " fichiers sur GitHub…");
+  const conflicts = [];
+  for (const t of list) {
+    try {
+      const f = await gh(`${R}/contents/${encPath(t.path)}?ref=${encodeURIComponent(c.branch)}`, {}, c);
+      if (t.isNew || f.sha !== t.sha) conflicts.push(t.name + (t.isNew ? " (existe déjà)" : " (modifié sur GitHub)"));
+    } catch (e) { if (e.status !== 404) throw e; if (!t.isNew) conflicts.push(t.name + " (supprimé sur GitHub)"); }
+  }
+  if (conflicts.length) { const e = new Error("Conflit : " + conflicts.join(", ") + ". Recharge ces onglets (↻) ou envoie-les un par un."); e.conflict = true; throw e; }
+  const texts = list.map(t => t.doc.getValue());
+  refreshStatus("Envoi de " + list.length + " fichiers en un seul commit…");
+  for (let attempt = 0; ; attempt++) {
+    const head = (await gh(`${R}/git/ref/heads/${br}`, {}, c)).object.sha;
+    const base = (await gh(`${R}/git/commits/${head}`, {}, c)).tree.sha;
+    const tr = await gh(`${R}/git/trees`, {method: "POST", body: JSON.stringify({base_tree: base,
+      tree: list.map((t, i) => ({path: t.path, mode: "100644", type: "blob", content: texts[i]}))})}, c);
+    const nc = await gh(`${R}/git/commits`, {method: "POST", body: JSON.stringify({message, tree: tr.sha, parents: [head]})}, c);
+    try { await gh(`${R}/git/refs/heads/${br}`, {method: "PATCH", body: JSON.stringify({sha: nc.sha})}, c); break; }
+    catch (e) { if (e.status === 422 && attempt < 2) continue; throw e; }
+  }
+  for (let i = 0; i < list.length; i++) {
+    const t = list[i];
+    let sha = await gitBlobSha(texts[i]);
+    if (!sha) { try { sha = (await gh(`${R}/contents/${encPath(t.path)}?ref=${encodeURIComponent(c.branch)}`, {}, c)).sha; } catch (e) {} }
+    const wasNew = t.isNew;
+    Object.assign(t, {sha, base: texts[i], isNew: false, remoteChanged: false});
+    if (wasNew && t.repoId === activeId() && tree.indexOf(t.path) === -1) { tree.push(t.path); tree.sort(); saveTree(); }
+  }
+  saveTabs(true); renderTabs();
+  refreshStatus(list.length + " fichiers envoyés en un seul commit ✔ (pense à faire un pull sur le PC)");
+}
+
+// ---------- Historique d'un fichier ----------
+let histCommits = [], histTab = null, histOld = null;
+async function openHistory() {
+  const t = cur(); if (!t || t.kind !== "gh" || t.isNew) return;
+  const c = repoById(t.repoId); if (!c) return;
+  histTab = t;
+  $("histTitle").textContent = "Historique — " + t.name;
+  $("histInfo").textContent = "Chargement…";
+  $("histList").innerHTML = ""; $("histDetail").style.display = "none"; $("histList").style.display = "";
+  $("histDlg").classList.add("open");
+  try {
+    histCommits = await gh(`/repos/${c.owner}/${c.repo}/commits?path=${encodeURIComponent(t.path)}&sha=${encodeURIComponent(c.branch)}&per_page=30`, {}, c);
+    $("histInfo").textContent = histCommits.length ? histCommits.length + " dernière" + (histCommits.length > 1 ? "s" : "") + " version" + (histCommits.length > 1 ? "s" : "") + " — touche une version pour la comparer à ton onglet" : "Aucun historique trouvé pour ce fichier.";
+    histCommits.forEach((k, i) => {
+      const li = document.createElement("li"), b = document.createElement("button");
+      const msg = document.createElement("span"); msg.className = "nm"; msg.textContent = k.commit.message.split("\n")[0];
+      const meta = document.createElement("span"); meta.className = "pv";
+      const d = new Date(k.commit.author.date);
+      meta.textContent = d.toLocaleDateString("fr-FR") + " " + d.toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"}) + " · " + k.commit.author.name + (i === 0 ? " · la plus récente" : "");
+      b.append(msg, meta); b.onclick = () => showHistVersion(k);
+      li.appendChild(b); $("histList").appendChild(li);
+    });
+  } catch (e) { $("histInfo").textContent = "Erreur : " + friendly(e); }
+}
+async function showHistVersion(k) {
+  const t = histTab, c = repoById(t.repoId);
+  $("histInfo").textContent = "Chargement de la version…";
+  try {
+    const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(t.path)}?ref=${k.sha}`, {}, c);
+    histOld = b64ToText(f.content);
+    const lines = lineDiff(t.doc.getValue(), histOld);
+    const add = lines.filter(l => l.t === "+").length, del = lines.filter(l => l.t === "-").length;
+    $("histInfo").textContent = "« " + k.commit.message.split("\n")[0] + " » — si tu restaures : +" + add + " ligne(s) reviennent, −" + del + " disparaissent";
+    renderDiff(lines, $("histView"));
+    $("histList").style.display = "none"; $("histDetail").style.display = "";
+  } catch (e) { $("histInfo").textContent = e.status === 404 ? "Ce fichier n'existait pas sous ce nom à cette version." : "Erreur : " + friendly(e); }
+}
+$("histBack").onclick = () => { $("histDetail").style.display = "none"; $("histList").style.display = ""; $("histInfo").textContent = histCommits.length + " versions — touche une version pour la comparer à ton onglet"; };
+$("histRestore").onclick = () => {
+  if (histOld === null || !histTab) return;
+  const i = tabs.indexOf(histTab); if (i < 0) return;
+  if (i !== active) switchTab(i);
+  histTab.doc.setValue(histOld);
+  $("histDlg").classList.remove("open");
+  refreshStatus("Version restaurée dans l'onglet (pas encore envoyée) — ↶ pour annuler, Envoyer pour la garder sur GitHub");
+};
+$("histClose").onclick = () => $("histDlg").classList.remove("open");
+$("histBtn").onclick = openHistory;
+
+runLint();
 
 // ---------- Mises à jour : fenêtre « Nouvelle version » ----------
 let pendingWorker = null, updateAccepted = false;

@@ -1,6 +1,18 @@
 {
   "versions": [
     {
+      "version": "0.11.0",
+      "date": "30/10/2026",
+      "notes": [
+        "Erreurs en direct, comme dans Godot : la ligne fautive passe en rouge avec un ● dans la marge ; place le curseur dessus (ou touche le ●) pour lire l'explication en bas. Repère les « : » oubliés, parenthèses / crochets / guillemets non fermés, indentation incohérente ou mélangée, bloc vide, « = » au lieu de « == ». Désactivable dans Réglages › Affichage.",
+        "Avant d'envoyer : la fenêtre de vérification liste les erreurs restantes (« Envoyer quand même »).",
+        "🧩 au début de la barre de touches : modèles de code (func, _ready, _process, signal, @export, if/elif/else, for, while, match, await, preload…).",
+        "Envoyer plusieurs onglets en un seul commit : la fenêtre d'envoi propose d'ajouter les autres onglets modifiés du même dépôt.",
+        "🕘 en bas : historique du fichier (30 dernières versions), comparaison avec ton onglet et restauration (↶ pour annuler).",
+        "Liste des fichiers : « ↻ Actualiser » va toujours chercher la liste fraîche sur GitHub et affiche le résultat (heure, nouveaux fichiers marqués « nouveau »). Nouveau choix « Fichiers : scripts / + scènes et ressources / tous ». La liste se recharge aussi quand tu reviens dans l'appli."
+      ]
+    },
+    {
       "version": "0.10.0",
       "date": "30/10/2026",
       "notes": [
