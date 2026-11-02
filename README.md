@@ -1,11 +1,85 @@
 # GD Pocket
 
-Éditeur GDScript de poche (PWA) pour modifier des scripts Godot depuis un téléphone.
+Éditeur GDScript de poche pour modifier les scripts d'un projet Godot 4 depuis un téléphone ou une tablette, directement dans un dépôt GitHub.
 
-- Coloration syntaxique GDScript (Godot 4)
-- Autocomplétion pendant la frappe
-- Indentation automatique, barre de touches spéciales
-- Ouvrir / enregistrer des fichiers `.gd`, sauvegarde auto
-- Installable sur l'écran d'accueil, fonctionne hors ligne
+- **Version actuelle : v0.11.0** (30/10/2026), validée sur le téléphone Android et l'iPad mini 2 (iOS 12)
+- **Appli en ligne :** https://lutiinblack.github.io/gd-pocket/
+- **Format :** application web installable (PWA), distribuée hors Google Play et App Store
+
+## Installer
+
+1. Ouvrir l'adresse de l'appli dans Chrome (Android) ou Safari (iPhone / iPad).
+2. Android : menu ⋮ › « Ajouter à l'écran d'accueil ». iOS : bouton Partager › « Sur l'écran d'accueil ».
+3. Dans l'appli : 📁 › Réglages › Dépôts GitHub › ＋ Ajouter un dépôt (propriétaire, nom, branche, jeton).
+
+Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), avec la permission **Contents : Read and write**. Il reste uniquement sur l'appareil et n'est envoyé qu'à `api.github.com`. Sur iOS, l'appli installée a son propre stockage : y recoller le jeton.
+
+## Fonctionnalités
+
+### Éditeur
+- Coloration GDScript avec les couleurs de l'éditeur Godot 4 (thème Godot ou Dracula)
+- Autocomplétion pendant la frappe (mots-clés, annotations, types, fonctions courantes, mots du fichier)
+- Indentation par tabulations, automatique après une ligne finissant par `:`
+- **Erreurs en direct, comme dans Godot** : ligne fautive en rouge, ● dans la marge et explication dans la barre d'état (« : » oublié, parenthèses / crochets / guillemets non fermés, indentation incohérente, bloc vide, `=` au lieu de `==`…)
+- Barre de touches : 🧩 modèles de code, Tab, `:`, `(`, `)`, `_`, `"`, `$`, `@`, `=`, `.`, `[]`, `{}`, `->`, `#`
+- **Modèles de code 🧩** : 25 modèles (func, _ready, _process, signal, @export, @onready, for, match, await…) insérés à la bonne indentation
+- ↶ Annuler, ↷ Rétablir, ☰ Plan du script (fonctions, signaux, constantes…)
+- Recherche (Ctrl+F) et remplacer (Ctrl+H), avec respect des majuscules en option
+- Onglets : plusieurs fichiers ouverts, point orange = modifié non envoyé, ⟳ = changé sur GitHub
+- Taille du texte réglable, retour à la ligne en option
+
+### GitHub
+- Liste des fichiers du dépôt : affichage « Tout » ou « Par dossier », tri (nom, type, récemment ouverts), filtre, types de fichiers (scripts, scènes et ressources, tous)
+- « ↻ Actualiser » lit toujours la liste fraîche et marque les nouveaux fichiers
+- **Envoyer** : fenêtre « Vérifier avant d'envoyer » avec les différences ligne par ligne, les erreurs restantes et le message du commit
+- **Envoi groupé** : plusieurs onglets modifiés envoyés en un seul commit
+- **Historique 🕘** : 30 dernières versions d'un fichier, comparaison avec l'onglet, restauration
+- ↻ Recharger un onglet depuis GitHub ; mise à jour automatique des onglets sans modifications
+- Créer un script (avec modèle `extends`), renommer / déplacer et supprimer, le fichier `.gd.uid` de Godot 4.4+ suivant le script
+- Détection des conflits si le fichier a changé sur GitHub depuis son ouverture
+- Plusieurs dépôts, avec un jeton par dépôt
+
+### Appli
+- Fonctionne hors ligne pour l'édition des onglets ouverts
+- Fenêtre « Nouvelle version » avec les nouveautés : « Mettre à jour » ou « Plus tard »
+- Compatible avec les navigateurs récents et Safari 12 (iOS 12)
+
+## Flux de travail avec Godot
+
+1. GD Pocket : ouvrir → modifier → Envoyer (commit direct sur la branche).
+2. PC (GitHub Desktop) et autres applis Git (GitSync) : faire un *pull* avant de modifier.
+3. Un nouveau script doit encore être attaché à un nœud dans l'éditeur Godot.
+4. Un nouveau modèle `.glb` : ouvrir le projet dans Godot avant de synchroniser, pour que le fichier `.glb.import` soit créé et envoyé.
+
+## Limites
+
+- La vérification en direct regarde la forme du code seulement : les variables inconnues, fautes de frappe dans les noms et erreurs de type restent à voir dans Godot.
+- Autocomplétion par mots, sans analyse des types.
+- Le renommage ne corrige pas les `preload()` / `load()` qui citent l'ancien chemin.
+- Ouvrir, envoyer, créer, renommer, supprimer et l'historique demandent Internet.
+
+## Fichiers
+
+| Fichier | Rôle |
+|---|---|
+| `index.html` | l'appli entière (interface, éditeur, GitHub) |
+| `sw.js` | service worker : cache hors ligne et mises à jour |
+| `changelog.json` | nouveautés affichées dans la fenêtre « Nouvelle version » |
+| `manifest.webmanifest`, `icons/` | installation sur l'écran d'accueil |
+
+Publier une nouvelle version : changer `VERSION` dans `sw.js`, `APP_VERSION` dans `index.html`, ajouter une entrée en tête de `changelog.json`, puis pousser sur `main` (GitHub Pages met jusqu'à ~10 min à se mettre à jour).
+
+## Historique
+
+| Version | Date | Nouveautés |
+|---|---|---|
+| v0.11.0 | 30/10/2026 | Erreurs en direct, vérification avant envoi, modèles de code, envoi groupé, historique d'un fichier, liste toujours à jour |
+| v0.10.0 | 30/10/2026 | En-tête allégé (↶ ↷ ☰), recharger depuis GitHub, différences avant envoi, plan du script, taille du texte |
+| v0.9.0 | 29/10/2026 | Plusieurs dépôts, réglages en deux colonnes, liste par dossier et tri |
+| v0.8.0 | 29/10/2026 | Menu ＋, recherche et remplacer, barre du bas repliable, fenêtre « Nouvelle version » |
+| v0.7.x | 28–29/10/2026 | Renommer / déplacer, compatibilité iOS 12, démarrage sur la liste |
+| v0.1–v0.6 | 28/10/2026 | Prototype, PWA, connexion GitHub, couleurs Godot, onglets, création et suppression |
+
+Prochaine version (v0.12, en préparation) : barre de touches visible au-dessus du clavier, flèches de déplacement du curseur, et d'autres demandes à venir.
 
 Basé sur [CodeMirror 5](https://codemirror.net/5/).
