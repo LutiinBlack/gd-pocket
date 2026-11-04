@@ -149,6 +149,10 @@
   /* Bouton ↻ et onglet changé sur GitHub */
   #reloadBtn { background:transparent; padding:0 10px 6px; font-size:16px; opacity:.8; }
   .ftab .lbl.remote::after { content:" ⟳"; color:#57b3ff; }
+  .ftab .lbl.queued::after { content:" ⏳"; }
+  .ftab .lbl.remote.queued::after { content:" ⏳⟳"; }
+  #list li .offl { font-size:11px; opacity:.55; margin-left:6px; font-family:system-ui, sans-serif; }
+  #syncBtn { background:#b8860b; }
 
   /* Plan du script */
   #outlineList { list-style:none; margin:10px 0 0; padding:0; max-height:60vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
@@ -171,7 +175,8 @@
   #diffView .del, .diffbox .del { background:rgba(255,107,107,.16); color:#ffd0d0; }
   #diffView .gap, .diffbox .gap { opacity:.5; padding-left:40px; white-space:normal; }
   #diffMsg { width:100%; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:10px; font-size:15px; }
-  #diffDlg .box, #outlineDlg .box, #snipDlg .box, #histDlg .box { width:min(94vw,640px); }
+  #diffDlg .box, #outlineDlg .box, #snipDlg .box, #histDlg .box, #syncDlg .box { width:min(94vw,640px); }
+  #syncMsg { width:100%; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:10px; font-size:15px; }
 
   /* Erreurs en direct */
   .lint-gutter { width:14px; }
@@ -182,6 +187,12 @@
   #diffLint .lh { font-weight:bold; margin-bottom:2px; }
   #diffOthers { margin-top:8px; font-size:14px; }
   #diffOthers .check { margin-top:6px; }
+  #diffFiles { display:flex; gap:6px; overflow-x:auto; margin-top:6px; padding-bottom:2px; -webkit-overflow-scrolling:touch; }
+  #diffFiles button { flex:0 0 auto; background:var(--mut); font-size:13px; padding:6px 9px; border:2px solid transparent; }
+  #diffFiles button.on { border-color:var(--acc); background:#2f4a63; }
+  #diffFiles button.off { opacity:.55; }
+  #diffFiles .a { color:#50fa7b; } #diffFiles .d { color:#ff6b6b; }
+  .no-gap #diffFiles > * + * { margin-left:6px; }
 
   /* Modèles et historique */
   #snipList, #histList { list-style:none; margin:10px 0 0; padding:0; max-height:60vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
@@ -189,6 +200,13 @@
   #snipList .nm, #histList .nm { display:block; font-size:14px; }
   #snipList .pv, #histList .pv { display:block; font-size:12px; opacity:.6; font-family:ui-monospace, monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
   #keys button.snip { background:var(--acc); }
+  #keys button.arrow { background:#3a4f66; font-size:17px; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+  #keys { -webkit-user-select:none; user-select:none; }
+  /* Clavier ouvert sur l'iPad (iOS 12) : barre de touches en haut, sous les onglets */
+  #keysTop { background:var(--bar); }
+  .kb-top #bottom { display:none; }
+  .kb-top #bottomShow { display:none !important; }
+  #kbSpacer { flex:0 0 auto; height:0; }
   #histBtn { background:transparent; padding:0 8px 6px; font-size:15px; opacity:.8; }
 
   /* Liste : nouveaux fichiers, fichiers non texte */
@@ -219,11 +237,21 @@
   #updNotes li { margin-bottom:4px; }
 
   /* Fenêtre « Nouveau script » */
-  #newDlg, #renDlg, #addDlg, #updDlg, #outlineDlg, #diffDlg, #snipDlg, #histDlg { position:fixed; top:0; right:0; bottom:0; left:0; background:rgba(0,0,0,.55); z-index:200; display:none; align-items:flex-start; justify-content:center; padding-top:10vh; }
-  #newDlg.open, #renDlg.open, #addDlg.open, #updDlg.open, #outlineDlg.open, #diffDlg.open, #snipDlg.open, #histDlg.open { display:flex; }
-  #outlineDlg, #diffDlg, #snipDlg, #histDlg { padding-top:6vh; }
-  #newDlg .box, #renDlg .box, #addDlg .box, #updDlg .box, #outlineDlg .box, #diffDlg .box, #snipDlg .box, #histDlg .box { background:var(--bar); border-radius:10px; padding:14px; width:min(92vw,420px); }
-  #newDlg h2, #renDlg h2, #addDlg h2, #updDlg h2, #outlineDlg h2, #diffDlg h2, #snipDlg h2, #histDlg h2 { margin:0 0 4px; font-size:17px; }
+  #newDlg, #renDlg, #addDlg, #updDlg, #outlineDlg, #diffDlg, #snipDlg, #histDlg, #syncDlg { position:fixed; top:0; right:0; bottom:0; left:0; background:rgba(0,0,0,.55); z-index:200; display:none; align-items:flex-start; justify-content:center; padding-top:10vh; }
+  #newDlg.open, #renDlg.open, #addDlg.open, #updDlg.open, #outlineDlg.open, #diffDlg.open, #snipDlg.open, #histDlg.open, #syncDlg.open { display:flex; }
+  #outlineDlg, #diffDlg, #snipDlg, #histDlg, #syncDlg { padding-top:6vh; }
+  #syncDlg .box { max-height:88vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  #syncList { list-style:none; margin:10px 0 0; padding:0; }
+  #syncList li { border-bottom:1px solid var(--mut); padding:8px 2px; }
+  #syncList .nm { font-size:14px; word-break:break-all; }
+  #syncList .st { font-size:12px; opacity:.8; margin-top:2px; }
+  #syncList .st.warn { color:var(--warn); opacity:1; }
+  #syncList .ch { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+  #syncList .ch button { background:var(--mut); font-size:13px; padding:6px 9px; border:2px solid transparent; }
+  #syncList .ch button.on { border-color:var(--acc); background:#2f4a63; }
+  .no-gap #syncList .ch > * { margin:0 6px 6px 0; }
+  #newDlg .box, #renDlg .box, #addDlg .box, #updDlg .box, #outlineDlg .box, #diffDlg .box, #snipDlg .box, #histDlg .box, #syncDlg .box { background:var(--bar); border-radius:10px; padding:14px; width:min(92vw,420px); }
+  #newDlg h2, #renDlg h2, #addDlg h2, #updDlg h2, #outlineDlg h2, #diffDlg h2, #snipDlg h2, #histDlg h2, #syncDlg h2 { margin:0 0 4px; font-size:17px; }
   #newDlg input, #newDlg select, #renDlg input, #renDlg select, #addDlg select { width:100%; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:10px; font-size:15px; }
   #newPreview, #renPreview { font-family:ui-monospace, monospace; font-size:13px; opacity:.8; margin-top:8px; word-break:break-all; }
 
@@ -260,7 +288,9 @@
   <button id="replAll">Tout</button>
 </div>
 <div id="tabbar"></div>
+<div id="keysTop"></div>
 <div id="editor"></div>
+<div id="kbSpacer"></div>
 <div id="bottom">
   <div id="keys"></div>
   <div id="statusRow">
@@ -288,6 +318,8 @@
     <div class="row" style="margin-top:0">
       <button id="newScript">＋ Nouveau script</button>
       <button id="refresh" class="ghost">↻ Actualiser</button>
+      <button id="syncBtn" style="display:none">⏳ Synchroniser</button>
+      <button id="offlineBtn" class="ghost">⬇ Préparer le hors ligne</button>
       <button id="openLocal" class="ghost">Ouvrir un fichier de l'appareil</button>
       <button id="download" class="ghost">Télécharger l'onglet actuel</button>
     </div>
@@ -317,6 +349,7 @@
     <div class="setwrap">
       <nav class="setnav">
         <button data-sec="repos" class="on">🔗 Dépôts GitHub</button>
+        <button data-sec="tokens">🔑 Jetons</button>
         <button data-sec="display">🎨 Affichage</button>
       </nav>
       <div class="setbody">
@@ -332,15 +365,38 @@
             <input id="ghRepo" type="text" autocomplete="off" autocapitalize="off" placeholder="Micro-Racer-Mobile-">
             <label for="ghBranch">Branche (vide = branche principale)</label>
             <input id="ghBranch" type="text" autocomplete="off" autocapitalize="off" placeholder="main">
-            <label for="ghToken">Jeton GitHub (fine-grained)</label>
-            <input id="ghToken" type="password" autocomplete="off" placeholder="github_pat_…">
+            <label for="ghTokSel">Jeton GitHub</label>
+            <select id="ghTokSel"></select>
+            <div id="ghTokNew">
+              <label for="ghTokName">Nom du nouveau jeton</label>
+              <input id="ghTokName" type="text" autocomplete="off" placeholder="ex. Téléphone — tous mes projets">
+              <label for="ghToken">Jeton GitHub (fine-grained)</label>
+              <input id="ghToken" type="password" autocomplete="off" placeholder="github_pat_…">
+            </div>
             <div class="row">
               <button id="saveSettings">Enregistrer et tester</button>
-              <button id="forget" class="ghost">Effacer le jeton</button>
               <button id="repoUse" class="ghost">Utiliser ce dépôt</button>
               <button id="repoRemove" class="ghost">Retirer de la liste</button>
             </div>
-            <p class="hint">Le jeton reste uniquement dans cette appli, sur cet appareil, et n'est envoyé qu'à api.github.com. Un même jeton peut servir à plusieurs dépôts s'il y a accès.</p>
+            <p class="hint">Un même jeton peut servir à plusieurs dépôts (coche-les tous en créant le jeton sur GitHub). Les jetons se gèrent dans 🔑 Jetons.</p>
+          </div>
+        </section>
+        <section id="sec-tokens">
+          <h3>Jetons</h3>
+          <div id="tokList"></div>
+          <button id="tokAdd" class="ghost">＋ Ajouter un jeton</button>
+          <div id="tokForm">
+            <h4 id="tokFormTitle">Nouveau jeton</h4>
+            <label for="tokName">Nom</label>
+            <input id="tokName" type="text" autocomplete="off" placeholder="ex. Téléphone — tous mes projets">
+            <label for="tokValue" id="tokValueLabel">Jeton GitHub (fine-grained)</label>
+            <input id="tokValue" type="password" autocomplete="off" placeholder="github_pat_…">
+            <div id="tokUsers" class="hint" style="margin-top:8px"></div>
+            <div class="row">
+              <button id="tokSave">Enregistrer</button>
+              <button id="tokDel" class="ghost">Supprimer ce jeton</button>
+            </div>
+            <p class="hint">Remplacer un jeton expiré ici le met à jour pour tous les dépôts qui l'utilisent. Les jetons restent uniquement dans cette appli, sur cet appareil, et ne sont envoyés qu'à api.github.com.</p>
           </div>
         </section>
         <section id="sec-display">
@@ -422,6 +478,7 @@
 <div id="diffDlg">
   <div class="box">
     <h2 id="diffTitle">Vérifier avant d'envoyer</h2>
+    <div id="diffFiles" style="display:none"></div>
     <div id="diffStats"></div>
     <div id="diffView"></div>
     <div id="diffLint" style="display:none"></div>
@@ -460,6 +517,29 @@
       <p class="hint">Restaurer remplace le contenu de l'onglet (↶ pour annuler). Rien n'est envoyé tant que tu n'appuies pas sur « Envoyer ».</p>
     </div>
     <div class="row"><button id="histClose" class="ghost">Fermer</button></div>
+  </div>
+</div>
+
+<!-- Fenêtre : synchronisation après le hors ligne -->
+<div id="syncDlg">
+  <div class="box">
+    <h2>Synchroniser avec GitHub</h2>
+    <div class="hint" id="syncInfo"></div>
+    <div id="syncMain">
+      <ul id="syncList"></ul>
+      <label for="syncMsg">Message du commit</label>
+      <input id="syncMsg" type="text" autocomplete="off">
+      <div class="row">
+        <button id="syncGo">Synchroniser</button>
+        <button id="syncLater" class="ghost">Plus tard</button>
+      </div>
+      <p class="hint">↑ = GitHub prend ta version · ↓ = ta copie reprend la version de GitHub. Tout ce qui part vers GitHub est envoyé en un seul commit par dépôt.</p>
+    </div>
+    <div id="syncCmp" style="display:none">
+      <div class="hint" id="syncCmpInfo"></div>
+      <div id="syncView" class="diffbox"></div>
+      <div class="row"><button id="syncCmpBack" class="ghost">← Retour</button></div>
+    </div>
   </div>
 </div>
 
@@ -502,7 +582,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
 <script>
 // ---------- Version et rapport d'erreurs (utile sur les vieux appareils) ----------
-var APP_VERSION = "0.11.0";
+var APP_VERSION = "0.12.0";
 function showError(msg) {
   var t = "⚠ Erreur : " + msg;
   var s = document.getElementById("status"), h = document.getElementById("filesHint");
@@ -528,7 +608,7 @@ document.getElementById("appVer").textContent = "v" + APP_VERSION;
 // ---------- Petits utilitaires de stockage ----------
 const store = {
   get(k, d) { try { const v = localStorage.getItem("gdpocket_" + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
-  set(k, v) { try { localStorage.setItem("gdpocket_" + k, JSON.stringify(v)); } catch (e) {} },
+  set(k, v) { try { localStorage.setItem("gdpocket_" + k, JSON.stringify(v)); return true; } catch (e) { return false; } },
   del(k)    { try { localStorage.removeItem("gdpocket_" + k); } catch (e) {} }
 };
 const $ = id => document.getElementById(id);
@@ -706,7 +786,50 @@ function loadRepos() {
   return list;
 }
 let repos = loadRepos();
+// ---------- Jetons (v0.12) : un jeton peut servir à plusieurs dépôts ----------
+// tokens = [{id, name, value}] ; chaque dépôt garde seulement tokenId
+let tokens = store.get("tokens", []);
+function saveTokens() { store.set("tokens", tokens); }
+function tokenById(id) { return tokens.find(k => k.id === id) || null; }
+function attachTok(r) {
+  Object.defineProperty(r, "token", {configurable: true, enumerable: false,
+    get() { const k = tokenById(r.tokenId); return k ? k.value : ""; }});
+  return r;
+}
+(function migrateTokens() {
+  let changed = false;
+  repos.forEach(r => {
+    if (Object.prototype.hasOwnProperty.call(r, "token")) {
+      const v = (r.token || "").trim(); delete r.token; changed = true;
+      if (v) {
+        let k = tokens.find(x => x.value === v);
+        if (!k) { k = {id: "k" + Date.now().toString(36) + tokens.length, name: "Jeton " + (tokens.length + 1), value: v}; tokens.push(k); }
+        r.tokenId = k.id;
+      }
+    }
+  });
+  tokens.forEach(k => { if (/^Jeton \d+$/.test(k.name)) { const u = repos.filter(r => r.tokenId === k.id); if (u.length === 1) k.name = "Jeton " + (u[0].repo || k.name); else if (u.length > 1) k.name = "Jeton partagé (" + u.length + " dépôts)"; } });
+  if (changed) { store.set("repos", repos); saveTokens(); }
+  repos.forEach(attachTok);
+})();
 function saveRepos() { store.set("repos", repos); }
+function tokUsers(id) { return repos.filter(r => r.tokenId === id); }
+
+// ---------- Hors ligne (v0.12) : copie locale des fichiers + actions en attente ----------
+var queue = store.get("queue", []);     // [{id, type: "put"|"ren"|"del", repoId, …, message}]
+function saveQueue() { store.set("queue", queue); }
+const qid = () => "q" + Date.now().toString(36) + Math.floor(Math.random() * 1000);
+const netErr = e => !e || !e.status;     // erreur réseau (pas de réponse de GitHub)
+function cidx(id) { return store.get("cidx:" + id, {}); }
+function cacheGet(id, p) { const i = cidx(id); if (!(p in i)) return null; const t = store.get("c:" + id + ":" + p, null); return t === null ? null : {sha: i[p], text: t}; }
+function cachePut(id, p, sha, text) {
+  if (!id || !p || !store.set("c:" + id + ":" + p, text)) return false;
+  const i = cidx(id); i[p] = sha; store.set("cidx:" + id, i); return true;
+}
+function cacheDel(id, p) { store.del("c:" + id + ":" + p); const i = cidx(id); if (p in i) { delete i[p]; store.set("cidx:" + id, i); } }
+function cacheMove(id, a, b) { const c = cacheGet(id, a); if (c) cachePut(id, b, c.sha, c.text); cacheDel(id, a); }
+function clearCache(id) { Object.keys(cidx(id)).forEach(p => store.del("c:" + id + ":" + p)); store.del("cidx:" + id); store.del("shas:" + id); store.del("treeAt:" + id); }
+const maskTok = v => v ? "…" + v.slice(-4) : "(vide)";
 function repoById(id) { return repos.find(r => r.id === id) || null; }
 function activeId() {
   const a = store.get("activeRepo", null);
@@ -771,7 +894,9 @@ function addTab(t, focus = true) {
 }
 function closeTab(i) {
   const t = tabs[i];
-  if (isDirty(t) && !confirm(`« ${t.name} » a des modifications non envoyées. Fermer quand même ?`)) return;
+  const q = t.queued ? queue.find(x => x.type === "put" && x.repoId === t.repoId && x.path === t.path) : null;
+  if (q) { q.text = t.doc.getValue(); saveQueue(); }          // l'envoi en attente garde le dernier contenu
+  else if (isDirty(t) && !confirm(`« ${t.name} » a des modifications non envoyées. Fermer quand même ?`)) return;
   tabs.splice(i, 1);
   if (!tabs.length) tabs.push({kind: "local", name: "script.gd", doc: newDoc("")});
   const next = i < active ? active - 1 : Math.min(active, tabs.length - 1);
@@ -807,6 +932,7 @@ function refreshTabLabel(i) {
   l.classList.toggle("dirty", isDirty(t) && !t.isNew);
   l.classList.toggle("new", !!t.isNew);
   l.classList.toggle("remote", !!t.remoteChanged);
+  l.classList.toggle("queued", !!t.queued);
 }
 function otherDirty(t) { return tabs.filter(x => x !== t && x.kind === "gh" && x.repoId === t.repoId && isDirty(x)); }
 function renameLocal() {
@@ -832,6 +958,23 @@ function refreshHist() {
   b.onclick = () => openSnippets();
   $("keys").appendChild(b);
 })();
+// Flèches : déplacent le curseur ; appui long = déplacement continu
+function repeatBtn(b, fn) {
+  let t1 = null, t2 = null;
+  const stop = () => { clearTimeout(t1); clearInterval(t2); t1 = t2 = null; };
+  const start = e => { e.preventDefault(); stop(); fn(); t1 = setTimeout(() => { t2 = setInterval(fn, 70); }, 380); };
+  b.addEventListener("touchstart", start, {passive: false});
+  b.addEventListener("touchend", stop); b.addEventListener("touchcancel", stop);
+  b.addEventListener("mousedown", e => { if (e.button === 0) start(e); });
+  b.addEventListener("mouseup", stop); b.addEventListener("mouseleave", stop);
+  b.addEventListener("contextmenu", e => e.preventDefault());
+}
+[["←", "goCharLeft", "Curseur à gauche"], ["↑", "goLineUp", "Ligne du dessus"], ["↓", "goLineDown", "Ligne du dessous"], ["→", "goCharRight", "Curseur à droite"]].forEach(a => {
+  const b = document.createElement("button");
+  b.className = "arrow"; b.textContent = a[0]; b.setAttribute("aria-label", a[2]);
+  repeatBtn(b, () => { cm.execCommand(a[1]); });
+  $("keys").appendChild(b);
+});
 const KEYS = ["⇥", ":", "(", ")", "_", "\"", "$", "@", "=", ".", "[", "]", "{", "}", "->", "#"];
 KEYS.forEach(k => {
   const b = document.createElement("button");
@@ -852,7 +995,7 @@ function refreshStatus(msg) {
   s.classList.toggle("dirty", isDirty(t));
   $("bottomShow").classList.toggle("dirty", isDirty(t));
   if (msg) { s.textContent = msg; return; }
-  if (t.kind === "gh") s.textContent = errTxt + (t.remoteChanged ? "⚠ Changé sur GitHub (↻ pour recharger) — " : "") + (t.isNew ? "Nouveau, pas encore envoyé — " : isDirty(t) ? "Modifié — " : "À jour — ") + repoName(t.repoId) + " / " + t.path;
+  if (t.kind === "gh") s.textContent = errTxt + (t.queued ? "⏳ Envoi en attente d'Internet — " : "") + (t.remoteChanged ? "⚠ Changé sur GitHub (↻ pour recharger) — " : "") + (t.isNew ? "Nouveau, pas encore envoyé — " : isDirty(t) ? "Modifié — " : "À jour — ") + repoName(t.repoId) + " / " + t.path;
   else s.textContent = errTxt + "Fichier local « " + t.name + " » — touche son onglet pour le renommer";
 }
 
@@ -861,6 +1004,7 @@ function encPath(p) { return p.split("/").map(encodeURIComponent).join("/"); }
 async function gh(path, opts = {}, conf = null) {
   const c = conf || cfg();
   if (!c.token) throw new Error("Aucun jeton : va dans Réglages.");
+  if (navigator.onLine === false) throw new Error("Pas de connexion Internet.");
   const isGet = !opts.method || opts.method === "GET";
   const url = "https://api.github.com" + path + (isGet ? (path.indexOf("?") === -1 ? "?" : "&") + "_=" + Date.now() : "");
   const r = await fetch(url, {
@@ -894,7 +1038,7 @@ function friendly(e) {
   if (e.status === 401) return "Jeton refusé (expiré ou mal copié).";
   if (e.status === 403) return "Accès refusé : vérifie les permissions du jeton (Contents : Read and write).";
   if (e.status === 404) return "Introuvable : vérifie le propriétaire, le dépôt et la branche, et que le jeton y a accès.";
-  if (!navigator.onLine) return "Pas de connexion Internet.";
+  if (!navigator.onLine || !e.status) return "Pas de connexion Internet.";
   return e.message;
 }
 
@@ -915,7 +1059,18 @@ async function loadTree() {
   try {
     const t = await gh(`/repos/${c.owner}/${c.repo}/git/trees/${encodeURIComponent(c.branch)}?recursive=1`);
     if (c !== cfg()) return;   // on a changé de dépôt entre-temps
-    const fresh = t.tree.filter(x => x.type === "blob").map(x => x.path).sort();
+    const blobs = t.tree.filter(x => x.type === "blob");
+    const fresh = blobs.map(x => x.path).sort();
+    const shas = {}; blobs.forEach(x => { shas[x.path] = x.sha; });
+    store.set("shas:" + c.id, shas); store.set("treeAt:" + c.id, Date.now());
+    // fichiers locaux en attente (nouveaux, renommés, supprimés hors ligne) : la liste les garde
+    queue.forEach(q => {
+      if (q.repoId !== c.id) return;
+      if (q.type === "ren") q.moves.forEach(m => { const k = fresh.indexOf(m[0]); if (k !== -1) fresh.splice(k, 1); if (fresh.indexOf(m[1]) === -1) fresh.push(m[1]); });
+      if (q.type === "put" && q.isNew && fresh.indexOf(q.path) === -1) fresh.push(q.path);
+      if (q.type === "del") [q.path].concat(q.uid ? [q.path + ".uid"] : []).forEach(p => { const k = fresh.indexOf(p); if (k !== -1) fresh.splice(k, 1); });
+    });
+    fresh.sort();
     const had = tree.length > 0, before = new Set(tree), after = new Set(fresh);
     const added = fresh.filter(p => !before.has(p)), removed = tree.filter(p => !after.has(p));
     tree = fresh; saveTree(); lastTreeLoad = Date.now();
@@ -932,9 +1087,13 @@ async function loadTree() {
     if (had && !added.length && !removed.length) msg += " · aucun changement";
     if (t.truncated) msg += " · dépôt très gros : liste incomplète";
     $("filesHint").textContent = msg;
+    refreshCache(c, shas);
   } catch (e) {
-    $("filesHint").textContent = "Erreur : " + friendly(e);
-  } finally { btn.disabled = false; btn.textContent = "↻ Actualiser"; }
+    if (netErr(e)) {
+      const at = store.get("treeAt:" + c.id, 0);
+      $("filesHint").textContent = "📴 Hors ligne — liste enregistrée" + (at ? " du " + fmtDate(at) : "") + " · " + Object.keys(cidx(c.id)).length + " fichier(s) disponibles hors ligne (⤓)";
+    } else $("filesHint").textContent = "Erreur : " + friendly(e);
+  } finally { btn.disabled = false; btn.textContent = "↻ Actualiser"; refreshSyncBtn(); }
 }
 const baseName = p => p.slice(p.lastIndexOf("/") + 1);
 const dirName = p => p.lastIndexOf("/") >= 0 ? p.slice(0, p.lastIndexOf("/")) : "";
@@ -954,6 +1113,7 @@ function fileRow(p, openPaths, inFolder) {
   path.children[0].textContent = inFolder ? "" : (dirName(p) ? dirName(p) + "/" : "");
   path.children[1].textContent = baseName(p) + (openPaths.has(p) ? "  • ouvert" : "");
   if (newFiles.has(p)) { const nb = document.createElement("span"); nb.className = "isnew"; nb.textContent = "nouveau"; path.appendChild(nb); }
+  if (listCache && (p in listCache)) { const ob = document.createElement("span"); ob.className = "offl"; ob.textContent = "⤓"; ob.title = "disponible hors ligne"; path.appendChild(ob); }
   if (openPaths.has(p)) li.classList.add("current");
   const canOpen = OPEN_RE.test(p);
   if (!canOpen) li.classList.add("binary");
@@ -968,7 +1128,9 @@ function fileRow(p, openPaths, inFolder) {
   del.onclick = e => { e.stopPropagation(); deleteGh(p); };
   return li;
 }
+let listCache = null;
 function renderList() {
+  listCache = cidx(activeId());
   const q = $("filter").value.trim().toLowerCase();
   const re = typeRe();
   const items = sortFiles(tree.filter(p => re.test(p) && p.toLowerCase().indexOf(q) !== -1));
@@ -1010,18 +1172,35 @@ async function openGh(path) {
   $("filesHint").textContent = "Ouverture de " + path + "…";
   refreshStatus("Ouverture de " + path + "…");
   try {
-    const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(path)}?ref=${encodeURIComponent(c.branch)}`);
-    const text = b64ToText(f.content);
+    let sha, text, offl = false;
+    const copy = cacheGet(aid, path);
+    const isLocal = queue.some(q => q.repoId === aid && ((q.type === "ren" && q.moves.some(m => m[1] === path)) || (q.type === "put" && q.isNew && q.path === path)));
+    if (isLocal && copy) { sha = copy.sha; text = copy.text; offl = true; }   // renommé ou créé hors ligne : pas encore sur GitHub
+    else {
+      try {
+        const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(path)}?ref=${encodeURIComponent(c.branch)}`);
+        sha = f.sha; text = b64ToText(f.content);
+        cachePut(aid, path, sha, text);
+      } catch (e) {
+        if (!netErr(e) || !copy) throw e;
+        sha = copy.sha; text = copy.text; offl = true;
+      }
+    }
     // Remplace l'onglet de départ s'il est vide et inutilisé
     const t0 = cur();
     if (tabs.length === 1 && t0.kind === "local" && !t0.doc.getValue().trim()) tabs = [];
     markRecent(aid, path);
-    addTab({kind: "gh", repoId: aid, name: path.split("/").pop(), path, sha: f.sha, base: text, doc: newDoc(text)});
+    const nt = {kind: "gh", repoId: aid, name: path.split("/").pop(), path, sha, base: text, doc: newDoc(text)};
+    const rq = queue.find(q => q.repoId === aid && q.type === "ren" && q.moves.some(m => m[1] === path));
+    if (rq) nt.remotePath = rq.moves.filter(m => m[1] === path)[0][0];
+    addTab(nt);
     $("filesHint").textContent = "";
     closePanel();
+    if (offl) refreshStatus("📴 Ouvert hors ligne (copie enregistrée sur l'appareil) — " + path);
   } catch (e) {
-    $("filesHint").textContent = "Erreur : " + friendly(e);
-    refreshStatus("Erreur : " + friendly(e));
+    const m = netErr(e) ? "Pas d'Internet, et « " + baseName(path) + " » n'est pas encore disponible hors ligne (📁 › ⬇ Préparer le hors ligne, avec Internet)." : "Erreur : " + friendly(e);
+    $("filesHint").textContent = m;
+    refreshStatus(m);
   }
 }
 
@@ -1046,10 +1225,15 @@ async function pushGh(force = false, presetMsg = null) {
     message = prompt("Message du commit :", others.length ? "GD Pocket : modifie " + [t].concat(others).map(x => x.name).join(", ") : defMsg);
     if (message === null) return;
   }
+  if (!navigator.onLine || queue.some(q => q.repoId === t.repoId)) {
+    queueTabs([t].concat(others), message || defMsg);
+    if (navigator.onLine) openSync();
+    return;
+  }
   if (others.length) {
     $("save").disabled = true;
     try { await commitMany([t].concat(others), message || defMsg, c); }
-    catch (e) { refreshStatus(e.conflict ? e.message : "Erreur : " + friendly(e)); }
+    catch (e) { if (netErr(e)) { queueTabs([t].concat(others), message || defMsg); return; } refreshStatus(e.conflict ? e.message : "Erreur : " + friendly(e)); }
     finally { $("save").disabled = false; }
     return;
   }
@@ -1061,11 +1245,14 @@ async function pushGh(force = false, presetMsg = null) {
     const r = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(t.path)}`, {method: "PUT", body: JSON.stringify(body)}, c);
     const wasNew = t.isNew;
     Object.assign(t, {sha: r.content.sha, base: text, isNew: false, remoteChanged: false});
+    cachePut(t.repoId, t.path, t.sha, text);
     if (wasNew && t.repoId === activeId() && !tree.includes(t.path)) { tree.push(t.path); tree.sort(); saveTree(); }
     saveTabs(true); renderTabs();
     refreshStatus((wasNew ? "Créé" : "Envoyé") + " sur GitHub ✔ (pense à faire un pull sur le PC)");
   } catch (e) {
-    if (t.isNew && e.status === 422) {
+    if (netErr(e)) {
+      queueTabs([t], message || defMsg);
+    } else if (t.isNew && e.status === 422) {
       refreshStatus("Un fichier porte déjà ce nom sur GitHub : ferme l'onglet et choisis un autre nom.");
     } else if (e.status === 409 || e.status === 422) {
       if (confirm("Ce fichier a été modifié sur GitHub depuis que tu l'as ouvert.\n\nOK = écraser avec ta version\nAnnuler = ne rien envoyer")) {
@@ -1095,6 +1282,7 @@ async function deleteGh(path) {
   if (!confirm(warn)) return;
   const message = prompt("Message du commit :", "GD Pocket : supprime " + name);
   if (message === null) return;
+  if (!navigator.onLine || queue.some(q => q.repoId === activeId())) { queueDelete(path, withUid, message || ("GD Pocket : supprime " + name)); if (navigator.onLine) openSync(); return; }
   $("filesHint").textContent = "Suppression de " + path + "…";
   try {
     for (const p of withUid ? [path, uid] : [path]) {
@@ -1105,7 +1293,7 @@ async function deleteGh(path) {
       });
       tree = tree.filter(x => x !== p);
     }
-    saveTree();
+    saveTree(); cacheDel(activeId(), path);
     // Fermer l'onglet du fichier supprimé, sans redemander
     const j = tabs.findIndex(t => t.kind === "gh" && t.path === path && t.repoId === activeId());
     if (j >= 0) {
@@ -1117,6 +1305,7 @@ async function deleteGh(path) {
     renderList();
     $("filesHint").textContent = `« ${name} » supprimé ✔ (pense à faire un pull sur le PC)`;
   } catch (e) {
+    if (netErr(e)) { queueDelete(path, withUid, message || ("GD Pocket : supprime " + name)); return; }
     $("filesHint").textContent = e.status === 404
       ? "Ce fichier n'existe plus sur GitHub : touche ↻ Actualiser."
       : "Erreur : " + friendly(e);
@@ -1179,6 +1368,7 @@ async function renameGh() {
   const message = prompt("Message du commit :", def);
   if (message === null) return;
   $("renDlg").classList.remove("open");
+  if (!navigator.onLine || queue.some(q => q.repoId === activeId())) { queueRename(moves, message || def); if (navigator.onLine) openSync(); return; }
   $("filesHint").textContent = "Renommage…";
   const c = cfg(), R = `/repos/${c.owner}/${c.repo}`, br = encPath(c.branch);
   try {
@@ -1209,9 +1399,11 @@ async function renameGh() {
     tree.sort(); saveTree();
     const aid2 = activeId();
     tabs.forEach(t => { if (t.kind === "gh" && t.path === from && t.repoId === aid2) { t.path = to; t.name = toName; } });
+    moves.forEach(([a, b]) => cacheMove(aid2, a, b));
     saveTabs(true); renderTabs(); refreshStatus(); renderList();
     $("filesHint").textContent = `Renommé en « ${to} » ✔ (pense à faire un pull sur le PC)`;
   } catch (e) {
+    if (netErr(e)) { queueRename(moves, message || def); return; }
     $("filesHint").textContent = e.status === 404
       ? "Fichier introuvable sur GitHub : touche ↻ Actualiser."
       : "Erreur : " + friendly(e);
@@ -1343,7 +1535,7 @@ function showSec(sec) {
   document.querySelectorAll(".setbody section").forEach(x => x.classList.toggle("on", x.id === "sec-" + sec));
 }
 document.querySelectorAll(".setnav button").forEach(b => b.onclick = () => showSec(b.dataset.sec));
-showSec(prefs.setSec === "display" ? "display" : "repos");
+showSec(["display", "tokens"].indexOf(prefs.setSec) !== -1 ? prefs.setSec : "repos");
 
 // ---------- Réglages : dépôts ----------
 let editingId = null;   // null = nouveau dépôt
@@ -1359,6 +1551,19 @@ function renderRepoList() {
     box.appendChild(b);
   });
 }
+function fillTokSel(selId) {
+  const sel = $("ghTokSel"); sel.innerHTML = "";
+  tokens.forEach(k => {
+    const o = document.createElement("option"); o.value = k.id;
+    const n = tokUsers(k.id).length;
+    o.textContent = k.name + " (" + maskTok(k.value) + (n ? ", " + n + " dépôt" + (n > 1 ? "s" : "") : "") + ")";
+    sel.appendChild(o);
+  });
+  const nw = document.createElement("option"); nw.value = "__new"; nw.textContent = "＋ Nouveau jeton…"; sel.appendChild(nw);
+  sel.value = selId && tokenById(selId) ? selId : (tokens[0] ? tokens[0].id : "__new");
+  $("ghTokNew").style.display = sel.value === "__new" ? "" : "none";
+}
+$("ghTokSel").onchange = () => { $("ghTokNew").style.display = $("ghTokSel").value === "__new" ? "" : "none"; };
 function editRepo(id) {
   editingId = id;
   const r = id ? repoById(id) : null, a = cfg();
@@ -1366,35 +1571,42 @@ function editRepo(id) {
   $("ghOwner").value = r ? r.owner : (a.owner || "LutiinBlack");
   $("ghRepo").value = r ? r.repo : (repos.length ? "" : "Micro-Racer-Mobile-");
   $("ghBranch").value = r ? r.branch : "";
-  $("ghToken").value = r ? r.token : (a.token || "");   // nouveau dépôt : propose le même jeton
+  fillTokSel(r ? r.tokenId : a.tokenId);    // nouveau dépôt : propose le jeton du dépôt actif
+  $("ghTokName").value = ""; $("ghToken").value = "";
   $("repoUse").style.display = r && r.id !== activeId() ? "" : "none";
   $("repoRemove").style.display = r ? "" : "none";
-  $("forget").style.display = r ? "" : "none";
   renderRepoList();
 }
 $("repoAdd").onclick = () => { editRepo(null); $("ghRepo").focus(); };
 $("saveSettings").onclick = async () => {
-  const c = {owner: $("ghOwner").value.trim(), repo: $("ghRepo").value.trim(),
-             branch: $("ghBranch").value.trim(), token: $("ghToken").value.trim()};
+  const c = {owner: $("ghOwner").value.trim(), repo: $("ghRepo").value.trim(), branch: $("ghBranch").value.trim()};
   if (!c.owner || !c.repo) { alert("Indique le propriétaire et le nom du dépôt."); return; }
   const dup = repos.find(r => r.id !== editingId && r.owner.toLowerCase() === c.owner.toLowerCase() && r.repo.toLowerCase() === c.repo.toLowerCase() && (r.branch || "") === c.branch);
   if (dup) { alert("Ce dépôt est déjà dans la liste."); editRepo(dup.id); return; }
+  let tokId = $("ghTokSel").value;
+  if (tokId === "__new") {
+    const v = $("ghToken").value.trim();
+    if (!v) { alert("Colle le jeton GitHub, ou choisis un jeton existant dans la liste."); return; }
+    let k = tokens.find(x => x.value === v);
+    if (!k) { k = {id: "k" + Date.now().toString(36), name: $("ghTokName").value.trim() || "Jeton " + c.repo, value: v}; tokens.push(k); saveTokens(); }
+    tokId = k.id;
+  }
   let r = editingId ? repoById(editingId) : null;
   const isNew = !r;
-  if (isNew) { r = {id: "r" + Date.now().toString(36)}; repos.push(r); }
-  Object.assign(r, c); saveRepos(); editingId = r.id;
+  if (isNew) { r = attachTok({id: "r" + Date.now().toString(36)}); repos.push(r); }
+  Object.assign(r, c, {tokenId: tokId}); saveRepos(); editingId = r.id;
   $("saveSettings").disabled = true;
   try {
     const info = await gh(`/repos/${c.owner}/${c.repo}`, {}, r);
     if (!r.branch) { r.branch = info.default_branch; $("ghBranch").value = r.branch; saveRepos(); }
     store.del(treeKey(r.id));
     const becomeActive = isNew || r.id === activeId() || repos.length === 1;
-    alert("Connexion réussie ✔\nDépôt : " + info.full_name + "\nBranche : " + r.branch + (isNew ? "\n\nC'est maintenant le dépôt affiché dans 📁." : ""));
-    editRepo(r.id);
+    alert("Connexion réussie ✔\nDépôt : " + info.full_name + "\nBranche : " + r.branch + "\nJeton : " + (tokenById(tokId) || {}).name + (isNew ? "\n\nC'est maintenant le dépôt affiché dans 📁." : ""));
+    editRepo(r.id); renderTokList();
     if (becomeActive) { switchRepo(r.id); showTab("files"); }
   } catch (e) {
     alert("Échec : " + friendly(e) + "\n\nLes informations sont enregistrées : corrige-les puis réessaie.");
-    editRepo(r.id);
+    editRepo(r.id); renderTokList();
   } finally { $("saveSettings").disabled = false; }
 };
 $("repoUse").onclick = () => { if (editingId) { switchRepo(editingId); editRepo(editingId); showTab("files"); } };
@@ -1402,19 +1614,64 @@ $("repoRemove").onclick = () => {
   const r = repoById(editingId); if (!r) return;
   const n = tabs.filter(t => t.kind === "gh" && t.repoId === r.id).length;
   if (n) { alert("Ferme d'abord les " + n + " onglet(s) ouverts de ce dépôt."); return; }
-  if (!confirm("Retirer « " + r.repo + " » de la liste ?\n\nRien n'est supprimé sur GitHub.")) return;
+  if (queue.some(q => q.repoId === r.id)) { alert("Ce dépôt a des actions en attente d'Internet : synchronise-les d'abord (📁 › ⏳)."); return; }
+  if (!confirm("Retirer « " + r.repo + " » de la liste ?\n\nRien n'est supprimé sur GitHub. Son jeton reste dans 🔑 Jetons.")) return;
   repos = repos.filter(x => x.id !== r.id); saveRepos();
-  store.del(treeKey(r.id)); store.del(recentKey(r.id)); store.del("collapsed:" + r.id);
+  store.del(treeKey(r.id)); store.del(recentKey(r.id)); store.del("collapsed:" + r.id); clearCache(r.id);
   if (store.get("activeRepo", null) === r.id) { if (repos[0]) switchRepo(repos[0].id); else { store.del("activeRepo"); tree = []; renderList(); } }
-  editRepo(repos[0] ? repos[0].id : null);
+  editRepo(repos[0] ? repos[0].id : null); renderTokList();
 };
-$("forget").onclick = () => {
-  const r = repoById(editingId); if (!r) return;
-  r.token = ""; saveRepos();
-  $("ghToken").value = "";
-  if (r.id === activeId()) { store.del(treeKey(r.id)); tree = []; renderList(); }
-  alert("Jeton effacé pour ce dépôt.");
+
+// ---------- Réglages : jetons ----------
+let editingTok = null;   // null = nouveau jeton
+function renderTokList() {
+  const box = $("tokList"); box.innerHTML = "";
+  if (!tokens.length) { const p = document.createElement("p"); p.className = "hint"; p.textContent = "Aucun jeton pour l'instant."; box.appendChild(p); }
+  tokens.forEach(k => {
+    const b = document.createElement("button"); b.className = "repoItem" + (k.id === editingTok ? " editing" : "");
+    const u = tokUsers(k.id);
+    b.textContent = k.name + "  " + maskTok(k.value);
+    const s2 = document.createElement("span"); s2.className = "badge"; s2.style.background = u.length ? "" : "#ffb86c";
+    s2.textContent = u.length ? u.length + " dépôt" + (u.length > 1 ? "s" : "") : "inutilisé";
+    b.appendChild(s2);
+    b.onclick = () => editTok(k.id);
+    box.appendChild(b);
+  });
+}
+function editTok(id) {
+  editingTok = id;
+  const k = id ? tokenById(id) : null;
+  $("tokFormTitle").textContent = k ? "Modifier : " + k.name : "Nouveau jeton";
+  $("tokName").value = k ? k.name : "";
+  $("tokValue").value = "";
+  $("tokValue").placeholder = k ? "laisser vide pour garder " + maskTok(k.value) : "github_pat_…";
+  $("tokValueLabel").textContent = k ? "Remplacer par un nouveau jeton (expiration…)" : "Jeton GitHub (fine-grained)";
+  const u = k ? tokUsers(k.id) : [];
+  $("tokUsers").textContent = k ? (u.length ? "Utilisé par : " + u.map(r => r.repo).join(", ") : "Utilisé par aucun dépôt.") : "";
+  $("tokDel").style.display = k ? "" : "none";
+  renderTokList();
+}
+$("tokAdd").onclick = () => { editTok(null); $("tokName").focus(); };
+$("tokSave").onclick = () => {
+  const name = $("tokName").value.trim(), v = $("tokValue").value.trim();
+  let k = editingTok ? tokenById(editingTok) : null;
+  if (!k && !v) { alert("Colle le jeton GitHub."); return; }
+  if (!k) { k = {id: "k" + Date.now().toString(36), name: name || "Jeton " + (tokens.length + 1), value: v}; tokens.push(k); }
+  else { if (name) k.name = name; if (v) k.value = v; }
+  saveTokens(); editTok(k.id); editRepo(editingId);
+  const n = tokUsers(k.id).length;
+  alert("Jeton enregistré ✔" + (v && n ? "\n\nMis à jour pour " + n + " dépôt" + (n > 1 ? "s" : "") + "." : ""));
+  if (v && n && cfg().tokenId === k.id) { store.del(treeKey()); loadTree(); }
 };
+$("tokDel").onclick = () => {
+  const k = tokenById(editingTok); if (!k) return;
+  const u = tokUsers(k.id);
+  if (!confirm("Supprimer le jeton « " + k.name + " » de cette appli ?" + (u.length ? "\n\n" + u.length + " dépôt(s) n'auront plus de jeton : " + u.map(r => r.repo).join(", ") : "") + "\n\n(Pense aussi à le révoquer sur GitHub si besoin.)")) return;
+  u.forEach(r => { r.tokenId = null; }); saveRepos();
+  tokens = tokens.filter(x => x !== k); saveTokens();
+  editTok(tokens[0] ? tokens[0].id : null); editRepo(editingId);
+};
+renderTokList(); editTok(tokens[0] ? tokens[0].id : null);
 editRepo(activeId());
 $("prefTheme").value = prefs.theme;
 $("prefWrap").checked = prefs.wrap;
@@ -1584,6 +1841,51 @@ $("bottomToggle").onclick = () => setBottom(true);
 $("bottomShow").onclick = () => setBottom(false);
 document.documentElement.classList.toggle("bottom-collapsed", prefs.bottomCollapsed);
 
+// ---------- Clavier à l'écran : la barre de touches reste visible ----------
+// Navigateurs récents : visualViewport donne la place laissée par le clavier → la page se réduit à cette hauteur,
+// la barre du bas se retrouve juste au-dessus du clavier.
+// iOS 12 (pas de visualViewport) : pendant la frappe, la barre de touches passe en haut, sous les onglets.
+const VV = window.visualViewport;
+const KB_FALLBACK = !VV && ("ontouchstart" in window);
+function fitViewport() {
+  if (!VV) return;
+  if (VV.scale && Math.abs(VV.scale - 1) > 0.02) return;            // zoom avec deux doigts : on ne touche à rien
+  const h = Math.round(VV.height), full = window.innerHeight, kb = h < full - 60;
+  const nh = kb ? h + "px" : "";
+  if (document.body.style.height !== nh) {
+    document.body.style.height = nh;
+    cm.refresh();
+    if (kb && cm.hasFocus()) setTimeout(() => cm.scrollIntoView(null, 30), 30);
+  }
+  if (kb && (window.scrollY || VV.offsetTop)) window.scrollTo(0, 0);
+}
+if (VV) { VV.addEventListener("resize", fitViewport); VV.addEventListener("scroll", fitViewport); }
+let kbOn = false;
+function kbEstimate() {
+  const land = window.innerWidth > window.innerHeight;
+  const tablet = Math.min(screen.width, screen.height) >= 700;
+  return Math.round(window.innerHeight * (tablet ? (land ? 0.5 : 0.33) : (land ? 0.6 : 0.42)));
+}
+function setKbTop(on) {
+  if (on === kbOn) return;
+  kbOn = on;
+  document.documentElement.classList.toggle("kb-top", on);
+  if (on) $("keysTop").appendChild($("keys")); else $("bottom").insertBefore($("keys"), $("statusRow"));
+  $("kbSpacer").style.height = on ? kbEstimate() + "px" : "0";
+  cm.refresh();
+  if (on) setTimeout(() => { window.scrollTo(0, 0); cm.scrollIntoView(null, 30); }, 60);
+}
+if (KB_FALLBACK) {
+  cm.on("focus", () => setKbTop(true));
+  cm.on("blur", () => setTimeout(() => { if (!cm.hasFocus()) setKbTop(false); }, 200));
+  window.addEventListener("resize", () => { if (kbOn) { $("kbSpacer").style.height = kbEstimate() + "px"; cm.refresh(); } });
+  let scrollFix = 0;
+  window.addEventListener("scroll", () => {
+    if (!kbOn || !window.scrollY || Date.now() - scrollFix < 250) return;
+    scrollFix = Date.now(); setTimeout(() => window.scrollTo(0, 0), 30);
+  });
+}
+
 // ---------- Bouton ＋ : créer ou ouvrir ----------
 function fillAddPick() {
   const sel = $("addPick"); sel.innerHTML = "";
@@ -1672,44 +1974,73 @@ function renderDiff(lines, view) {
   flush();
   if (!view.children.length) { const e = document.createElement("div"); e.className = "dl gap"; e.textContent = "Aucune différence avec la version GitHub."; view.appendChild(e); }
 }
+function diffCount(x) {
+  const l = lineDiff(x.isNew ? "" : (x.base || ""), x.doc.getValue());
+  return {lines: l, add: l.filter(z => z.t === "+").length, del: l.filter(z => z.t === "-").length,
+          errs: prefs.lint && /\.gd$/i.test(x.name) ? lintText(x.doc.getValue()) : []};
+}
+function showLintBox(errs, name) {
+  const lb = $("diffLint"); lb.innerHTML = "";
+  lb.style.display = errs.length ? "" : "none";
+  if (!errs.length) return;
+  const h = document.createElement("div"); h.className = "lh";
+  h.textContent = "⛔ " + errs.length + " erreur" + (errs.length > 1 ? "s" : "") + " dans " + name + " :"; lb.appendChild(h);
+  errs.slice(0, 6).forEach(e => { const d = document.createElement("div"); d.textContent = "Ligne " + (e.line + 1) + " : " + e.msg; lb.appendChild(d); });
+  if (errs.length > 6) { const d = document.createElement("div"); d.textContent = "… et " + (errs.length - 6) + " autre(s)"; lb.appendChild(d); }
+}
 function askSend(t, text, defMsg) {
   return new Promise(resolve => {
-    const lines = lineDiff(t.isNew ? "" : (t.base || ""), text);
-    const add = lines.filter(l => l.t === "+").length, del = lines.filter(l => l.t === "-").length;
-    $("diffTitle").textContent = "Vérifier avant d'envoyer — " + t.name;
-    const st = $("diffStats"); st.innerHTML = "";
-    const sa = document.createElement("span"); sa.className = "a"; sa.textContent = "+" + add;
-    const sd = document.createElement("span"); sd.className = "d"; sd.textContent = "−" + del;
-    st.append(sa, " ajoutée" + (add > 1 ? "s" : "") + " · ", sd, " supprimée" + (del > 1 ? "s" : "") + " · " + repoName(t.repoId) + " / " + t.path);
-    renderDiff(lines);
-    const errs = prefs.lint && /\.gd$/i.test(t.name) ? lintText(text) : [];
-    const lb = $("diffLint"); lb.innerHTML = "";
-    lb.style.display = errs.length ? "" : "none";
-    if (errs.length) {
-      const h = document.createElement("div"); h.className = "lh";
-      h.textContent = "⛔ " + errs.length + " erreur" + (errs.length > 1 ? "s" : "") + " dans ce fichier :"; lb.appendChild(h);
-      errs.slice(0, 6).forEach(e => { const d = document.createElement("div"); d.textContent = "Ligne " + (e.line + 1) + " : " + e.msg; lb.appendChild(d); });
-      if (errs.length > 6) { const d = document.createElement("div"); d.textContent = "… et " + (errs.length - 6) + " autre(s)"; lb.appendChild(d); }
-    }
-    $("diffSend").textContent = errs.length ? "Envoyer quand même" : "Envoyer";
-    const oth = otherDirty(t), ob = $("diffOthers"); ob.innerHTML = "";
-    ob.style.display = oth.length ? "" : "none";
+    const oth = otherDirty(t), all = [t].concat(oth);
+    const info = all.map(diffCount);
     const boxes = [];
-    const autoMsg = () => { const sel = [t].concat(oth.filter((x, k) => boxes[k].checked)); return sel.length > 1 ? "GD Pocket : modifie " + sel.map(x => x.name).join(", ") : defMsg; };
+    const chosen = () => [t].concat(oth.filter((x, k) => boxes[k].checked));
+    // Rangée de fichiers : un toucher = voir les différences de ce fichier
+    const fb = $("diffFiles"); fb.innerHTML = "";
+    fb.style.display = oth.length ? "" : "none";
+    const chips = [];
+    const show = i => {
+      const x = all[i], d = info[i];
+      chips.forEach((c, k) => c.classList.toggle("on", k === i));
+      $("diffTitle").textContent = "Vérifier avant d'envoyer — " + x.name;
+      const st = $("diffStats"); st.innerHTML = "";
+      const sa = document.createElement("span"); sa.className = "a"; sa.textContent = "+" + d.add;
+      const sd = document.createElement("span"); sd.className = "d"; sd.textContent = "−" + d.del;
+      st.append(sa, " ajoutée" + (d.add > 1 ? "s" : "") + " · ", sd, " supprimée" + (d.del > 1 ? "s" : "") + " · " + repoName(x.repoId) + " / " + x.path + (i > 0 && !boxes[i - 1].checked ? " · pas coché : ne sera pas envoyé" : ""));
+      renderDiff(d.lines);
+      showLintBox(d.errs, x === t ? "ce fichier" : "« " + x.name + " »");
+    };
+    const refreshChips = () => {
+      chips.forEach((c, k) => c.classList.toggle("off", k > 0 && !boxes[k - 1].checked));
+      const nErr = chosen().reduce((n, x) => n + info[all.indexOf(x)].errs.length, 0);
+      $("diffSend").textContent = nErr ? "Envoyer quand même" : chosen().length > 1 ? "Envoyer " + chosen().length + " fichiers" : "Envoyer";
+    };
+    all.forEach((x, i) => {
+      const c = document.createElement("button"); c.type = "button";
+      const d = info[i];
+      c.append(x.name + " ");
+      const a = document.createElement("span"); a.className = "a"; a.textContent = "+" + d.add;
+      const r = document.createElement("span"); r.className = "d"; r.textContent = " −" + d.del;
+      c.append(a, r);
+      if (d.errs.length) c.append(" ⛔" + d.errs.length);
+      c.onclick = () => show(i);
+      chips.push(c); fb.appendChild(c);
+    });
+    const autoMsg = () => { const sel = chosen(); return sel.length > 1 ? "GD Pocket : modifie " + sel.map(x => x.name).join(", ") : defMsg; };
     let lastAuto = defMsg;
+    const ob = $("diffOthers"); ob.innerHTML = "";
+    ob.style.display = oth.length ? "" : "none";
     if (oth.length) {
-      const h = document.createElement("div"); h.textContent = "Envoyer aussi dans le même commit :"; ob.appendChild(h);
-      oth.forEach(x => {
-        const l = lineDiff(x.isNew ? "" : (x.base || ""), x.doc.getValue());
-        const a = l.filter(z => z.t === "+").length, d = l.filter(z => z.t === "-").length;
-        const ne = prefs.lint && /\.gd$/i.test(x.name) ? lintText(x.doc.getValue()).length : 0;
+      const h = document.createElement("div"); h.textContent = "Envoyer aussi dans le même commit (touche un nom en haut pour voir ses changements) :"; ob.appendChild(h);
+      oth.forEach((x, k) => {
+        const d = info[k + 1];
         const lab = document.createElement("label"); lab.className = "check";
         const cb = document.createElement("input"); cb.type = "checkbox"; boxes.push(cb);
-        cb.onchange = () => { if ($("diffMsg").value === lastAuto) { lastAuto = autoMsg(); $("diffMsg").value = lastAuto; } };
-        lab.append(cb, " " + x.name + "  (+" + a + " −" + d + (x.isNew ? ", nouveau" : "") + (ne ? ", ⛔ " + ne + " erreur" + (ne > 1 ? "s" : "") : "") + ")");
+        cb.onchange = () => { if ($("diffMsg").value === lastAuto) { lastAuto = autoMsg(); $("diffMsg").value = lastAuto; } refreshChips(); };
+        lab.append(cb, " " + x.name + "  (+" + d.add + " −" + d.del + (x.isNew ? ", nouveau" : "") + (d.errs.length ? ", ⛔ " + d.errs.length + " erreur" + (d.errs.length > 1 ? "s" : "") : "") + ")");
         ob.appendChild(lab);
       });
     }
+    show(0); refreshChips();
     $("diffMsg").value = defMsg;
     $("diffDlg").classList.add("open");
     const done = v => { $("diffDlg").classList.remove("open"); resolve(v); };
@@ -2052,6 +2383,7 @@ async function commitMany(list, message, c) {
     if (!sha) { try { sha = (await gh(`${R}/contents/${encPath(t.path)}?ref=${encodeURIComponent(c.branch)}`, {}, c)).sha; } catch (e) {} }
     const wasNew = t.isNew;
     Object.assign(t, {sha, base: texts[i], isNew: false, remoteChanged: false});
+    if (sha) cachePut(t.repoId, t.path, sha, texts[i]);
     if (wasNew && t.repoId === activeId() && tree.indexOf(t.path) === -1) { tree.push(t.path); tree.sort(); saveTree(); }
   }
   saveTabs(true); renderTabs();
@@ -2068,9 +2400,18 @@ async function openHistory() {
   $("histInfo").textContent = "Chargement…";
   $("histList").innerHTML = ""; $("histDetail").style.display = "none"; $("histList").style.display = "";
   $("histDlg").classList.add("open");
+  const hk = "hist:" + t.repoId + ":" + t.path;
+  let offl = null;
   try {
-    histCommits = await gh(`/repos/${c.owner}/${c.repo}/commits?path=${encodeURIComponent(t.path)}&sha=${encodeURIComponent(c.branch)}&per_page=30`, {}, c);
-    $("histInfo").textContent = histCommits.length ? histCommits.length + " dernière" + (histCommits.length > 1 ? "s" : "") + " version" + (histCommits.length > 1 ? "s" : "") + " — touche une version pour la comparer à ton onglet" : "Aucun historique trouvé pour ce fichier.";
+    try {
+      histCommits = await gh(`/repos/${c.owner}/${c.repo}/commits?path=${encodeURIComponent(t.remotePath || t.path)}&sha=${encodeURIComponent(c.branch)}&per_page=30`, {}, c);
+      store.set(hk, {at: Date.now(), list: histCommits.map(k => ({sha: k.sha, commit: {message: k.commit.message, author: {date: k.commit.author.date, name: k.commit.author.name}}}))});
+    } catch (e) {
+      const saved = store.get(hk, null);
+      if (!netErr(e) || !saved) throw e;
+      histCommits = saved.list; offl = saved.at;
+    }
+    $("histInfo").textContent = (offl ? "📴 Hors ligne — historique enregistré le " + fmtDate(offl) + " · " : "") + (histCommits.length ? histCommits.length + " dernière" + (histCommits.length > 1 ? "s" : "") + " version" + (histCommits.length > 1 ? "s" : "") + " — touche une version pour la comparer à ton onglet" : "Aucun historique trouvé pour ce fichier.");
     histCommits.forEach((k, i) => {
       const li = document.createElement("li"), b = document.createElement("button");
       const msg = document.createElement("span"); msg.className = "nm"; msg.textContent = k.commit.message.split("\n")[0];
@@ -2086,8 +2427,19 @@ async function showHistVersion(k) {
   const t = histTab, c = repoById(t.repoId);
   $("histInfo").textContent = "Chargement de la version…";
   try {
-    const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(t.path)}?ref=${k.sha}`, {}, c);
-    histOld = b64ToText(f.content);
+    const vk = "hv:" + t.repoId + ":" + k.sha + ":" + t.path;
+    try {
+      const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(t.remotePath || t.path)}?ref=${k.sha}`, {}, c);
+      histOld = b64ToText(f.content);
+      if (store.set(vk, histOld)) {          // on garde les 40 dernières versions consultées
+        const ix = store.get("hvidx", []).filter(x => x !== vk); ix.push(vk);
+        while (ix.length > 40) store.del(ix.shift());
+        store.set("hvidx", ix);
+      }
+    } catch (e) {
+      histOld = store.get(vk, null);
+      if (!netErr(e) || histOld === null) { if (netErr(e)) { $("histInfo").textContent = "📴 Hors ligne : cette version n'a pas encore été consultée avec Internet."; return; } throw e; }
+    }
     const lines = lineDiff(t.doc.getValue(), histOld);
     const add = lines.filter(l => l.t === "+").length, del = lines.filter(l => l.t === "-").length;
     $("histInfo").textContent = "« " + k.commit.message.split("\n")[0] + " » — si tu restaures : +" + add + " ligne(s) reviennent, −" + del + " disparaissent";
@@ -2108,6 +2460,328 @@ $("histClose").onclick = () => $("histDlg").classList.remove("open");
 $("histBtn").onclick = openHistory;
 
 runLint();
+
+// ---------- Hors ligne : mise en attente des actions ----------
+const fmtDate = ms => { const d = new Date(ms); return d.toLocaleDateString("fr-FR") + " " + d.toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit"}); };
+function refreshSyncBtn() {
+  const n = queue.length, b = $("syncBtn");
+  b.style.display = n ? "" : "none";
+  b.textContent = "⏳ " + n + " en attente — Synchroniser";
+}
+function offlineMsg(txt) {
+  const m = navigator.onLine ? "⏳ " + txt + " — ajouté à la synchronisation avec les actions faites hors ligne." : "⏳ " + txt + " — mis en attente : il partira sur GitHub au retour d'Internet (📁 › ⏳ Synchroniser).";
+  refreshStatus(m); $("filesHint").textContent = m; refreshSyncBtn();
+}
+function queueTabs(list, message) {
+  list.forEach(t => {
+    let q = queue.find(x => x.type === "put" && x.repoId === t.repoId && x.path === t.path);
+    if (!q) {
+      q = {id: qid(), type: "put", repoId: t.repoId, path: t.path, isNew: !!t.isNew,
+           origPath: t.isNew ? null : (t.remotePath || t.path), baseSha: t.isNew ? null : t.sha};
+      queue.push(q);
+    }
+    q.message = message; q.text = t.doc.getValue(); q.at = Date.now();
+    t.queued = true;
+    if (t.isNew && t.repoId === activeId() && tree.indexOf(t.path) === -1) { tree.push(t.path); tree.sort(); saveTree(); }
+    cachePut(t.repoId, t.path, t.sha || "", q.text);
+  });
+  saveQueue(); saveTabs(true); renderTabs();
+  offlineMsg(list.length > 1 ? "Envoi de " + list.length + " fichiers" : "Envoi de « " + list[0].name + " »");
+}
+function closeTabsAt(repoId, path) {
+  const j = tabs.findIndex(t => t.kind === "gh" && t.path === path && t.repoId === repoId);
+  if (j < 0) return;
+  tabs.splice(j, 1);
+  if (!tabs.length) tabs.push({kind: "local", name: "script.gd", doc: newDoc("")});
+  const next = j < active ? active - 1 : Math.min(active, tabs.length - 1);
+  active = -1; switchTab(next);
+}
+function queueDelete(path, withUid, message) {
+  const id = activeId();
+  const newPut = queue.find(q => q.type === "put" && q.repoId === id && q.path === path && q.isNew);
+  queue = queue.filter(q => !(q.type === "put" && q.repoId === id && q.path === path));
+  const ren = queue.find(q => q.type === "ren" && q.repoId === id && q.moves.some(m => m[1] === path));
+  if (!newPut) {
+    if (ren) {   // renommé puis supprimé hors ligne : on supprime l'ancien nom sur GitHub
+      const m = ren.moves.filter(x => x[1] === path)[0];
+      ren.moves = ren.moves.filter(x => x[1] !== path && x[1] !== path + ".uid");
+      if (!ren.moves.length) queue = queue.filter(q => q !== ren);
+      queue.push({id: qid(), type: "del", repoId: id, path: m[0], uid: withUid, message});
+    } else queue.push({id: qid(), type: "del", repoId: id, path, uid: withUid, message});
+  }
+  tree = tree.filter(x => x !== path && !(withUid && x === path + ".uid")); saveTree();
+  cacheDel(id, path);
+  closeTabsAt(id, path);
+  saveQueue(); renderList();
+  offlineMsg("Suppression de « " + baseName(path) + " »");
+}
+function queueRename(moves, message) {
+  const id = activeId();
+  const prev = queue.find(q => q.type === "ren" && q.repoId === id && q.moves.some(m => m[1] === moves[0][0]));
+  if (prev) prev.moves = prev.moves.map(m => { const n = moves.filter(x => x[0] === m[1])[0]; return n ? [m[0], n[1]] : m; });
+  const newPut = queue.find(q => q.type === "put" && q.repoId === id && q.isNew && q.path === moves[0][0]);
+  if (!prev && !newPut) queue.push({id: qid(), type: "ren", repoId: id, moves: moves.map(m => m.slice()), message});
+  moves.forEach(([a, b]) => {
+    tree = tree.filter(x => x !== a); if (tree.indexOf(b) === -1) tree.push(b);
+    cacheMove(id, a, b);
+    queue.forEach(q => { if (q.type === "put" && q.repoId === id && q.path === a) q.path = b; });
+    tabs.forEach(t => { if (t.kind === "gh" && t.repoId === id && t.path === a) { if (!t.isNew && !t.remotePath) t.remotePath = a; t.path = b; t.name = baseName(b); } });
+  });
+  tree.sort(); saveTree(); saveQueue(); saveTabs(true); renderTabs(); refreshStatus(); renderList();
+  offlineMsg("Renommage en « " + moves[0][1] + " »");
+}
+
+// ---------- Hors ligne : copie locale des fichiers ----------
+let cacheBusy = false;
+async function refreshCache(c, shas) {
+  if (cacheBusy) return;
+  cacheBusy = true;
+  try {
+    const idx = cidx(c.id), locked = new Set();
+    queue.forEach(q => { if (q.repoId === c.id) { if (q.type === "put") locked.add(q.path); if (q.type === "ren") q.moves.forEach(m => locked.add(m[1])); } });
+    for (const p of Object.keys(idx)) {
+      if (locked.has(p)) continue;
+      if (!(p in shas)) { cacheDel(c.id, p); continue; }
+      if (shas[p] === idx[p]) continue;
+      const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(p)}?ref=${encodeURIComponent(c.branch)}`, {}, c);
+      cachePut(c.id, p, f.sha, b64ToText(f.content));
+    }
+  } catch (e) {} finally { cacheBusy = false; }
+}
+async function prepareOffline() {
+  const c = cfg();
+  if (!c.token) { $("filesHint").textContent = "Ajoute d'abord un dépôt dans Réglages."; return; }
+  if (!navigator.onLine) { $("filesHint").textContent = "📴 Il faut Internet pour préparer le hors ligne."; return; }
+  const btn = $("offlineBtn"); btn.disabled = true;
+  try {
+    if (!store.get("shas:" + c.id, null)) await loadTree();
+    const shas = store.get("shas:" + c.id, {}), re = typeRe();
+    const want = tree.filter(p => re.test(p) && OPEN_RE.test(p) && (p in shas));
+    const idx = cidx(c.id);
+    const todo = want.filter(p => idx[p] !== shas[p]);
+    let done = 0, size = 0;
+    for (const p of todo) {
+      btn.textContent = "⬇ " + (done + 1) + " / " + todo.length;
+      const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(p)}?ref=${encodeURIComponent(c.branch)}`, {}, c);
+      const text = b64ToText(f.content);
+      if (!cachePut(c.id, p, f.sha, text)) { $("filesHint").textContent = "⚠ Mémoire de l'appareil pleine après " + done + " fichiers : choisis « Fichiers : scripts » pour n'en garder que les scripts."; renderList(); return; }
+      done++; size += text.length;
+    }
+    renderList();
+    const total = Object.keys(cidx(c.id)).length;
+    $("filesHint").textContent = "📴 Prêt pour le hors ligne ✔ " + total + " fichier" + (total > 1 ? "s" : "") + " disponibles sur l'appareil (⤓)" + (done ? " · " + done + " téléchargé" + (done > 1 ? "s" : "") + " (" + Math.ceil(size / 1024) + " Ko)" : " · déjà à jour");
+  } catch (e) { $("filesHint").textContent = "Erreur : " + friendly(e); }
+  finally { btn.disabled = false; btn.textContent = "⬇ Préparer le hors ligne"; }
+}
+$("offlineBtn").onclick = prepareOffline;
+
+// ---------- Synchronisation au retour d'Internet ----------
+let syncItems = [], syncLaterFlag = false, syncOpen = false;
+function syncDesc(q) {
+  if (q.type === "put") return (q.isNew ? "＋ Nouveau : " : "✎ Modifié : ") + q.path;
+  if (q.type === "ren") return "✏️ Renommé : " + q.moves[0][0] + " → " + q.moves[0][1];
+  return "🗑 Supprimé : " + q.path;
+}
+function putText(q) {
+  const t = tabs.find(x => x.kind === "gh" && x.repoId === q.repoId && x.path === q.path);
+  return t ? t.doc.getValue() : q.text;
+}
+async function openSync() {
+  if (!queue.length || syncOpen) { refreshSyncBtn(); return; }
+  syncOpen = true;
+  $("syncDlg").classList.add("open"); $("syncMain").style.display = ""; $("syncCmp").style.display = "none";
+  $("syncList").innerHTML = ""; $("syncInfo").textContent = "Comparaison avec GitHub…";
+  $("syncGo").disabled = true;
+  const byRepo = {};
+  syncItems = queue.map(q => ({q, choice: null, state: "", warn: false, upOk: true, remote: undefined}));
+  try {
+    for (const it of syncItems) {
+      const c = repoById(it.q.repoId);
+      if (!c || !c.token) { it.state = "⚠ dépôt retiré ou sans jeton : impossible pour l'instant"; it.warn = true; it.upOk = false; continue; }
+      if (!byRepo[c.id]) {
+        const R = `/repos/${c.owner}/${c.repo}`, br = encPath(c.branch);
+        const head = (await gh(`${R}/git/ref/heads/${br}`, {}, c)).object.sha;
+        const tr = await gh(`${R}/git/trees/${head}?recursive=1`, {}, c);
+        const map = {}; tr.tree.forEach(x => { if (x.type === "blob") map[x.path] = x.sha; });
+        byRepo[c.id] = {c, head, map};
+      }
+      const map = byRepo[c.id].map, q = it.q;
+      if (q.type === "put") {
+        if (q.isNew) {
+          it.remote = map[q.path];
+          if (it.remote) { it.state = "⚠ un fichier du même nom existe déjà sur GitHub"; it.warn = true; }
+          else { it.state = "✔ nouveau fichier, prêt à être créé"; it.choice = "up"; }
+        } else {
+          it.remote = map[q.origPath];
+          if (!it.remote) { it.state = "⚠ supprimé sur GitHub entre-temps (↑ le recrée)"; it.warn = true; }
+          else if (it.remote !== q.baseSha) { it.state = "⚠ modifié aussi sur GitHub pendant que tu étais hors ligne"; it.warn = true; }
+          else { it.state = "✔ pas changé sur GitHub : ta version peut partir"; it.choice = "up"; }
+        }
+      } else if (q.type === "ren") {
+        const miss = q.moves.filter(m => !map[m[0]]).map(m => baseName(m[0]));
+        const taken = q.moves.filter(m => map[m[1]]).map(m => baseName(m[1]));
+        if (miss.length) { it.state = "⚠ introuvable sur GitHub : " + miss.join(", "); it.warn = true; it.upOk = false; }
+        else if (taken.length) { it.state = "⚠ le nouveau nom existe déjà sur GitHub : " + taken.join(", "); it.warn = true; it.upOk = false; }
+        else { it.state = "✔ prêt à être renommé sur GitHub"; it.choice = "up"; }
+      } else {
+        if (!map[q.path]) { it.state = "✔ déjà supprimé sur GitHub"; it.choice = "up"; }
+        else { it.state = "✔ prêt à être supprimé sur GitHub"; it.choice = "up"; }
+      }
+    }
+  } catch (e) {
+    syncOpen = false;
+    $("syncInfo").textContent = netErr(e) ? "📴 Toujours pas d'Internet : réessaie plus tard." : "Erreur : " + friendly(e);
+    $("syncGo").disabled = true;
+    return;
+  }
+  syncItems.byRepo = byRepo;
+  renderSync();
+}
+function renderSync() {
+  const ul = $("syncList"); ul.innerHTML = "";
+  const nWarn = syncItems.filter(it => it.warn).length;
+  $("syncInfo").textContent = syncItems.length + " action" + (syncItems.length > 1 ? "s" : "") + " faite" + (syncItems.length > 1 ? "s" : "") + " hors ligne" + (nWarn ? " · ⚠ " + nWarn + " à décider (changé des deux côtés)" : " · rien n'a changé en face, tout peut partir");
+  syncItems.forEach(it => {
+    const q = it.q, li = document.createElement("li");
+    const nm = document.createElement("div"); nm.className = "nm"; nm.textContent = (repos.length > 1 ? repoName(q.repoId) + " › " : "") + syncDesc(q);
+    const st = document.createElement("div"); st.className = "st" + (it.warn ? " warn" : ""); st.textContent = it.state;
+    const ch = document.createElement("div"); ch.className = "ch";
+    const mk = (val, label, enabled) => {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = label;
+      b.disabled = !enabled; b.classList.toggle("on", it.choice === val);
+      b.onclick = () => { it.choice = val; renderSync(); };
+      ch.appendChild(b);
+    };
+    if (q.type === "put") {
+      mk("up", "↑ Envoyer ma version", it.upOk);
+      mk("down", it.remote ? "↓ Prendre la version GitHub" : "✕ Abandonner mes changements", true);
+      if (it.remote) { const b = document.createElement("button"); b.type = "button"; b.textContent = "Comparer"; b.onclick = () => syncCompare(it); ch.appendChild(b); }
+    } else if (q.type === "ren") {
+      mk("up", "↑ Renommer sur GitHub", it.upOk);
+      mk("down", "↓ Annuler le renommage", true);
+    } else {
+      mk("up", "↑ Supprimer sur GitHub", it.upOk);
+      mk("down", "↓ Annuler la suppression", true);
+    }
+    mk("skip", "Plus tard", true);
+    li.append(nm, st, ch); ul.appendChild(li);
+  });
+  const msgs = [];
+  syncItems.forEach(it => { if (it.choice === "up" && it.q.message && msgs.indexOf(it.q.message) === -1) msgs.push(it.q.message); });
+  if (!$("syncMsg").dataset.edited) $("syncMsg").value = msgs.length === 1 ? msgs[0] : msgs.length ? "GD Pocket (hors ligne) : " + msgs.map(m => m.replace(/^GD Pocket\s*:\s*/, "")).join(" ; ") : "";
+  const undecided = syncItems.filter(it => !it.choice).length;
+  $("syncGo").disabled = !!undecided;
+  $("syncGo").textContent = undecided ? "Choisis pour chaque fichier ⚠" : "Synchroniser";
+}
+$("syncMsg").oninput = () => { $("syncMsg").dataset.edited = "1"; };
+async function syncCompare(it) {
+  const q = it.q, c = repoById(q.repoId), path = q.isNew ? q.path : q.origPath;
+  $("syncMain").style.display = "none"; $("syncCmp").style.display = "";
+  $("syncCmpInfo").textContent = "Chargement de la version GitHub…"; $("syncView").innerHTML = "";
+  try {
+    const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(path)}?ref=${encodeURIComponent(c.branch)}`, {}, c);
+    const lines = lineDiff(b64ToText(f.content), putText(q));
+    const add = lines.filter(l => l.t === "+").length, del = lines.filter(l => l.t === "-").length;
+    $("syncCmpInfo").textContent = baseName(q.path) + " — en vert : seulement dans ta version (+" + add + ") · en rouge : seulement sur GitHub (−" + del + ")";
+    renderDiff(lines, $("syncView"));
+  } catch (e) { $("syncCmpInfo").textContent = "Erreur : " + friendly(e); }
+}
+$("syncCmpBack").onclick = () => { $("syncCmp").style.display = "none"; $("syncMain").style.display = ""; };
+$("syncLater").onclick = () => { syncLaterFlag = true; syncOpen = false; $("syncDlg").classList.remove("open"); refreshSyncBtn(); };
+$("syncBtn").onclick = () => { closePanel(); syncLaterFlag = false; openSync(); };
+$("syncGo").onclick = async () => {
+  const byRepo = syncItems.byRepo || {};
+  $("syncGo").disabled = true; $("syncGo").textContent = "Synchronisation…";
+  const msg = $("syncMsg").value.trim() || "GD Pocket : synchronisation après le hors ligne";
+  const doneIds = new Set(), report = [];
+  try {
+    // 1. Ce qui part vers GitHub : un commit par dépôt
+    for (const id of Object.keys(byRepo)) {
+      const {c} = byRepo[id], R = `/repos/${c.owner}/${c.repo}`, br = encPath(c.branch);
+      const ups = syncItems.filter(it => it.q.repoId === id && it.choice === "up");
+      if (!ups.length) continue;
+      const order = ["ren", "del", "put"], entries = {}, texts = {};
+      order.forEach(type => ups.filter(it => it.q.type === type).forEach(it => {
+        const q = it.q;
+        if (type === "ren") q.moves.forEach(m => { entries[m[1]] = {sha: byRepo[id].map[m[0]]}; entries[m[0]] = {sha: null}; });
+        else if (type === "del") { if (byRepo[id].map[q.path]) entries[q.path] = {sha: null}; if (q.uid && byRepo[id].map[q.path + ".uid"]) entries[q.path + ".uid"] = {sha: null}; }
+        else { texts[q.path] = putText(q); entries[q.path] = {content: texts[q.path]}; }
+      }));
+      const list = Object.keys(entries).map(p => entries[p].content !== undefined
+        ? {path: p, mode: "100644", type: "blob", content: entries[p].content}
+        : {path: p, mode: "100644", type: "blob", sha: entries[p].sha});
+      if (list.length) {
+        for (let attempt = 0; ; attempt++) {
+          const head = attempt ? (await gh(`${R}/git/ref/heads/${br}`, {}, c)).object.sha : byRepo[id].head;
+          const base = (await gh(`${R}/git/commits/${head}`, {}, c)).tree.sha;
+          const tr = await gh(`${R}/git/trees`, {method: "POST", body: JSON.stringify({base_tree: base, tree: list})}, c);
+          const nc = await gh(`${R}/git/commits`, {method: "POST", body: JSON.stringify({message: msg, tree: tr.sha, parents: [head]})}, c);
+          try { await gh(`${R}/git/refs/heads/${br}`, {method: "PATCH", body: JSON.stringify({sha: nc.sha})}, c); break; }
+          catch (e) { if (e.status === 422 && attempt < 2) continue; throw e; }
+        }
+      }
+      for (const it of ups) {
+        const q = it.q;
+        if (q.type === "put") {
+          const text = texts[q.path], sha = await gitBlobSha(text);
+          const t = tabs.find(x => x.kind === "gh" && x.repoId === id && x.path === q.path);
+          if (t) { Object.assign(t, {sha, base: text, isNew: false, queued: false, remoteChanged: false}); delete t.remotePath; }
+          if (sha) cachePut(id, q.path, sha, text);
+        } else if (q.type === "ren") {
+          tabs.forEach(t => { if (t.kind === "gh" && t.repoId === id && q.moves.some(m => m[1] === t.path)) delete t.remotePath; });
+        }
+        doneIds.add(q.id);
+      }
+      report.push(ups.length + " envoyé" + (ups.length > 1 ? "s" : "") + " sur " + c.repo);
+    }
+    // 2. Ce qui reprend la version de GitHub
+    for (const it of syncItems.filter(x => x.choice === "down")) {
+      const q = it.q, c = repoById(q.repoId);
+      if (q.type === "put") {
+        const t = tabs.find(x => x.kind === "gh" && x.repoId === q.repoId && x.path === q.path);
+        if (it.remote) {
+          const rp = q.isNew ? q.path : q.origPath;
+          const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(rp)}?ref=${encodeURIComponent(c.branch)}`, {}, c);
+          const text = b64ToText(f.content);
+          if (t) { t.isNew = false; t.queued = false; applyRemote(t, f.sha, text); }
+          cachePut(q.repoId, q.path, f.sha, text);
+        } else {
+          if (t) { t.queued = false; t.base = t.doc.getValue(); t.isNew = false; closeTabsAt(q.repoId, q.path); }
+          cacheDel(q.repoId, q.path);
+          if (q.isNew && q.repoId === activeId()) { tree = tree.filter(x => x !== q.path); saveTree(); }
+        }
+      } else if (q.type === "ren") {
+        q.moves.slice().reverse().forEach(([a, b]) => {
+          cacheMove(q.repoId, b, a);
+          queue.forEach(x => { if (x.type === "put" && x.repoId === q.repoId && x.path === b && !doneIds.has(x.id)) x.path = a; });
+          tabs.forEach(t => { if (t.kind === "gh" && t.repoId === q.repoId && t.path === b) { t.path = a; t.name = baseName(a); delete t.remotePath; } });
+        });
+      }
+      doneIds.add(q.id);
+    }
+    const kept = syncItems.filter(it => it.choice === "skip").length;
+    queue = queue.filter(q => !doneIds.has(q.id)); saveQueue();
+    saveTabs(true); renderTabs(); refreshStatus();
+    syncOpen = false; $("syncDlg").classList.remove("open"); $("syncMsg").dataset.edited = "";
+    const m = "🔄 Synchronisé ✔ " + (report.join(" · ") || "rien n'a été envoyé") + (kept ? " · " + kept + " gardé" + (kept > 1 ? "s" : "") + " pour plus tard" : "") + " (pense à faire un pull sur le PC)";
+    refreshStatus(m); $("filesHint").textContent = m;
+    store.del(treeKey()); loadTree();
+  } catch (e) {
+    queue = queue.filter(q => !doneIds.has(q.id)); saveQueue(); saveTabs(true); renderTabs();
+    $("syncInfo").textContent = "Erreur : " + friendly(e) + " — ce qui n'est pas parti reste en attente.";
+    $("syncGo").disabled = false; $("syncGo").textContent = "Réessayer";
+  }
+  refreshSyncBtn();
+};
+function maybeSync() {
+  refreshSyncBtn();
+  if (queue.length && navigator.onLine && !syncLaterFlag && !syncOpen) openSync();
+}
+window.addEventListener("online", () => { syncLaterFlag = false; setTimeout(maybeSync, 1500); });
+window.addEventListener("offline", () => refreshStatus("📴 Hors ligne : tu peux continuer, les envois seront mis en attente."));
+document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(maybeSync, 800); });
+setTimeout(maybeSync, 2500);
+refreshSyncBtn();
 
 // ---------- Mises à jour : fenêtre « Nouvelle version » ----------
 let pendingWorker = null, updateAccepted = false;

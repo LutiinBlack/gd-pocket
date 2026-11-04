@@ -2,7 +2,7 @@
 
 Éditeur GDScript de poche pour modifier les scripts d'un projet Godot 4 depuis un téléphone ou une tablette, directement dans un dépôt GitHub.
 
-- **Version actuelle : v0.11.0** (30/10/2026), validée sur le téléphone Android et l'iPad mini 2 (iOS 12)
+- **Version actuelle : v0.12.0** (04/11/2026) — v0.11.0 validée sur le téléphone Android et l'iPad mini 2 (iOS 12)
 - **Appli en ligne :** https://lutiinblack.github.io/gd-pocket/
 - **Format :** application web installable (PWA), distribuée hors Google Play et App Store
 
@@ -10,9 +10,9 @@
 
 1. Ouvrir l'adresse de l'appli dans Chrome (Android) ou Safari (iPhone / iPad).
 2. Android : menu ⋮ › « Ajouter à l'écran d'accueil ». iOS : bouton Partager › « Sur l'écran d'accueil ».
-3. Dans l'appli : 📁 › Réglages › Dépôts GitHub › ＋ Ajouter un dépôt (propriétaire, nom, branche, jeton).
+3. Dans l'appli : 📁 › Réglages › Dépôts GitHub › ＋ Ajouter un dépôt (propriétaire, nom, branche, jeton existant ou nouveau).
 
-Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), avec la permission **Contents : Read and write**. Il reste uniquement sur l'appareil et n'est envoyé qu'à `api.github.com`. Sur iOS, l'appli installée a son propre stockage : y recoller le jeton.
+Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), avec la permission **Contents : Read and write**. Un même jeton peut servir à plusieurs dépôts (Réglages › 🔑 Jetons) ; le remplacer à son expiration met à jour tous ses dépôts. Il reste uniquement sur l'appareil et n'est envoyé qu'à `api.github.com`. Sur iOS, l'appli installée a son propre stockage : y recoller le jeton.
 
 ## Fonctionnalités
 
@@ -21,26 +21,31 @@ Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), a
 - Autocomplétion pendant la frappe (mots-clés, annotations, types, fonctions courantes, mots du fichier)
 - Indentation par tabulations, automatique après une ligne finissant par `:`
 - **Erreurs en direct, comme dans Godot** : ligne fautive en rouge, ● dans la marge et explication dans la barre d'état (« : » oublié, parenthèses / crochets / guillemets non fermés, indentation incohérente, bloc vide, `=` au lieu de `==`…)
-- Barre de touches : 🧩 modèles de code, Tab, `:`, `(`, `)`, `_`, `"`, `$`, `@`, `=`, `.`, `[]`, `{}`, `->`, `#`
+- Barre de touches : 🧩 modèles de code, flèches ← ↑ ↓ → (appui long = déplacement continu), Tab, `:`, `(`, `)`, `_`, `"`, `$`, `@`, `=`, `.`, `[]`, `{}`, `->`, `#`
 - **Modèles de code 🧩** : 25 modèles (func, _ready, _process, signal, @export, @onready, for, match, await…) insérés à la bonne indentation
 - ↶ Annuler, ↷ Rétablir, ☰ Plan du script (fonctions, signaux, constantes…)
 - Recherche (Ctrl+F) et remplacer (Ctrl+H), avec respect des majuscules en option
 - Onglets : plusieurs fichiers ouverts, point orange = modifié non envoyé, ⟳ = changé sur GitHub
 - Taille du texte réglable, retour à la ligne en option
+- Clavier ouvert : la barre de touches reste visible (au-dessus du clavier sur le téléphone, en haut sous les onglets sur l'iPad iOS 12)
 
 ### GitHub
 - Liste des fichiers du dépôt : affichage « Tout » ou « Par dossier », tri (nom, type, récemment ouverts), filtre, types de fichiers (scripts, scènes et ressources, tous)
 - « ↻ Actualiser » lit toujours la liste fraîche et marque les nouveaux fichiers
 - **Envoyer** : fenêtre « Vérifier avant d'envoyer » avec les différences ligne par ligne, les erreurs restantes et le message du commit
-- **Envoi groupé** : plusieurs onglets modifiés envoyés en un seul commit
+- **Envoi groupé** : plusieurs onglets modifiés envoyés en un seul commit ; chaque fichier peut être consulté (différences, erreurs) avant l'envoi
 - **Historique 🕘** : 30 dernières versions d'un fichier, comparaison avec l'onglet, restauration
 - ↻ Recharger un onglet depuis GitHub ; mise à jour automatique des onglets sans modifications
 - Créer un script (avec modèle `extends`), renommer / déplacer et supprimer, le fichier `.gd.uid` de Godot 4.4+ suivant le script
 - Détection des conflits si le fichier a changé sur GitHub depuis son ouverture
-- Plusieurs dépôts, avec un jeton par dépôt
+- Plusieurs dépôts ; jetons partagés entre dépôts ou un jeton par dépôt
+
+### Hors ligne
+- « ⬇ Préparer le hors ligne » garde une copie des scripts du dépôt sur l'appareil (⤓ dans la liste)
+- Sans Internet : ouvrir, modifier, créer, renommer, supprimer et envoyer (actions mises en attente ⏳) ; historique déjà consulté lisible
+- Au retour d'Internet, fenêtre « Synchroniser » : pour chaque fichier, ↑ envoyer sa version ou ↓ reprendre celle de GitHub, avec comparaison ; conflits signalés ⚠ ; un seul commit par dépôt
 
 ### Appli
-- Fonctionne hors ligne pour l'édition des onglets ouverts
 - Fenêtre « Nouvelle version » avec les nouveautés : « Mettre à jour » ou « Plus tard »
 - Compatible avec les navigateurs récents et Safari 12 (iOS 12)
 
@@ -56,7 +61,8 @@ Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), a
 - La vérification en direct regarde la forme du code seulement : les variables inconnues, fautes de frappe dans les noms et erreurs de type restent à voir dans Godot.
 - Autocomplétion par mots, sans analyse des types.
 - Le renommage ne corrige pas les `preload()` / `load()` qui citent l'ancien chemin.
-- Ouvrir, envoyer, créer, renommer, supprimer et l'historique demandent Internet.
+- Hors ligne, seuls les fichiers préparés (⬇) ou déjà ouverts sont disponibles, et seules les versions d'historique déjà consultées.
+- iPad iOS 12 : la place du clavier est estimée (Safari 12 ne la donne pas).
 
 ## Fichiers
 
@@ -73,13 +79,12 @@ Publier une nouvelle version : changer `VERSION` dans `sw.js`, `APP_VERSION` dan
 
 | Version | Date | Nouveautés |
 |---|---|---|
+| v0.12.0 | 04/11/2026 | Mode hors ligne et synchronisation, jetons partagés, différences fichier par fichier dans l'envoi groupé, flèches, barre de touches visible avec le clavier |
 | v0.11.0 | 30/10/2026 | Erreurs en direct, vérification avant envoi, modèles de code, envoi groupé, historique d'un fichier, liste toujours à jour |
 | v0.10.0 | 30/10/2026 | En-tête allégé (↶ ↷ ☰), recharger depuis GitHub, différences avant envoi, plan du script, taille du texte |
 | v0.9.0 | 29/10/2026 | Plusieurs dépôts, réglages en deux colonnes, liste par dossier et tri |
 | v0.8.0 | 29/10/2026 | Menu ＋, recherche et remplacer, barre du bas repliable, fenêtre « Nouvelle version » |
 | v0.7.x | 28–29/10/2026 | Renommer / déplacer, compatibilité iOS 12, démarrage sur la liste |
 | v0.1–v0.6 | 28/10/2026 | Prototype, PWA, connexion GitHub, couleurs Godot, onglets, création et suppression |
-
-Prochaine version (v0.12, en préparation) : barre de touches visible au-dessus du clavier, flèches de déplacement du curseur, et d'autres demandes à venir.
 
 Basé sur [CodeMirror 5](https://codemirror.net/5/).
