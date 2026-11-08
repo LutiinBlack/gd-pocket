@@ -419,6 +419,8 @@
           </select>
           <label class="check"><input id="prefDiff" type="checkbox"> Voir les différences avant d'envoyer</label>
           <label class="check"><input id="prefLint" type="checkbox"> Signaler les erreurs en direct (lignes rouges)</label>
+          <label class="check"><input id="prefCompat" type="checkbox"> Saisie compatible Android (clavier Samsung)</label>
+          <p class="hint" id="prefCompatHint">Évite que les mots tapés disparaissent avec certains claviers Android. Cochée par défaut sur Android ; l'appli redémarre quand tu la changes.</p>
         </section>
       </div>
     </div>
@@ -582,7 +584,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
 <script>
 // ---------- Version et rapport d'erreurs (utile sur les vieux appareils) ----------
-var APP_VERSION = "0.12.0";
+var APP_VERSION = "0.12.1";
 function showError(msg) {
   var t = "⚠ Erreur : " + msg;
   var s = document.getElementById("status"), h = document.getElementById("filesHint");
@@ -720,7 +722,7 @@ function gdHint(cm) {
 }
 
 // ---------- Préférences d'affichage ----------
-const prefs = Object.assign({theme: "godot", wrap: false, startFiles: true, bottomCollapsed: false, viewMode: "all", sortMode: "az", setSec: "repos", fontSize: 15, showDiff: true, lint: true, typeFilter: "gd"}, store.get("prefs", {}));
+const prefs = Object.assign({theme: "godot", wrap: false, startFiles: true, bottomCollapsed: false, viewMode: "all", sortMode: "az", setSec: "repos", fontSize: 15, showDiff: true, lint: true, typeFilter: "gd", compatInput: null}, store.get("prefs", {}));
 document.body.style.background = prefs.theme === "godot" ? "#1d2229" : "";
 document.documentElement.style.setProperty("--code-size", prefs.fontSize + "px");
 
@@ -848,7 +850,10 @@ function markRecent(repoId, path) {
 }
 
 loadTabs();
-tabs.forEach(t => { if (t.kind === "gh" && !t.repoId) t.repoId = activeId(); });   // onglets d'avant la v0.9
+tabs.forEach(t => { if (t.kind === "gh" && !t.repoId) t.repoId = activeId(); });
+// v0.12.1 : sur Android, saisie par zone cachée (textarea) — le mode « contenteditable » perd des mots avec le clavier Samsung
+const IS_ANDROID = /Android/i.test(navigator.userAgent);
+function useCompatInput() { return prefs.compatInput === null || prefs.compatInput === undefined ? IS_ANDROID : !!prefs.compatInput; }   // onglets d'avant la v0.9
 
 const cm = CodeMirror($("editor"), {
   value: tabs[active].doc,
@@ -859,7 +864,7 @@ const cm = CodeMirror($("editor"), {
   gutters: ["lint-gutter", "CodeMirror-linenumbers"],
   indentUnit: 4, tabSize: 4, indentWithTabs: true,
   autoCloseBrackets: true, matchBrackets: true,
-  inputStyle: "contenteditable",
+  inputStyle: useCompatInput() ? "textarea" : "contenteditable",
   extraKeys: {
     "Enter": c => {
       const p = c.getCursor(), before = c.getLine(p.line).slice(0, p.ch);
@@ -872,7 +877,15 @@ const cm = CodeMirror($("editor"), {
     "Cmd-S": () => save()
   }
 });
+// Un mot est en cours d'écriture par le clavier (composition) : on ne touche pas à l'éditeur pendant ce temps
+let imeComposing = false, lintAfterIme = false;
+cm.getWrapperElement().addEventListener("compositionstart", () => { imeComposing = true; }, true);
+cm.getWrapperElement().addEventListener("compositionend", () => {
+  imeComposing = false;
+  if (lintAfterIme) { lintAfterIme = false; scheduleLint(); }
+}, true);
 cm.on("inputRead", (c, ch) => {
+  if (imeComposing && !useCompatInput()) return;     // mode direct : pas de fenêtre de suggestions pendant la composition
   if (/[\w@]/.test(ch.text.join(""))) c.showHint({hint: gdHint, completeSingle: false});
 });
 cm.on("change", () => { saveTabs(); refreshTabLabel(active); refreshStatus(); scheduleFind(); refreshHist(); scheduleLint(); });
@@ -975,12 +988,26 @@ function repeatBtn(b, fn) {
   repeatBtn(b, () => { cm.execCommand(a[1]); });
   $("keys").appendChild(b);
 });
+// Barre de touches : mêmes paires que le clavier et que Godot
+const PAIRS = {"(": ")", "[": "]", "{": "}", "\"": "\""};
+function keyInsert(k) {
+  if (k === "⇥") { cm.replaceSelection("\t"); return; }
+  const sel = cm.getSelection(), c = cm.getCursor();
+  const next = cm.getRange(c, {line: c.line, ch: c.ch + 1});
+  if (PAIRS[k] && sel) { cm.replaceSelection(k + sel + PAIRS[k]); return; }                 // entoure la sélection
+  if (!sel && /^[)\]}"]$/.test(k) && next === k) { cm.setCursor({line: c.line, ch: c.ch + 1}); return; }   // saute la fermeture
+  if (PAIRS[k] && !sel && (next === "" || /[\s)\]};:,]/.test(next))) {
+    const prev = cm.getRange({line: c.line, ch: Math.max(0, c.ch - 1)}, c);
+    if (!(k === "\"" && /\w/.test(prev))) { cm.replaceSelection(k + PAIRS[k]); cm.setCursor({line: c.line, ch: c.ch + 1}); return; }
+  }
+  cm.replaceSelection(k);
+}
 const KEYS = ["⇥", ":", "(", ")", "_", "\"", "$", "@", "=", ".", "[", "]", "{", "}", "->", "#"];
 KEYS.forEach(k => {
   const b = document.createElement("button");
   b.textContent = k;
   b.addEventListener("mousedown", e => e.preventDefault());
-  b.addEventListener("click", () => { cm.replaceSelection(k === "⇥" ? "\t" : k); cm.focus(); });
+  b.addEventListener("click", () => { keyInsert(k); cm.focus(); });
   $("keys").appendChild(b);
 });
 
@@ -1689,6 +1716,13 @@ $("prefSize").onchange = () => {
   cm.refresh();
 };
 $("prefLint").checked = prefs.lint;
+$("prefCompat").checked = useCompatInput();
+$("prefCompat").onchange = () => {
+  prefs.compatInput = $("prefCompat").checked; store.set("prefs", prefs);
+  saveTabs(true);
+  alert("L'appli va redémarrer pour changer le mode de saisie.");
+  location.reload();
+};
 $("prefLint").onchange = () => { prefs.lint = $("prefLint").checked; store.set("prefs", prefs); runLint(); refreshStatus(); };
 $("prefDiff").checked = prefs.showDiff;
 $("prefDiff").onchange = () => { prefs.showDiff = $("prefDiff").checked; store.set("prefs", prefs); };
@@ -2263,6 +2297,7 @@ function clearLint() {
   lintHandles = [];
 }
 function runLint() {
+  if (imeComposing) { lintAfterIme = true; return; }   // on attend la fin du mot
   clearLint();
   const t = cur();
   lintErrs = prefs.lint && t && /\.gd$/i.test(t.name) ? lintText(cm.getValue()) : [];

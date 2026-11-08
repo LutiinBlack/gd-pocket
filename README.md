@@ -2,7 +2,7 @@
 
 Éditeur GDScript de poche pour modifier les scripts d'un projet Godot 4 depuis un téléphone ou une tablette, directement dans un dépôt GitHub.
 
-- **Version actuelle : v0.12.0** (04/11/2026), validée sur le téléphone Android et l'iPad mini 2 (iOS 12)
+- **Version actuelle : v0.12.1** (08/11/2026) — correctif clavier Samsung ; v0.12.0 validée sur le téléphone Android et l'iPad mini 2 (iOS 12)
 - **Appli en ligne :** https://lutiinblack.github.io/gd-pocket/
 - **Format :** application web installable (PWA), distribuée hors Google Play et App Store
 
@@ -21,7 +21,7 @@ Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), a
 - Autocomplétion pendant la frappe (mots-clés, annotations, types, fonctions courantes, mots du fichier)
 - Indentation par tabulations, automatique après une ligne finissant par `:`
 - **Erreurs en direct, comme dans Godot** : ligne fautive en rouge, ● dans la marge et explication dans la barre d'état (« : » oublié, parenthèses / crochets / guillemets non fermés, indentation incohérente, bloc vide, `=` au lieu de `==`…)
-- Barre de touches : 🧩 modèles de code, flèches ← ↑ ↓ → (appui long = déplacement continu), Tab, `:`, `(`, `)`, `_`, `"`, `$`, `@`, `=`, `.`, `[]`, `{}`, `->`, `#`
+- Barre de touches : 🧩 modèles de code, flèches ← ↑ ↓ → (appui long = déplacement continu), Tab (`"` `(` `[` `{` ouvrent la paire, comme le clavier), `:`, `(`, `)`, `_`, `"`, `$`, `@`, `=`, `.`, `[]`, `{}`, `->`, `#`
 - **Modèles de code 🧩** : 25 modèles (func, _ready, _process, signal, @export, @onready, for, match, await…) insérés à la bonne indentation
 - ↶ Annuler, ↷ Rétablir, ☰ Plan du script (fonctions, signaux, constantes…)
 - Recherche (Ctrl+F) et remplacer (Ctrl+H), avec respect des majuscules en option
@@ -79,6 +79,7 @@ Publier une nouvelle version : changer `VERSION` dans `sw.js`, `APP_VERSION` dan
 
 | Version | Date | Nouveautés |
 |---|---|---|
+| v0.12.1 | 08/11/2026 | Correctif clavier Samsung (saisie compatible Android), paires de la barre de touches |
 | v0.12.0 | 04/11/2026 | Mode hors ligne et synchronisation, jetons partagés, différences fichier par fichier dans l'envoi groupé, flèches, barre de touches visible avec le clavier |
 | v0.11.0 | 30/10/2026 | Erreurs en direct, vérification avant envoi, modèles de code, envoi groupé, historique d'un fichier, liste toujours à jour |
 | v0.10.0 | 30/10/2026 | En-tête allégé (↶ ↷ ☰), recharger depuis GitHub, différences avant envoi, plan du script, taille du texte |
