@@ -2,7 +2,7 @@
 
 Éditeur GDScript de poche pour modifier les scripts d'un projet Godot 4 depuis un téléphone ou une tablette, directement dans un dépôt GitHub.
 
-- **Version actuelle : v0.12.1** (08/11/2026) — correctif clavier Samsung ; v0.12.0 validée sur le téléphone Android et l'iPad mini 2 (iOS 12)
+- **Version actuelle : v0.13.0** (09/11/2026) — v0.12.1 validée sur le téléphone Android et l'iPad mini 2 (iOS 12)
 - **Appli en ligne :** https://lutiinblack.github.io/gd-pocket/
 - **Format :** application web installable (PWA), distribuée hors Google Play et App Store
 
@@ -27,6 +27,8 @@ Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), a
 - Recherche (Ctrl+F) et remplacer (Ctrl+H), avec respect des majuscules en option
 - Onglets : plusieurs fichiers ouverts, point orange = modifié non envoyé, ⟳ = changé sur GitHub
 - Taille du texte réglable, retour à la ligne en option
+- Lignes modifiées repérées dans la marge : ● orange (nouvelle ou modifiée), ▸ orange (lignes supprimées), jusqu'à l'envoi
+- Messages dans un bandeau en haut de l'écran : ✔ vert qui disparaît seul, ⚠ / ⛔ qui restent jusqu'à « OK »
 - Clavier ouvert : la barre de touches reste visible (au-dessus du clavier sur le téléphone, en haut sous les onglets sur l'iPad iOS 12)
 
 ### GitHub
@@ -41,7 +43,7 @@ Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), a
 - Plusieurs dépôts ; jetons partagés entre dépôts ou un jeton par dépôt
 
 ### Hors ligne
-- « ⬇ Préparer le hors ligne » garde une copie des scripts du dépôt sur l'appareil (⤓ dans la liste)
+- Bouton « Hors ligne » (📁) : garde une copie des scripts sur l'appareil et montre l'état (✔ 26/26, « 3 à mettre à jour ») ; dans la liste ✔ copie à jour, ⬇ copie ancienne ; Réglages › 📴 Hors ligne pour la place utilisée et l'effacement
 - Sans Internet : ouvrir, modifier, créer, renommer, supprimer et envoyer (actions mises en attente ⏳) ; historique déjà consulté lisible
 - Au retour d'Internet, fenêtre « Synchroniser » : pour chaque fichier, ↑ envoyer sa version ou ↓ reprendre celle de GitHub, avec comparaison ; conflits signalés ⚠ ; un seul commit par dépôt
 
@@ -79,6 +81,7 @@ Publier une nouvelle version : changer `VERSION` dans `sw.js`, `APP_VERSION` dan
 
 | Version | Date | Nouveautés |
 |---|---|---|
+| v0.13.0 | 09/11/2026 | Bandeau de messages, « Aucun fichier à envoyer », lignes modifiées dans la marge, panneau 📁 en blocs, hors ligne plus clair |
 | v0.12.1 | 08/11/2026 | Correctif clavier Samsung (saisie compatible Android), paires de la barre de touches |
 | v0.12.0 | 04/11/2026 | Mode hors ligne et synchronisation, jetons partagés, différences fichier par fichier dans l'envoi groupé, flèches, barre de touches visible avec le clavier |
 | v0.11.0 | 30/10/2026 | Erreurs en direct, vérification avant envoi, modèles de code, envoi groupé, historique d'un fichier, liste toujours à jour |

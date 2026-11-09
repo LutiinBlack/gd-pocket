@@ -72,8 +72,25 @@
   #repoAdd { margin-top:8px; }
 
   /* Liste des fichiers : options, dossiers */
-  .listopts { display:flex; gap:8px; margin-top:10px; }
-  .listopts select { flex:1 1 0; min-width:0; padding:8px; font-size:14px; }
+  .listopts { display:flex; gap:6px; }
+  .listopts select { flex:1 1 0; min-width:0; padding:8px 6px; font-size:13px; }
+  /* Panneau Fichiers : 5 blocs */
+  .fblock { background:var(--bar); border-radius:10px; padding:8px 10px 10px; margin-bottom:8px; }
+  .ftitle { font-size:11px; letter-spacing:.06em; text-transform:uppercase; opacity:.55; margin:0 0 6px 2px; font-family:system-ui, sans-serif; }
+  .fblock select, .fblock input[type=search] { margin:0; }
+  #syncBtn { width:100%; margin-top:8px; }
+  .actgrid { display:flex; gap:6px; }
+  .actgrid .act { flex:1 1 0; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; background:var(--mut); padding:8px 2px 6px; border-radius:8px; }
+  .actgrid .act.main { background:var(--acc); }
+  .actgrid .ic { font-size:19px; line-height:1.1; }
+  .actgrid .lb { font-size:11px; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+  .actgrid .sub { font-size:10px; opacity:.75; margin-top:1px; white-space:nowrap; }
+  .actgrid .sub.ok { color:var(--ok); opacity:1; } .actgrid .sub.old { color:var(--warn); opacity:1; }
+  .legend { font-size:12px; opacity:.75; margin:8px 2px 0; }
+  .listhead { font-size:13px; font-weight:bold; margin:12px 2px 0; }
+  .listhead .cnt { font-weight:normal; opacity:.6; }
+  #filesHint { margin:4px 2px 0; font-size:13px; }
+  .no-gap .actgrid > * + * { margin-left:6px; }
   #repoSel { margin-top:10px; }
   #list li.dirrow { padding:0; border-bottom:1px solid var(--mut); background:var(--bar); }
   #list li .dirbtn { flex:1; background:transparent; color:var(--txt); text-align:left; font:inherit; font-weight:bold; padding:10px 8px; border-radius:0; }
@@ -151,7 +168,21 @@
   .ftab .lbl.remote::after { content:" ⟳"; color:#57b3ff; }
   .ftab .lbl.queued::after { content:" ⏳"; }
   .ftab .lbl.remote.queued::after { content:" ⏳⟳"; }
-  #list li .offl { font-size:11px; opacity:.55; margin-left:6px; font-family:system-ui, sans-serif; }
+  #list li .offl, .legend .offl { font-size:12px; margin-left:6px; font-family:system-ui, sans-serif; }
+  .offl.ok { color:var(--ok); } .offl.old { color:var(--warn); } .offl.wait { opacity:.8; }
+  .legend .offl { margin-left:0; }
+  /* Bandeau de messages (en haut, sous les onglets) */
+  #notice { position:fixed; left:8px; right:8px; top:96px; z-index:300; display:none; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; box-shadow:0 4px 18px rgba(0,0,0,.45); font-size:14px; line-height:1.35; color:#fff; }
+  #notice.show { display:flex; }
+  #notice.ok { background:#1f7a46; } #notice.warn { background:#a66300; } #notice.err { background:#a8323a; }
+  #noticeTxt { flex:1; word-break:break-word; }
+  #noticeOk { flex:0 0 auto; background:rgba(255,255,255,.22); color:#fff; padding:6px 14px; font-weight:bold; }
+  .no-gap #notice > * + * { margin-left:10px; }
+  /* Lignes modifiées (marge) */
+  .chg-marker { color:#ffb86c; font-size:11px; text-align:center; position:relative; height:100%; }
+  .chg-del::before { content:""; position:absolute; left:1px; top:-4px; border-left:7px solid #ffb86c; border-top:4px solid transparent; border-bottom:4px solid transparent; }
+  .chg-del-end::after { content:""; position:absolute; left:1px; bottom:-4px; border-left:7px solid #ffb86c; border-top:4px solid transparent; border-bottom:4px solid transparent; }
+  .lint-gutter .CodeMirror-gutter-elt { overflow:visible; }
   #syncBtn { background:#b8860b; }
 
   /* Plan du script */
@@ -314,35 +345,49 @@
   </div>
 
   <div class="pane on" id="pane-files">
-    <select id="repoSel" aria-label="Dépôt affiché" style="margin:0 0 10px"></select>
-    <div class="row" style="margin-top:0">
-      <button id="newScript">＋ Nouveau script</button>
-      <button id="refresh" class="ghost">↻ Actualiser</button>
+    <section class="fblock">
+      <div class="ftitle">Dépôt</div>
+      <select id="repoSel" aria-label="Dépôt affiché"></select>
       <button id="syncBtn" style="display:none">⏳ Synchroniser</button>
-      <button id="offlineBtn" class="ghost">⬇ Préparer le hors ligne</button>
-      <button id="openLocal" class="ghost">Ouvrir un fichier de l'appareil</button>
-      <button id="download" class="ghost">Télécharger l'onglet actuel</button>
-    </div>
-    <input id="filter" type="search" placeholder="Filtrer (ex. voiture)" style="margin-top:10px">
-    <div class="listopts">
-      <select id="viewMode" aria-label="Style d'affichage">
-        <option value="all">Affichage : Tout</option>
-        <option value="dirs">Affichage : Par dossier</option>
-      </select>
-      <select id="sortMode" aria-label="Tri">
-        <option value="az">Tri : Nom A → Z</option>
-        <option value="za">Tri : Nom Z → A</option>
-        <option value="type">Tri : Type de fichier</option>
-        <option value="recent">Tri : Récemment ouverts</option>
-      </select>
-    </div>
-    <select id="typeSel" aria-label="Types de fichiers affichés" style="margin-top:8px">
-      <option value="gd">Fichiers : scripts (.gd, .gdshader)</option>
-      <option value="text">Fichiers : scripts + scènes, ressources, textes</option>
-      <option value="all">Fichiers : tous (images, sons… visibles mais non ouvrables)</option>
-    </select>
-    <ul id="list"></ul>
+    </section>
+    <section class="fblock">
+      <div class="ftitle">Actions</div>
+      <div class="actgrid">
+        <button id="newScript" class="act main"><span class="ic">＋</span><span class="lb">Nouveau</span></button>
+        <button id="refresh" class="act"><span class="ic">↻</span><span class="lb">Actualiser</span></button>
+        <button id="offlineBtn" class="act"><span class="ic" id="offlineIc">⬇</span><span class="lb">Hors ligne</span><span class="sub" id="offlineState"></span></button>
+        <button id="openLocal" class="act"><span class="ic">📂</span><span class="lb">Ouvrir</span></button>
+        <button id="download" class="act"><span class="ic">💾</span><span class="lb">Télécharger</span></button>
+      </div>
+    </section>
+    <section class="fblock">
+      <div class="ftitle">Recherche</div>
+      <input id="filter" type="search" placeholder="🔍 Filtrer (ex. voiture)">
+    </section>
+    <section class="fblock">
+      <div class="ftitle">Filtres</div>
+      <div class="listopts">
+        <select id="viewMode" aria-label="Style d'affichage">
+          <option value="all">Tout</option>
+          <option value="dirs">Par dossier</option>
+        </select>
+        <select id="sortMode" aria-label="Tri">
+          <option value="az">Nom A → Z</option>
+          <option value="za">Nom Z → A</option>
+          <option value="type">Type</option>
+          <option value="recent">Récents</option>
+        </select>
+        <select id="typeSel" aria-label="Types de fichiers affichés">
+          <option value="gd">Scripts</option>
+          <option value="text">+ Scènes, textes</option>
+          <option value="all">Tous</option>
+        </select>
+      </div>
+      <div id="offLegend" class="legend" style="display:none">Hors ligne : <span class="offl ok">✔</span> copie à jour · <span class="offl old">⬇</span> copie ancienne · rien = pas disponible</div>
+    </section>
+    <div class="listhead"><span id="listCount">Fichiers</span></div>
     <p class="hint" id="filesHint">Renseigne d'abord l'onglet Réglages.</p>
+    <ul id="list"></ul>
   </div>
 
   <div class="pane" id="pane-settings">
@@ -351,6 +396,7 @@
         <button data-sec="repos" class="on">🔗 Dépôts GitHub</button>
         <button data-sec="tokens">🔑 Jetons</button>
         <button data-sec="display">🎨 Affichage</button>
+        <button data-sec="offline">📴 Hors ligne</button>
       </nav>
       <div class="setbody">
         <section id="sec-repos" class="on">
@@ -421,6 +467,16 @@
           <label class="check"><input id="prefLint" type="checkbox"> Signaler les erreurs en direct (lignes rouges)</label>
           <label class="check"><input id="prefCompat" type="checkbox"> Saisie compatible Android (clavier Samsung)</label>
           <p class="hint" id="prefCompatHint">Évite que les mots tapés disparaissent avec certains claviers Android. Cochée par défaut sur Android ; l'appli redémarre quand tu la changes.</p>
+        </section>
+        <section id="sec-offline">
+          <h3>Hors ligne</h3>
+          <p id="offInfo"></p>
+          <label class="check"><input id="prefAutoOff" type="checkbox"> Garder les copies à jour automatiquement (à chaque ↻ Actualiser)</label>
+          <div class="row">
+            <button id="offPrepare">⬇ Préparer maintenant</button>
+            <button id="offClear" class="ghost">🗑 Effacer la copie hors ligne</button>
+          </div>
+          <p class="hint">Les fichiers préparés s'ouvrent et se modifient sans Internet. « Préparer » télécharge les fichiers du choix « Fichiers » (Scripts, + Scènes, Tous) qui ne sont pas encore à jour. Dans la liste : ✔ copie à jour, ⬇ copie ancienne, rien = pas disponible hors ligne.</p>
         </section>
       </div>
     </div>
@@ -522,6 +578,9 @@
   </div>
 </div>
 
+<!-- Bandeau de messages -->
+<div id="notice" role="status" aria-live="polite"><span id="noticeTxt"></span><button id="noticeOk" type="button">OK</button></div>
+
 <!-- Fenêtre : synchronisation après le hors ligne -->
 <div id="syncDlg">
   <div class="box">
@@ -584,7 +643,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
 <script>
 // ---------- Version et rapport d'erreurs (utile sur les vieux appareils) ----------
-var APP_VERSION = "0.12.1";
+var APP_VERSION = "0.13.0";
 function showError(msg) {
   var t = "⚠ Erreur : " + msg;
   var s = document.getElementById("status"), h = document.getElementById("filesHint");
@@ -722,7 +781,7 @@ function gdHint(cm) {
 }
 
 // ---------- Préférences d'affichage ----------
-const prefs = Object.assign({theme: "godot", wrap: false, startFiles: true, bottomCollapsed: false, viewMode: "all", sortMode: "az", setSec: "repos", fontSize: 15, showDiff: true, lint: true, typeFilter: "gd", compatInput: null}, store.get("prefs", {}));
+const prefs = Object.assign({theme: "godot", wrap: false, startFiles: true, bottomCollapsed: false, viewMode: "all", sortMode: "az", setSec: "repos", fontSize: 15, showDiff: true, lint: true, typeFilter: "gd", compatInput: null, autoOffline: true}, store.get("prefs", {}));
 document.body.style.background = prefs.theme === "godot" ? "#1d2229" : "";
 document.documentElement.style.setProperty("--code-size", prefs.fontSize + "px");
 
@@ -917,6 +976,7 @@ function closeTab(i) {
   switchTab(next);
 }
 function renderTabs() {
+  setTimeout(() => scheduleLint(), 0);     // points orange des lignes modifiées (après un envoi, un rechargement…)
   const bar = $("tabbar"); bar.innerHTML = "";
   tabs.forEach((t, i) => {
     const d = document.createElement("div");
@@ -1011,6 +1071,33 @@ KEYS.forEach(k => {
   $("keys").appendChild(b);
 });
 
+// ---------- Bandeau de messages (v0.13) ----------
+// ok = vert, disparaît seul après 3 s ; warn / err = orange / rouge, reste jusqu'à « OK »
+let noticeTimer = null;
+function placeNotice() {
+  const n = $("notice");
+  if ($("panel").classList.contains("open")) { n.style.top = ($("panel").querySelector(".tabs").getBoundingClientRect().bottom + 6) + "px"; return; }
+  const ref = $("keysTop").childNodes.length ? $("keysTop") : $("tabbar");
+  n.style.top = (ref.getBoundingClientRect().bottom + 6) + "px";
+}
+function hideNotice() { clearTimeout(noticeTimer); $("notice").classList.remove("show"); }
+function notify(msg, level) {
+  level = level || "ok";
+  const n = $("notice");
+  clearTimeout(noticeTimer);
+  $("noticeTxt").textContent = msg;
+  n.className = "show " + level;
+  $("noticeOk").style.display = level === "ok" ? "none" : "";
+  placeNotice();
+  if (level === "ok") noticeTimer = setTimeout(hideNotice, 3000);
+}
+// Les boutons du bandeau ne prennent pas le focus : le clavier et le curseur restent où ils étaient
+["mousedown", "touchstart"].forEach(ev => $("notice").addEventListener(ev, e => { if (e.cancelable) e.preventDefault(); }, ev === "touchstart" ? {passive: false} : false));
+$("notice").addEventListener("touchend", e => { e.preventDefault(); hideNotice(); });
+$("notice").addEventListener("click", hideNotice);
+window.addEventListener("resize", () => { if ($("notice").classList.contains("show")) placeNotice(); });
+function say(msg, level) { refreshStatus(msg); notify(msg, level); }
+
 // ---------- Barre d'état ----------
 function refreshStatus(msg) {
   const t = cur(), s = $("status");
@@ -1080,8 +1167,8 @@ let newFiles = new Set(), lastTreeLoad = 0;
 async function loadTree() {
   const c = cfg();
   if (!c.token || !c.owner || !c.repo) { $("filesHint").textContent = "Ajoute d'abord un dépôt dans Réglages › Dépôts GitHub."; return; }
-  const btn = $("refresh");
-  btn.disabled = true; btn.textContent = "⏳ Actualisation…";
+  const btn = $("refresh"), manual = loadTree.manual; loadTree.manual = false;
+  btn.disabled = true; btn.querySelector(".ic").textContent = "⏳"; btn.querySelector(".lb").textContent = "Actualise…";
   $("filesHint").textContent = "Chargement de la liste depuis GitHub…";
   try {
     const t = await gh(`/repos/${c.owner}/${c.repo}/git/trees/${encodeURIComponent(c.branch)}?recursive=1`);
@@ -1114,13 +1201,15 @@ async function loadTree() {
     if (had && !added.length && !removed.length) msg += " · aucun changement";
     if (t.truncated) msg += " · dépôt très gros : liste incomplète";
     $("filesHint").textContent = msg;
-    refreshCache(c, shas);
+    if (manual) notify(msg, "ok");
+    if (prefs.autoOffline) refreshCache(c, shas); else refreshOffState();
   } catch (e) {
     if (netErr(e)) {
       const at = store.get("treeAt:" + c.id, 0);
-      $("filesHint").textContent = "📴 Hors ligne — liste enregistrée" + (at ? " du " + fmtDate(at) : "") + " · " + Object.keys(cidx(c.id)).length + " fichier(s) disponibles hors ligne (⤓)";
-    } else $("filesHint").textContent = "Erreur : " + friendly(e);
-  } finally { btn.disabled = false; btn.textContent = "↻ Actualiser"; refreshSyncBtn(); }
+      $("filesHint").textContent = "📴 Hors ligne — liste enregistrée" + (at ? " du " + fmtDate(at) : "") + " · " + Object.keys(cidx(c.id)).length + " fichier(s) disponibles hors ligne (✔)";
+      if (manual) notify($("filesHint").textContent, "warn");
+    } else { $("filesHint").textContent = "Erreur : " + friendly(e); if (manual) notify($("filesHint").textContent, "err"); }
+  } finally { btn.disabled = false; btn.querySelector(".ic").textContent = "↻"; btn.querySelector(".lb").textContent = "Actualiser"; refreshSyncBtn(); }
 }
 const baseName = p => p.slice(p.lastIndexOf("/") + 1);
 const dirName = p => p.lastIndexOf("/") >= 0 ? p.slice(0, p.lastIndexOf("/")) : "";
@@ -1140,7 +1229,13 @@ function fileRow(p, openPaths, inFolder) {
   path.children[0].textContent = inFolder ? "" : (dirName(p) ? dirName(p) + "/" : "");
   path.children[1].textContent = baseName(p) + (openPaths.has(p) ? "  • ouvert" : "");
   if (newFiles.has(p)) { const nb = document.createElement("span"); nb.className = "isnew"; nb.textContent = "nouveau"; path.appendChild(nb); }
-  if (listCache && (p in listCache)) { const ob = document.createElement("span"); ob.className = "offl"; ob.textContent = "⤓"; ob.title = "disponible hors ligne"; path.appendChild(ob); }
+  if (listCache && (p in listCache)) {
+    const ob = document.createElement("span"), waiting = listWait.has(p), fresh = listShas[p] && listShas[p] === listCache[p];
+    ob.className = "offl " + (waiting ? "wait" : fresh ? "ok" : "old");
+    ob.textContent = waiting ? "⏳" : fresh ? "✔" : "⬇";
+    ob.title = waiting ? "changement en attente d'Internet" : fresh ? "disponible hors ligne (copie à jour)" : "disponible hors ligne (copie ancienne : touche ⬇ Hors ligne)";
+    path.appendChild(ob);
+  }
   if (openPaths.has(p)) li.classList.add("current");
   const canOpen = OPEN_RE.test(p);
   if (!canOpen) li.classList.add("binary");
@@ -1155,9 +1250,12 @@ function fileRow(p, openPaths, inFolder) {
   del.onclick = e => { e.stopPropagation(); deleteGh(p); };
   return li;
 }
-let listCache = null;
+let listCache = null, listShas = {}, listWait = new Set();
 function renderList() {
-  listCache = cidx(activeId());
+  listCache = cidx(activeId()); listShas = store.get("shas:" + activeId(), {});
+  listWait = new Set(); queue.forEach(q => { if (q.repoId !== activeId()) return; if (q.type === "put") listWait.add(q.path); if (q.type === "ren") q.moves.forEach(m => listWait.add(m[1])); });
+  $("offLegend").style.display = Object.keys(listCache).length ? "" : "none";
+  refreshOffState();
   const q = $("filter").value.trim().toLowerCase();
   const re = typeRe();
   const items = sortFiles(tree.filter(p => re.test(p) && p.toLowerCase().indexOf(q) !== -1));
@@ -1188,6 +1286,11 @@ function renderList() {
     items.forEach(p => ul.appendChild(fileRow(p, openPaths, false)));
   }
   if (!items.length && tree.length) $("filesHint").textContent = "Aucun fichier ne correspond.";
+  $("listCount").innerHTML = "";
+  $("listCount").append("Fichiers ");
+  const cn = document.createElement("span"); cn.className = "cnt";
+  cn.textContent = "(" + items.length + (items.length !== tree.length ? " sur " + tree.length : "") + ")";
+  $("listCount").appendChild(cn);
 }
 
 // ---------- GitHub : ouvrir (dans un onglet) ----------
@@ -1223,20 +1326,24 @@ async function openGh(path) {
     addTab(nt);
     $("filesHint").textContent = "";
     closePanel();
-    if (offl) refreshStatus("📴 Ouvert hors ligne (copie enregistrée sur l'appareil) — " + path);
+    if (offl) say("📴 Ouvert hors ligne (copie enregistrée sur l'appareil) — " + path, "ok");
   } catch (e) {
     const m = netErr(e) ? "Pas d'Internet, et « " + baseName(path) + " » n'est pas encore disponible hors ligne (📁 › ⬇ Préparer le hors ligne, avec Internet)." : "Erreur : " + friendly(e);
     $("filesHint").textContent = m;
-    refreshStatus(m);
+    say(m, netErr(e) ? "warn" : "err");
   }
 }
 
 // ---------- GitHub : envoyer l'onglet actif ----------
 async function pushGh(force = false, presetMsg = null) {
   const t = cur(), c = repoById(t.repoId);
-  if (!c) { refreshStatus("Le dépôt de cet onglet a été retiré des Réglages : ajoute-le à nouveau pour envoyer."); return; }
+  if (!c) { say("Le dépôt de cet onglet a été retiré des Réglages : ajoute-le à nouveau pour envoyer.", "err"); return; }
   const text = t.doc.getValue();
-  if (!isDirty(t) && !force) { refreshStatus("Rien à envoyer, déjà à jour ✔"); return; }
+  if (!isDirty(t) && !force) {
+    const oth = t.kind === "gh" ? otherDirty(t) : [];
+    say("Aucun fichier à envoyer : « " + t.name + " » n'a pas de modification" + (t.kind === "gh" ? " depuis GitHub" : "") + "." + (oth.length ? " Onglets modifiés : " + oth.map(x => x.name).join(", ") + " (ouvre-les puis Envoyer)." : ""), "warn");
+    return;
+  }
   const verb = t.isNew ? "ajoute" : "modifie";
   const defMsg = `GD Pocket : ${verb} ${t.name}`;
   let message = presetMsg, others = [];
@@ -1260,7 +1367,7 @@ async function pushGh(force = false, presetMsg = null) {
   if (others.length) {
     $("save").disabled = true;
     try { await commitMany([t].concat(others), message || defMsg, c); }
-    catch (e) { if (netErr(e)) { queueTabs([t].concat(others), message || defMsg); return; } refreshStatus(e.conflict ? e.message : "Erreur : " + friendly(e)); }
+    catch (e) { if (netErr(e)) { queueTabs([t].concat(others), message || defMsg); return; } say(e.conflict ? e.message : "Erreur : " + friendly(e), "err"); }
     finally { $("save").disabled = false; }
     return;
   }
@@ -1275,12 +1382,12 @@ async function pushGh(force = false, presetMsg = null) {
     cachePut(t.repoId, t.path, t.sha, text);
     if (wasNew && t.repoId === activeId() && !tree.includes(t.path)) { tree.push(t.path); tree.sort(); saveTree(); }
     saveTabs(true); renderTabs();
-    refreshStatus((wasNew ? "Créé" : "Envoyé") + " sur GitHub ✔ (pense à faire un pull sur le PC)");
+    say((wasNew ? "Créé" : "Envoyé") + " sur GitHub ✔ (pense à faire un pull sur le PC)", "ok");
   } catch (e) {
     if (netErr(e)) {
       queueTabs([t], message || defMsg);
     } else if (t.isNew && e.status === 422) {
-      refreshStatus("Un fichier porte déjà ce nom sur GitHub : ferme l'onglet et choisis un autre nom.");
+      say("Un fichier porte déjà ce nom sur GitHub : ferme l'onglet et choisis un autre nom.", "err");
     } else if (e.status === 409 || e.status === 422) {
       if (confirm("Ce fichier a été modifié sur GitHub depuis que tu l'as ouvert.\n\nOK = écraser avec ta version\nAnnuler = ne rien envoyer")) {
         try {
@@ -1288,9 +1395,9 @@ async function pushGh(force = false, presetMsg = null) {
           t.sha = f.sha;
           $("save").disabled = false;
           return pushGh(true, message);
-        } catch (e2) { refreshStatus("Erreur : " + friendly(e2)); }
-      } else refreshStatus("Envoi annulé. Ta version reste dans l'onglet.");
-    } else refreshStatus("Erreur : " + friendly(e));
+        } catch (e2) { say("Erreur : " + friendly(e2), "err"); }
+      } else say("Envoi annulé. Ta version reste dans l'onglet.", "warn");
+    } else say("Erreur : " + friendly(e), "err");
   } finally { $("save").disabled = false; }
 }
 
@@ -1330,7 +1437,7 @@ async function deleteGh(path) {
       active = -1; switchTab(next);
     }
     renderList();
-    $("filesHint").textContent = `« ${name} » supprimé ✔ (pense à faire un pull sur le PC)`;
+    $("filesHint").textContent = `« ${name} » supprimé ✔ (pense à faire un pull sur le PC)`; notify($("filesHint").textContent, "ok");
   } catch (e) {
     if (netErr(e)) { queueDelete(path, withUid, message || ("GD Pocket : supprime " + name)); return; }
     $("filesHint").textContent = e.status === 404
@@ -1428,7 +1535,7 @@ async function renameGh() {
     tabs.forEach(t => { if (t.kind === "gh" && t.path === from && t.repoId === aid2) { t.path = to; t.name = toName; } });
     moves.forEach(([a, b]) => cacheMove(aid2, a, b));
     saveTabs(true); renderTabs(); refreshStatus(); renderList();
-    $("filesHint").textContent = `Renommé en « ${to} » ✔ (pense à faire un pull sur le PC)`;
+    $("filesHint").textContent = `Renommé en « ${to} » ✔ (pense à faire un pull sur le PC)`; notify($("filesHint").textContent, "ok");
   } catch (e) {
     if (netErr(e)) { queueRename(moves, message || def); return; }
     $("filesHint").textContent = e.status === 404
@@ -1520,7 +1627,7 @@ function showTab(t) {
 $("btnFiles").onclick = openPanel;
 $("closePanel").onclick = closePanel;
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
-$("refresh").onclick = loadTree;
+$("refresh").onclick = () => { loadTree.manual = true; loadTree(); };
 $("filter").oninput = renderList;
 $("typeSel").value = prefs.typeFilter;
 $("typeSel").onchange = () => { prefs.typeFilter = $("typeSel").value; store.set("prefs", prefs); renderList(); };
@@ -1562,7 +1669,7 @@ function showSec(sec) {
   document.querySelectorAll(".setbody section").forEach(x => x.classList.toggle("on", x.id === "sec-" + sec));
 }
 document.querySelectorAll(".setnav button").forEach(b => b.onclick = () => showSec(b.dataset.sec));
-showSec(["display", "tokens"].indexOf(prefs.setSec) !== -1 ? prefs.setSec : "repos");
+showSec(["display", "tokens", "offline"].indexOf(prefs.setSec) !== -1 ? prefs.setSec : "repos");
 
 // ---------- Réglages : dépôts ----------
 let editingId = null;   // null = nouveau dépôt
@@ -2100,14 +2207,14 @@ async function reloadTab() {
   refreshStatus("Vérification sur GitHub…");
   try {
     const f = await fetchRemote(t);
-    if (f.sha === t.sha && !t.remoteChanged) { refreshStatus("Cet onglet est déjà à jour avec GitHub ✔ (pour la liste des fichiers : 📁 › ↻ Actualiser)"); return; }
+    if (f.sha === t.sha && !t.remoteChanged) { say("Cet onglet est déjà à jour avec GitHub ✔ (pour la liste des fichiers : 📁 › ↻ Actualiser)", "ok"); return; }
     const text = b64ToText(f.content);
     if (isDirty(t) && !confirm("Tu as des modifications non envoyées dans « " + t.name + " ».\n\nOK = charger la version GitHub (↶ Annuler te rendra ta version)\nAnnuler = garder ta version")) {
       t.remoteChanged = f.sha !== t.sha; renderTabs(); refreshStatus(); return;
     }
     applyRemote(t, f.sha, text);
-    refreshStatus("Rechargé depuis GitHub ✔ (↶ pour revenir à la version d'avant)");
-  } catch (e) { refreshStatus("Erreur : " + friendly(e)); }
+    say("Rechargé depuis GitHub ✔ (↶ pour revenir à la version d'avant)", "ok");
+  } catch (e) { say("Erreur : " + friendly(e), netErr(e) ? "warn" : "err"); }
 }
 $("reloadBtn").onclick = reloadTab;
 let lastRemoteCheck = 0;
@@ -2296,14 +2403,46 @@ function clearLint() {
   });
   lintHandles = [];
 }
+// Lignes modifiées par rapport à la version GitHub (v0.13) : ● orange, ▸ là où des lignes ont été supprimées
+function changeMarks(t) {
+  const out = {changed: {}, delBefore: {}, delEnd: false};
+  if (!t || t.kind !== "gh") return out;
+  const lines = lineDiff(t.isNew ? "" : (t.base || ""), cm.getValue()), n = cm.lineCount();
+  // un bloc « − » suivi de « + » = lignes modifiées ; repère de suppression seulement s'il y a plus de lignes enlevées qu'ajoutées
+  let dels = 0, adds = 0;
+  lines.forEach(l => {
+    if (l.t === "-") { dels++; return; }
+    if (l.t === "+") { adds++; out.changed[l.nn - 1] = true; return; }
+    if (dels > adds) out.delBefore[l.nn - 1] = true;
+    dels = adds = 0;
+  });
+  if (dels > adds) out.delEnd = true;
+  if (t.isNew && n === 1 && !cm.getLine(0)) out.changed = {};
+  return out;
+}
 function runLint() {
   if (imeComposing) { lintAfterIme = true; return; }   // on attend la fin du mot
   clearLint();
   const t = cur();
   lintErrs = prefs.lint && t && /\.gd$/i.test(t.name) ? lintText(cm.getValue()) : [];
+  const chg = changeMarks(t);
   cm.operation(() => {
     const byLine = {};
     lintErrs.forEach(e => { (byLine[e.line] = byLine[e.line] || []).push(e.msg); });
+    const last = cm.lineCount() - 1;
+    const chgLines = {};
+    Object.keys(chg.changed).forEach(k => { chgLines[k] = true; });
+    Object.keys(chg.delBefore).forEach(k => { chgLines[k] = true; });
+    if (chg.delEnd) chgLines[last] = true;
+    Object.keys(chgLines).forEach(k => {
+      const line = +k;
+      if (byLine[k] || line < 0 || line > last) return;      // l'erreur (● rouge) reste prioritaire
+      const m = document.createElement("div");
+      m.className = "chg-marker" + (chg.delBefore[k] ? " chg-del" : "") + (chg.delEnd && line === last ? " chg-del-end" : "");
+      m.textContent = chg.changed[k] ? "●" : "";
+      m.title = (chg.changed[k] ? "Ligne nouvelle ou modifiée (pas encore envoyée)" : "") + (chg.delBefore[k] || (chg.delEnd && line === last) ? (chg.changed[k] ? " · " : "") + "Ligne(s) supprimée(s) ici" : "");
+      cm.setGutterMarker(line, "lint-gutter", m);
+    });
     Object.keys(byLine).forEach(k => {
       const line = +k;
       if (line >= cm.lineCount()) return;
@@ -2422,7 +2561,7 @@ async function commitMany(list, message, c) {
     if (wasNew && t.repoId === activeId() && tree.indexOf(t.path) === -1) { tree.push(t.path); tree.sort(); saveTree(); }
   }
   saveTabs(true); renderTabs();
-  refreshStatus(list.length + " fichiers envoyés en un seul commit ✔ (pense à faire un pull sur le PC)");
+  say(list.length + " fichiers envoyés en un seul commit ✔ (pense à faire un pull sur le PC)", "ok");
 }
 
 // ---------- Historique d'un fichier ----------
@@ -2505,7 +2644,7 @@ function refreshSyncBtn() {
 }
 function offlineMsg(txt) {
   const m = navigator.onLine ? "⏳ " + txt + " — ajouté à la synchronisation avec les actions faites hors ligne." : "⏳ " + txt + " — mis en attente : il partira sur GitHub au retour d'Internet (📁 › ⏳ Synchroniser).";
-  refreshStatus(m); $("filesHint").textContent = m; refreshSyncBtn();
+  say(m, "warn"); $("filesHint").textContent = m; refreshSyncBtn();
 }
 function queueTabs(list, message) {
   list.forEach(t => {
@@ -2581,13 +2720,13 @@ async function refreshCache(c, shas) {
       const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(p)}?ref=${encodeURIComponent(c.branch)}`, {}, c);
       cachePut(c.id, p, f.sha, b64ToText(f.content));
     }
-  } catch (e) {} finally { cacheBusy = false; }
+  } catch (e) {} finally { cacheBusy = false; if (c.id === activeId()) renderList(); }
 }
 async function prepareOffline() {
   const c = cfg();
-  if (!c.token) { $("filesHint").textContent = "Ajoute d'abord un dépôt dans Réglages."; return; }
-  if (!navigator.onLine) { $("filesHint").textContent = "📴 Il faut Internet pour préparer le hors ligne."; return; }
-  const btn = $("offlineBtn"); btn.disabled = true;
+  if (!c.token) { say("Ajoute d'abord un dépôt dans Réglages.", "warn"); return; }
+  if (!navigator.onLine) { say("📴 Il faut Internet pour préparer le hors ligne.", "warn"); return; }
+  const btn = $("offlineBtn"); btn.disabled = true; $("offPrepare").disabled = true;
   try {
     if (!store.get("shas:" + c.id, null)) await loadTree();
     const shas = store.get("shas:" + c.id, {}), re = typeRe();
@@ -2596,19 +2735,48 @@ async function prepareOffline() {
     const todo = want.filter(p => idx[p] !== shas[p]);
     let done = 0, size = 0;
     for (const p of todo) {
-      btn.textContent = "⬇ " + (done + 1) + " / " + todo.length;
+      $("offlineState").textContent = (done + 1) + " / " + todo.length; $("offlineState").className = "sub";
       const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(p)}?ref=${encodeURIComponent(c.branch)}`, {}, c);
       const text = b64ToText(f.content);
-      if (!cachePut(c.id, p, f.sha, text)) { $("filesHint").textContent = "⚠ Mémoire de l'appareil pleine après " + done + " fichiers : choisis « Fichiers : scripts » pour n'en garder que les scripts."; renderList(); return; }
+      if (!cachePut(c.id, p, f.sha, text)) { say("⚠ Mémoire de l'appareil pleine après " + done + " fichiers : choisis le filtre « Scripts » pour n'en garder que les scripts.", "err"); renderList(); return; }
       done++; size += text.length;
     }
     renderList();
     const total = Object.keys(cidx(c.id)).length;
-    $("filesHint").textContent = "📴 Prêt pour le hors ligne ✔ " + total + " fichier" + (total > 1 ? "s" : "") + " disponibles sur l'appareil (⤓)" + (done ? " · " + done + " téléchargé" + (done > 1 ? "s" : "") + " (" + Math.ceil(size / 1024) + " Ko)" : " · déjà à jour");
-  } catch (e) { $("filesHint").textContent = "Erreur : " + friendly(e); }
-  finally { btn.disabled = false; btn.textContent = "⬇ Préparer le hors ligne"; }
+    const m = "📴 Prêt pour le hors ligne ✔ " + total + " fichier" + (total > 1 ? "s" : "") + " sur l'appareil" + (done ? " · " + done + " téléchargé" + (done > 1 ? "s" : "") + " (" + Math.ceil(size / 1024) + " Ko)" : " · tout était déjà à jour");
+    $("filesHint").textContent = m; notify(m, "ok");
+  } catch (e) { say("Erreur : " + friendly(e), netErr(e) ? "warn" : "err"); }
+  finally { btn.disabled = false; $("offPrepare").disabled = false; refreshOffState(); }
 }
 $("offlineBtn").onclick = prepareOffline;
+// État du hors ligne : bouton, Réglages › Hors ligne
+function offStats(id) {
+  const c = repoById(id) || {}, shas = store.get("shas:" + id, {}), idx = cidx(id), re = typeRe();
+  const want = tree.filter(p => re.test(p) && OPEN_RE.test(p) && (p in shas));
+  const ok = want.filter(p => idx[p] === shas[p]).length;
+  let size = 0; Object.keys(idx).forEach(p => { const t = store.get("c:" + id + ":" + p, ""); size += t ? t.length : 0; });
+  return {repo: c.repo || "", want: want.length, ok, kept: Object.keys(idx).length, size};
+}
+function refreshOffState() {
+  const id = activeId(); if (!id) return;
+  const st = offStats(id), el = $("offlineState");
+  if (!st.kept) { el.textContent = "pas préparé"; el.className = "sub"; $("offlineIc").textContent = "⬇"; }
+  else if (st.ok >= st.want) { el.textContent = st.ok + "/" + st.want; el.className = "sub ok"; $("offlineIc").textContent = "✔"; }
+  else { el.textContent = (st.want - st.ok) + " à mettre à jour"; el.className = "sub old"; $("offlineIc").textContent = "⬇"; }
+  $("offInfo").textContent = st.kept
+    ? "Dépôt « " + st.repo + " » : " + st.kept + " fichier" + (st.kept > 1 ? "s" : "") + " gardé" + (st.kept > 1 ? "s" : "") + " sur cet appareil (" + Math.max(1, Math.ceil(st.size / 1024)) + " Ko) · " + st.ok + " / " + st.want + " du filtre actuel à jour."
+    : "Dépôt « " + st.repo + " » : rien n'est encore gardé hors ligne. Touche « Préparer maintenant » avec Internet.";
+}
+$("prefAutoOff").checked = prefs.autoOffline;
+$("prefAutoOff").onchange = () => { prefs.autoOffline = $("prefAutoOff").checked; store.set("prefs", prefs); };
+$("offPrepare").onclick = () => { prepareOffline().then(refreshOffState); };
+$("offClear").onclick = () => {
+  const id = activeId(); if (!id) return;
+  if (queue.some(q => q.repoId === id)) { say("Des actions faites hors ligne attendent encore : synchronise-les d'abord (📁 › ⏳ Synchroniser).", "warn"); return; }
+  if (!confirm("Effacer la copie hors ligne du dépôt « " + (repoById(id) || {}).repo + " » sur cet appareil ?\n\nRien n'est supprimé sur GitHub ni dans tes onglets ouverts.")) return;
+  Object.keys(cidx(id)).forEach(p => store.del("c:" + id + ":" + p)); store.del("cidx:" + id);
+  renderList(); refreshOffState(); notify("Copie hors ligne effacée ✔", "ok");
+};
 
 // ---------- Synchronisation au retour d'Internet ----------
 let syncItems = [], syncLaterFlag = false, syncOpen = false;
@@ -2799,7 +2967,7 @@ $("syncGo").onclick = async () => {
     saveTabs(true); renderTabs(); refreshStatus();
     syncOpen = false; $("syncDlg").classList.remove("open"); $("syncMsg").dataset.edited = "";
     const m = "🔄 Synchronisé ✔ " + (report.join(" · ") || "rien n'a été envoyé") + (kept ? " · " + kept + " gardé" + (kept > 1 ? "s" : "") + " pour plus tard" : "") + " (pense à faire un pull sur le PC)";
-    refreshStatus(m); $("filesHint").textContent = m;
+    say(m, "ok"); $("filesHint").textContent = m;
     store.del(treeKey()); loadTree();
   } catch (e) {
     queue = queue.filter(q => !doneIds.has(q.id)); saveQueue(); saveTabs(true); renderTabs();
@@ -2813,7 +2981,7 @@ function maybeSync() {
   if (queue.length && navigator.onLine && !syncLaterFlag && !syncOpen) openSync();
 }
 window.addEventListener("online", () => { syncLaterFlag = false; setTimeout(maybeSync, 1500); });
-window.addEventListener("offline", () => refreshStatus("📴 Hors ligne : tu peux continuer, les envois seront mis en attente."));
+window.addEventListener("offline", () => say("📴 Hors ligne : tu peux continuer, les envois seront mis en attente.", "warn"));
 document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(maybeSync, 800); });
 setTimeout(maybeSync, 2500);
 refreshSyncBtn();

@@ -1,6 +1,17 @@
 {
   "versions": [
     {
+      "version": "0.13.0",
+      "date": "09/11/2026",
+      "notes": [
+        "Messages bien visibles : un bandeau en haut de l'écran, sous les onglets (jamais caché par le clavier ni par 📁). ✔ en vert, il disparaît seul après 3 s ; ⚠ et ⛔ en orange / rouge, il reste jusqu'à « OK ». La barre d'état du bas garde aussi les messages.",
+        "« Envoyer » sans modification : bandeau « Aucun fichier à envoyer » avec OK, tu restes où tu étais (et les autres onglets modifiés sont cités).",
+        "Lignes modifiées : ● orange dans la marge devant chaque ligne nouvelle ou modifiée, ▸ orange là où des lignes ont été supprimées ; tout disparaît après l'envoi (une erreur ● rouge reste prioritaire).",
+        "Panneau 📁 réorganisé en blocs : Dépôt, Actions (Nouveau, Actualiser, Hors ligne, Ouvrir, Télécharger), Recherche, Filtres, puis Fichiers (avec leur nombre).",
+        "Hors ligne plus clair : le bouton montre l'état (✔ 26/26, « 3 à mettre à jour », « pas préparé ») ; dans la liste ✔ copie à jour, ⬇ copie ancienne ; nouvelle section Réglages › 📴 Hors ligne (place utilisée, mise à jour automatique, effacer la copie)."
+      ]
+    },
+    {
       "version": "0.12.1",
       "date": "08/11/2026",
       "notes": [
