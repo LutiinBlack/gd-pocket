@@ -2,7 +2,7 @@
 
 Éditeur GDScript de poche pour modifier les scripts d'un projet Godot 4 depuis un téléphone ou une tablette, directement dans un dépôt GitHub.
 
-- **Version actuelle : v0.14.0** (09/11/2026) — validée sur le téléphone Android (v0.13.0 aussi sur l'iPad mini 2, iOS 12)
+- **Version actuelle : v0.14.0** (09/11/2026) — validée sur le téléphone Android et l'iPad mini 2 (iOS 12)
 - **Langues :** français et anglais (English)
 - **Appli en ligne :** https://lutiinblack.github.io/gd-pocket/
 - **Format :** application web installable (PWA), distribuée hors Google Play et App Store
