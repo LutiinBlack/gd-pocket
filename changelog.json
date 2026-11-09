@@ -1,6 +1,24 @@
 {
   "versions": [
     {
+      "version": "0.14.0",
+      "date": "09/11/2026",
+      "notes": [
+        "Tutoriel en bulles : au premier lancement, chaque page défile et une bulle montre chaque bouton et chaque partie de l'écran avec son explication. À revoir à tout moment avec le bouton « ? » (📁) ou Réglages › ❓ Aide.",
+        "Fenêtres « Nouvel onglet » et « Nouveau script » réorganisées en blocs (Créer / Ouvrir du dépôt / Ouvrir de l'appareil ; Où / Nom / Modèle). Menu du dépôt sans « Dépôt : », état hors ligne raccourci (« 3 à màj »).",
+        "English: l'appli entière (interface, messages, modèles de code, tutoriel) existe en anglais. Langue choisie dans Réglages › 🎨 Affichage, celle de l'appareil par défaut.",
+        "Sécurité de ton jeton : bloc ℹ️ dans Réglages › 🔑 Jetons et page SECURITE.md sur GitHub (jeton limité, gardé sur l'appareil, que faire si le téléphone est perdu).",
+        "🐞 Signaler un problème (Réglages) : type, titre et description, infos techniques ajoutées (jamais le jeton) ; « Envoyer via GitHub » ouvre un signalement pré-rempli. Le brouillon est gardé même sans Internet."
+      ],
+      "notes_en": [
+        "Bubble tutorial: on first launch, each page scrolls by and a bubble points at every button and part of the screen with an explanation. Watch it again anytime with the “?” button (📁) or Settings › ❓ Help.",
+        "“New tab” and “New script” dialogs reorganised into blocks (Create / Open from the repository / Open from the device; Where / Name / Template). Repository menu without the “Repository:” prefix, shorter offline status.",
+        "English: the whole app (interface, messages, code templates, tutorial) is available in English. Language chosen in Settings › 🎨 Display, device language by default.",
+        "Your token's security: ℹ️ block in Settings › 🔑 Tokens and a SECURITY.md page on GitHub (limited token, kept on the device, what to do if the phone is lost).",
+        "🐞 Report a problem (Settings): type, title and description, technical info added (never the token); “Send via GitHub” opens a prefilled issue. The draft is kept even without Internet."
+      ]
+    },
+    {
       "version": "0.13.0",
       "date": "09/11/2026",
       "notes": [

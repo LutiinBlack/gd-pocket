@@ -2,7 +2,8 @@
 
 Éditeur GDScript de poche pour modifier les scripts d'un projet Godot 4 depuis un téléphone ou une tablette, directement dans un dépôt GitHub.
 
-- **Version actuelle : v0.13.0** (09/11/2026) — v0.12.1 validée sur le téléphone Android et l'iPad mini 2 (iOS 12)
+- **Version actuelle : v0.14.0** (09/11/2026) — v0.13.0 validée sur le téléphone Android et l'iPad mini 2 (iOS 12)
+- **Langues :** français et anglais (English)
 - **Appli en ligne :** https://lutiinblack.github.io/gd-pocket/
 - **Format :** application web installable (PWA), distribuée hors Google Play et App Store
 
@@ -13,6 +14,8 @@
 3. Dans l'appli : 📁 › Réglages › Dépôts GitHub › ＋ Ajouter un dépôt (propriétaire, nom, branche, jeton existant ou nouveau).
 
 Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), avec la permission **Contents : Read and write**. Un même jeton peut servir à plusieurs dépôts (Réglages › 🔑 Jetons) ; le remplacer à son expiration met à jour tous ses dépôts. Il reste uniquement sur l'appareil et n'est envoyé qu'à `api.github.com`. Sur iOS, l'appli installée a son propre stockage : y recoller le jeton.
+
+🔒 **Sécurité du jeton :** voir [SECURITE.md](SECURITE.md) ([English](SECURITY.md)).
 
 ## Fonctionnalités
 
@@ -43,11 +46,14 @@ Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), a
 - Plusieurs dépôts ; jetons partagés entre dépôts ou un jeton par dépôt
 
 ### Hors ligne
-- Bouton « Hors ligne » (📁) : garde une copie des scripts sur l'appareil et montre l'état (✔ 26/26, « 3 à mettre à jour ») ; dans la liste ✔ copie à jour, ⬇ copie ancienne ; Réglages › 📴 Hors ligne pour la place utilisée et l'effacement
+- Bouton « Hors ligne » (📁) : garde une copie des scripts sur l'appareil et montre l'état (✔ 26/26, « 3 à màj ») ; dans la liste ✔ copie à jour, ⬇ copie ancienne ; Réglages › 📴 Hors ligne pour la place utilisée et l'effacement
 - Sans Internet : ouvrir, modifier, créer, renommer, supprimer et envoyer (actions mises en attente ⏳) ; historique déjà consulté lisible
 - Au retour d'Internet, fenêtre « Synchroniser » : pour chaque fichier, ↑ envoyer sa version ou ↓ reprendre celle de GitHub, avec comparaison ; conflits signalés ⚠ ; un seul commit par dépôt
 
 ### Appli
+- **Tutoriel en bulles** au premier lancement, à revoir avec le bouton « ? » (📁) ou Réglages › ❓ Aide
+- **Langue** : français ou anglais (Réglages › 🎨 Affichage), celle de l'appareil par défaut
+- **🐞 Signaler un problème** (Réglages) : ouvre un signalement pré-rempli dans les [Issues](https://github.com/LutiinBlack/gd-pocket/issues) du dépôt, avec les infos techniques (jamais le jeton) ; brouillon gardé hors ligne
 - Fenêtre « Nouvelle version » avec les nouveautés : « Mettre à jour » ou « Plus tard »
 - Compatible avec les navigateurs récents et Safari 12 (iOS 12)
 
@@ -74,6 +80,7 @@ Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), a
 | `sw.js` | service worker : cache hors ligne et mises à jour |
 | `changelog.json` | nouveautés affichées dans la fenêtre « Nouvelle version » |
 | `manifest.webmanifest`, `icons/` | installation sur l'écran d'accueil |
+| `SECURITE.md`, `SECURITY.md` | sécurité du jeton (français, anglais) |
 
 Publier une nouvelle version : changer `VERSION` dans `sw.js`, `APP_VERSION` dans `index.html`, ajouter une entrée en tête de `changelog.json`, puis pousser sur `main` (GitHub Pages met jusqu'à ~10 min à se mettre à jour).
 
@@ -81,6 +88,7 @@ Publier une nouvelle version : changer `VERSION` dans `sw.js`, `APP_VERSION` dan
 
 | Version | Date | Nouveautés |
 |---|---|---|
+| v0.14.0 | 09/11/2026 | Tutoriel en bulles, appli en anglais, 🐞 Signaler un problème, page sécurité du jeton, fenêtres ＋ et « Nouveau script » en blocs |
 | v0.13.0 | 09/11/2026 | Bandeau de messages, « Aucun fichier à envoyer », lignes modifiées dans la marge, panneau 📁 en blocs, hors ligne plus clair |
 | v0.12.1 | 08/11/2026 | Correctif clavier Samsung (saisie compatible Android), paires de la barre de touches |
 | v0.12.0 | 04/11/2026 | Mode hors ligne et synchronisation, jetons partagés, différences fichier par fichier dans l'envoi groupé, flèches, barre de touches visible avec le clavier |

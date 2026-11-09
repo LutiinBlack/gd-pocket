@@ -77,14 +77,38 @@
   /* Panneau Fichiers : 5 blocs */
   .fblock { background:var(--bar); border-radius:10px; padding:8px 10px 10px; margin-bottom:8px; }
   .ftitle { font-size:11px; letter-spacing:.06em; text-transform:uppercase; opacity:.55; margin:0 0 6px 2px; font-family:system-ui, sans-serif; }
-  .fblock select, .fblock input[type=search] { margin:0; }
+  .fblock select, .fblock input[type=search], .fblock input[type=text], .fblock button.wide { margin:0; }
+  .fblock button.wide + select, .fblock select + button.wide { margin-top:8px; }
+  .secbox { background:var(--bar); border-left:3px solid var(--acc); border-radius:8px; padding:8px 10px; font-size:13px; line-height:1.45; margin:4px 0 10px; }
+  .secbox b { display:block; margin-bottom:4px; font-size:14px; }
+  .secbox a, .reportbox a { color:#57b3ff; }
+  #repBody { width:100%; background:var(--mut); color:var(--txt); border:0; border-radius:6px; padding:10px; font-size:15px; font-family:inherit; resize:vertical; }
+  #repInfoView { background:var(--bar); border-radius:6px; padding:8px; font-size:12px; white-space:pre-wrap; word-break:break-word; margin:6px 0 0; opacity:.85; }
+  .reportbox { font-size:13px; line-height:1.45; opacity:.9; margin-bottom:6px; }
+  #helpBtn { font-weight:bold; min-width:42px; }
+  /* Tutoriel */
+  #tour { position:fixed; top:0; right:0; bottom:0; left:0; z-index:500; display:none; }
+  #tour.open { display:block; }
+  #tourHole { position:fixed; border-radius:10px; box-shadow:0 0 0 9999px rgba(0,0,0,.66); border:2px solid #ffd76a; transition:all .25s; pointer-events:none; }
+  #tourHole.none { box-shadow:0 0 0 9999px rgba(0,0,0,.66); border:0; width:0; height:0; left:50%; top:40%; }
+  .tourBox { position:fixed; left:12px; right:12px; max-width:520px; margin:0 auto; background:#fff8e1; color:#222; border-radius:12px; padding:12px 14px; box-shadow:0 8px 28px rgba(0,0,0,.5); font-size:15px; line-height:1.45; }
+  .tourBox b { display:block; font-size:16px; margin:2px 0 4px; }
+  #tourStep { font-size:12px; opacity:.6; }
+  .tourBtns { display:flex; align-items:center; gap:8px; margin-top:10px; }
+  .tourBtns button { padding:8px 14px; }
+  .tourBtns button.ghost { background:#e8e0c8; color:#222; }
+  .no-gap .tourBtns > * + * { margin-left:8px; }
+  .sublabel { font-size:12px; opacity:.7; margin:0 0 4px 2px; display:block; }
+  #newDlg .fblock, #addDlg .fblock { background:var(--bg); }
+  #newDlg h2, #addDlg h2 { margin-bottom:10px; }
+  #newDlg #newPreview { margin-top:6px; }
   #syncBtn { width:100%; margin-top:8px; }
   .actgrid { display:flex; gap:6px; }
   .actgrid .act { flex:1 1 0; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; background:var(--mut); padding:8px 2px 6px; border-radius:8px; }
   .actgrid .act.main { background:var(--acc); }
   .actgrid .ic { font-size:19px; line-height:1.1; }
   .actgrid .lb { font-size:11px; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
-  .actgrid .sub { font-size:10px; opacity:.75; margin-top:1px; white-space:nowrap; }
+  .actgrid .sub { font-size:10px; opacity:.75; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
   .actgrid .sub.ok { color:var(--ok); opacity:1; } .actgrid .sub.old { color:var(--warn); opacity:1; }
   .legend { font-size:12px; opacity:.75; margin:8px 2px 0; }
   .listhead { font-size:13px; font-weight:bold; margin:12px 2px 0; }
@@ -337,6 +361,7 @@
 <div id="panel">
   <div class="top">
     <h2>GD Pocket <span id="appVer" style="font-size:12px;opacity:.6;font-weight:normal"></span></h2>
+    <button id="helpBtn" class="ghost" aria-label="Tutoriel">?</button>
     <button id="closePanel" class="ghost">Fermer</button>
   </div>
   <div class="tabs">
@@ -397,6 +422,8 @@
         <button data-sec="tokens">🔑 Jetons</button>
         <button data-sec="display">🎨 Affichage</button>
         <button data-sec="offline">📴 Hors ligne</button>
+        <button data-sec="report">🐞 Signaler</button>
+        <button data-sec="help">❓ Aide</button>
       </nav>
       <div class="setbody">
         <section id="sec-repos" class="on">
@@ -429,6 +456,7 @@
         </section>
         <section id="sec-tokens">
           <h3>Jetons</h3>
+          <div class="secbox nolang" id="secBox"></div>
           <div id="tokList"></div>
           <button id="tokAdd" class="ghost">＋ Ajouter un jeton</button>
           <div id="tokForm">
@@ -465,8 +493,36 @@
           </select>
           <label class="check"><input id="prefDiff" type="checkbox"> Voir les différences avant d'envoyer</label>
           <label class="check"><input id="prefLint" type="checkbox"> Signaler les erreurs en direct (lignes rouges)</label>
+          <label for="prefLang">Langue</label>
+          <select id="prefLang" class="nolang">
+            <option value="">Automatique (langue de l'appareil) · Automatic</option>
+            <option value="fr">Français</option>
+            <option value="en">English</option>
+          </select>
           <label class="check"><input id="prefCompat" type="checkbox"> Saisie compatible Android (clavier Samsung)</label>
           <p class="hint" id="prefCompatHint">Évite que les mots tapés disparaissent avec certains claviers Android. Cochée par défaut sur Android ; l'appli redémarre quand tu la changes.</p>
+        </section>
+        <section id="sec-report">
+          <h3>Signaler un problème</h3>
+          <div class="reportbox nolang" id="repIntro"></div>
+          <label for="repType" id="repTypeL"></label>
+          <select id="repType" class="nolang"></select>
+          <label for="repTitle" id="repTitleL"></label>
+          <input id="repTitle" type="text" autocomplete="off" class="nolang">
+          <label for="repBody" id="repBodyL"></label>
+          <textarea id="repBody" rows="6" class="nolang"></textarea>
+          <label class="check nolang"><input id="repInfo" type="checkbox" checked> <span id="repInfoL"></span></label>
+          <pre id="repInfoView" class="nolang"></pre>
+          <div class="row nolang">
+            <button id="repSend"></button>
+            <button id="repSee" class="ghost"></button>
+          </div>
+          <p class="hint nolang" id="repHint"></p>
+        </section>
+        <section id="sec-help">
+          <h3 class="nolang" id="helpTitle"></h3>
+          <p class="nolang" id="helpText"></p>
+          <div class="row nolang"><button id="helpTour"></button></div>
         </section>
         <section id="sec-offline">
           <h3>Hors ligne</h3>
@@ -488,18 +544,25 @@
 <div id="newDlg">
   <div class="box">
     <h2>Nouveau script</h2>
-    <label for="newDir">Dossier</label>
-    <select id="newDir"></select>
-    <label for="newName">Nom du fichier</label>
-    <input id="newName" type="text" autocomplete="off" autocapitalize="off" placeholder="boost_turbo">
-    <label for="newBase">Hérite de (extends)</label>
-    <select id="newBase">
+    <section class="fblock">
+      <div class="ftitle">Où</div>
+      <select id="newDir" aria-label="Dossier"></select>
+    </section>
+    <section class="fblock">
+      <div class="ftitle">Nom</div>
+      <input id="newName" type="text" autocomplete="off" autocapitalize="off" placeholder="boost_turbo" aria-label="Nom du fichier">
+      <div id="newPreview"></div>
+    </section>
+    <section class="fblock">
+      <div class="ftitle">Modèle</div>
+      <label for="newBase" class="sublabel">Hérite de (extends)</label>
+      <select id="newBase">
       <option>Node</option><option selected>Node3D</option><option>CharacterBody3D</option>
       <option>RigidBody3D</option><option>VehicleBody3D</option><option>Area3D</option>
       <option>Camera3D</option><option>Control</option><option>CanvasLayer</option>
       <option>Node2D</option><option>Resource</option><option value="">(script vide)</option>
-    </select>
-    <div id="newPreview"></div>
+      </select>
+    </section>
     <div class="row">
       <button id="newCreate">Créer</button>
       <button id="newCancel" class="ghost">Annuler</button>
@@ -512,11 +575,20 @@
 <div id="addDlg">
   <div class="box">
     <h2>Nouvel onglet</h2>
-    <button id="addNew" class="wide">＋ Créer un nouveau script</button>
-    <label for="addPick" id="addPickLabel">Ouvrir un script du dépôt</label>
-    <select id="addPick"></select>
-    <button id="addOpen" class="wide">Ouvrir ce script</button>
-    <button id="addLocal" class="wide ghost">📱 Ouvrir un fichier de l'appareil</button>
+    <section class="fblock">
+      <div class="ftitle">Créer</div>
+      <button id="addNew" class="wide">＋ Créer un nouveau script</button>
+    </section>
+    <section class="fblock">
+      <div class="ftitle">Ouvrir du dépôt</div>
+      <div id="addPickLabel" class="sublabel">Ouvrir un script du dépôt</div>
+      <select id="addPick" aria-label="Script du dépôt"></select>
+      <button id="addOpen" class="wide">Ouvrir ce script</button>
+    </section>
+    <section class="fblock">
+      <div class="ftitle">Ouvrir de l'appareil</div>
+      <button id="addLocal" class="wide ghost">📱 Ouvrir un fichier de l'appareil</button>
+    </section>
     <p class="hint" id="addHint"></p>
     <div class="row"><button id="addCancel" class="ghost">Annuler</button></div>
   </div>
@@ -577,6 +649,10 @@
     <div class="row"><button id="histClose" class="ghost">Fermer</button></div>
   </div>
 </div>
+
+<!-- Tutoriel : bulles -->
+<div id="tour" class="nolang"><div id="tourHole"></div><div class="tourBox" id="tourBox"><div id="tourStep"></div><b id="tourT"></b><div id="tourD"></div>
+  <div class="tourBtns"><button id="tourSkip" class="ghost"></button><span style="flex:1"></span><button id="tourPrev" class="ghost"></button><button id="tourNext"></button></div></div></div>
 
 <!-- Bandeau de messages -->
 <div id="notice" role="status" aria-live="polite"><span id="noticeTxt"></span><button id="noticeOk" type="button">OK</button></div>
@@ -643,8 +719,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
 <script>
 // ---------- Version et rapport d'erreurs (utile sur les vieux appareils) ----------
-var APP_VERSION = "0.13.0";
+var APP_VERSION = "0.14.0";
+var lastAppError = "";
 function showError(msg) {
+  lastAppError = String(msg).slice(0, 300);
   var t = "⚠ Erreur : " + msg;
   var s = document.getElementById("status"), h = document.getElementById("filesHint");
   if (s) s.textContent = t;
@@ -657,6 +735,255 @@ window.addEventListener("unhandledrejection", function (e) {
   showError(e.reason && e.reason.message ? e.reason.message : String(e.reason));
 });
 document.getElementById("appVer").textContent = "v" + APP_VERSION;
+// ---------- Langue (v0.14) : français ou anglais ----------
+// L'appli est écrite en français ; en anglais, un traducteur remplace les textes affichés (hors code).
+var LANG = (function () {
+  var p = {}; try { p = JSON.parse(localStorage.getItem("gdpocket_prefs") || "{}") || {}; } catch (e) {}
+  if (p.lang === "fr" || p.lang === "en") return p.lang;
+  return /^fr/i.test(navigator.language || "fr") ? "fr" : "en";
+})();
+document.documentElement.lang = LANG;
+var I18N_EXACT = {
+  "Script du dépôt": "Repository script", "Ouvrir du dépôt": "Open from the repository", "Ouvrir de l'appareil": "Open from the device", "Signaler un problème": "Report a problem",
+  // En-tête, onglets, barre du bas
+  "Envoyer": "Send", "Enregistrer": "Save", "Annuler": "Cancel", "Fermer": "Close", "Créer": "Create", "OK": "OK",
+  "Fichiers": "Files", "Réglages": "Settings", "Prêt": "Ready", "Historique": "History", "Plan du script": "Script outline",
+  "Annuler (Ctrl+Z)": "Undo (Ctrl+Z)", "Rétablir (Ctrl+Y)": "Redo (Ctrl+Y)", "Fichiers GitHub": "GitHub files",
+  "🔍 Rechercher": "🔍 Search", "Rechercher dans le script": "Search in the script", "Fermer la recherche": "Close search",
+  "Respecter majuscules et minuscules": "Match case", "Précédent": "Previous", "Suivant": "Next",
+  "Remplacer par": "Replace with", "Remplacer": "Replace", "⇄ Remplacer": "⇄ Replace", "Tout": "All",
+  "Historique de ce fichier": "History of this file", "Historique du fichier": "File history",
+  "Recharger cet onglet depuis GitHub": "Reload this tab from GitHub",
+  "Replier la barre du bas": "Collapse the bottom bar", "Déplier la barre du bas": "Expand the bottom bar",
+  "Curseur à gauche": "Cursor left", "Curseur à droite": "Cursor right", "Ligne du dessus": "Line above", "Ligne du dessous": "Line below",
+  "Tape un mot à chercher": "Type a word to search", "Aucun résultat": "No results",
+  // Panneau Fichiers
+  "Dépôt": "Repository", "Actions": "Actions", "Recherche": "Search", "Filtres": "Filters",
+  "Nouveau": "New", "Actualiser": "Refresh", "Actualise…": "Refreshing…", "Hors ligne": "Offline", "Ouvrir": "Open", "Télécharger": "Download",
+  "🔍 Filtrer (ex. voiture)": "🔍 Filter (e.g. car)", "Par dossier": "By folder", "Nom A → Z": "Name A → Z", "Nom Z → A": "Name Z → A",
+  "Type": "Type", "Récents": "Recent", "Scripts": "Scripts", "+ Scènes, textes": "+ Scenes, text", "Tous": "All files",
+  "Style d'affichage": "Display style", "Tri": "Sort", "Types de fichiers affichés": "File types shown", "Dépôt affiché": "Repository shown",
+  "Hors ligne :": "Offline:", "copie à jour ·": "up-to-date copy ·", "copie ancienne · rien = pas disponible": "old copy · nothing = not available",
+  "⏳ Synchroniser": "⏳ Sync", "pas préparé": "not prepared",
+  "Renseigne d'abord l'onglet Réglages.": "Fill in the Settings tab first.", "Aucun fichier ne correspond.": "No file matches.",
+  "(racine du dépôt)": "(repository root)", "Chargement de la liste depuis GitHub…": "Loading the list from GitHub…", "Chargement de la liste…": "Loading the list…",
+  "Impossible de charger la liste (connexion Internet ?).": "Could not load the list (Internet connection?).",
+  "disponible hors ligne (copie à jour)": "available offline (up-to-date copy)",
+  "disponible hors ligne (copie ancienne : touche ⬇ Hors ligne)": "available offline (old copy: tap ⬇ Offline)",
+  "changement en attente d'Internet": "change waiting for Internet",
+  // Réglages
+  "🔗 Dépôts GitHub": "🔗 GitHub repositories", "🔑 Jetons": "🔑 Tokens", "🎨 Affichage": "🎨 Display", "📴 Hors ligne": "📴 Offline", "🐞 Signaler": "🐞 Report",
+  "Dépôts GitHub": "GitHub repositories", "Jetons": "Tokens", "Affichage": "Display",
+  "＋ Ajouter un dépôt": "＋ Add a repository", "Nouveau dépôt": "New repository", "Propriétaire du dépôt": "Repository owner", "Nom du dépôt": "Repository name",
+  "Branche (vide = branche principale)": "Branch (empty = default branch)", "Jeton GitHub": "GitHub token", "Jeton GitHub (fine-grained)": "GitHub token (fine-grained)",
+  "Nom du nouveau jeton": "New token name", "ex. Téléphone — tous mes projets": "e.g. Phone — all my projects",
+  "Enregistrer et tester": "Save and test", "Utiliser ce dépôt": "Use this repository", "Retirer de la liste": "Remove from the list",
+  "Un même jeton peut servir à plusieurs dépôts (coche-les tous en créant le jeton sur GitHub). Les jetons se gèrent dans 🔑 Jetons.": "One token can serve several repositories (tick them all when creating the token on GitHub). Tokens are managed in 🔑 Tokens.",
+  "＋ Ajouter un jeton": "＋ Add a token", "Nouveau jeton": "New token", "Nom": "Name", "Supprimer ce jeton": "Delete this token",
+  "Remplacer un jeton expiré ici le met à jour pour tous les dépôts qui l'utilisent. Les jetons restent uniquement dans cette appli, sur cet appareil, et ne sont envoyés qu'à api.github.com.": "Replacing an expired token here updates it for every repository that uses it. Tokens stay only in this app, on this device, and are only sent to api.github.com.",
+  "Remplacer par un nouveau jeton (expiration…)": "Replace with a new token (expiry…)", "Aucun jeton pour l'instant.": "No token yet.",
+  "Utilisé par aucun dépôt.": "Used by no repository.", "inutilisé": "unused", "＋ Nouveau jeton…": "＋ New token…", "＋ Gérer les dépôts…": "＋ Manage repositories…",
+  "Aucun dépôt pour l'instant : remplis le formulaire ci-dessous.": "No repository yet: fill in the form below.",
+  "Couleurs du code": "Code colors", "Godot (comme l'éditeur de script)": "Godot (like the script editor)",
+  "Retour à la ligne automatique des lignes longues": "Wrap long lines", "Ouvrir sur la liste des fichiers au démarrage": "Open on the file list at startup",
+  "Taille du texte du code": "Code text size", "Très petite (12)": "Very small (12)", "Petite (13)": "Small (13)", "Normale (15)": "Normal (15)",
+  "Grande (17)": "Large (17)", "Très grande (19)": "Very large (19)", "Énorme (22)": "Huge (22)",
+  "Voir les différences avant d'envoyer": "Show the differences before sending", "Signaler les erreurs en direct (lignes rouges)": "Show errors live (red lines)",
+  "Saisie compatible Android (clavier Samsung)": "Android-compatible typing (Samsung keyboard)",
+  "Évite que les mots tapés disparaissent avec certains claviers Android. Cochée par défaut sur Android ; l'appli redémarre quand tu la changes.": "Prevents typed words from disappearing with some Android keyboards. On by default on Android; the app restarts when you change it.",
+  "Langue": "Language", "Automatique (langue de l'appareil)": "Automatic (device language)",
+  "Garder les copies à jour automatiquement (à chaque ↻ Actualiser)": "Keep copies up to date automatically (on each ↻ Refresh)",
+  "⬇ Préparer maintenant": "⬇ Prepare now", "🗑 Effacer la copie hors ligne": "🗑 Clear the offline copy",
+  "Les fichiers préparés s'ouvrent et se modifient sans Internet. « Préparer » télécharge les fichiers du choix « Fichiers » (Scripts, + Scènes, Tous) qui ne sont pas encore à jour. Dans la liste : ✔ copie à jour, ⬇ copie ancienne, rien = pas disponible hors ligne.": "Prepared files open and can be edited without Internet. “Prepare” downloads the files of the “Files” filter (Scripts, + Scenes, All files) that are not up to date yet. In the list: ✔ up-to-date copy, ⬇ old copy, nothing = not available offline.",
+  "Copie hors ligne effacée ✔": "Offline copy cleared ✔", "Jeton enregistré ✔": "Token saved ✔",
+  "L'appli va redémarrer pour changer le mode de saisie.": "The app will restart to change the typing mode.",
+  "L'appli va redémarrer pour changer de langue.": "The app will restart to change the language.",
+  "Ce dépôt est déjà dans la liste.": "This repository is already in the list.", "Indique le propriétaire et le nom du dépôt.": "Enter the repository owner and name.",
+  "Colle le jeton GitHub, ou choisis un jeton existant dans la liste.": "Paste the GitHub token, or pick an existing token in the list.", "Colle le jeton GitHub.": "Paste the GitHub token.",
+  // Fenêtres
+  "Nouveau script": "New script", "Dossier": "Folder", "Nom du fichier": "File name", "Hérite de (extends)": "Inherits from (extends)", "(script vide)": "(empty script)",
+  "Le script s'ouvre dans un nouvel onglet. Il n'est créé sur GitHub qu'au premier « Envoyer ».": "The script opens in a new tab. It is only created on GitHub at the first “Send”.",
+  "Où": "Where", "Modèle": "Template", "Nouvel onglet": "New tab", "＋ Créer un nouveau script": "＋ Create a new script", "Ouvrir un script du dépôt": "Open a script from the repository",
+  "Ouvrir ce script": "Open this script", "📱 Ouvrir un fichier de l'appareil": "📱 Open a file from the device", "Ouvrir un fichier": "Open a file",
+  "Renommer / déplacer": "Rename / move", "Nouveau nom": "New name", "Renommer": "Rename",
+  "Un seul commit sur GitHub. Le fichier .uid suit le script s'il existe.": "A single commit on GitHub. The .uid file follows the script if it exists.",
+  "Nouvelle version disponible": "New version available", "Mettre à jour": "Update", "Plus tard": "Later",
+  "Tes onglets et tes modifications non envoyées sont conservés.": "Your tabs and unsent changes are kept.",
+  "Aucune func, signal ni @export dans ce fichier.": "No func, signal or @export in this file.",
+  "Vérifier avant d'envoyer": "Check before sending", "Message du commit": "Commit message", "Message du commit :": "Commit message:",
+  "Envoyer quand même": "Send anyway", "Aucune différence avec la version GitHub.": "No difference with the GitHub version.",
+  "Envoyer aussi dans le même commit (touche un nom en haut pour voir ses changements) :": "Also send in the same commit (tap a name at the top to see its changes):",
+  "Modèles de code": "Code templates", "Le modèle est inséré à la ligne du curseur, avec la bonne indentation.": "The template is inserted at the cursor line, with the right indentation.",
+  "← Versions": "← Versions", "Restaurer dans l'onglet": "Restore in the tab",
+  "Restaurer remplace le contenu de l'onglet (↶ pour annuler). Rien n'est envoyé tant que tu n'appuies pas sur « Envoyer ».": "Restore replaces the tab content (↶ to undo). Nothing is sent until you tap “Send”.",
+  "Aucun historique trouvé pour ce fichier.": "No history found for this file.", "Ce fichier n'existait pas sous ce nom à cette version.": "This file did not exist under this name in that version.",
+  "Chargement de la version…": "Loading the version…", "Chargement de la version GitHub…": "Loading the GitHub version…",
+  "Synchroniser avec GitHub": "Sync with GitHub", "Synchroniser": "Sync", "Comparer": "Compare", "← Retour": "← Back", "Réessayer": "Retry",
+  "↑ = GitHub prend ta version · ↓ = ta copie reprend la version de GitHub. Tout ce qui part vers GitHub est envoyé en un seul commit par dépôt.": "↑ = GitHub takes your version · ↓ = your copy takes the GitHub version. Everything going to GitHub is sent in a single commit per repository.",
+  "↑ Envoyer ma version": "↑ Send my version", "↓ Prendre la version GitHub": "↓ Take the GitHub version", "✕ Abandonner mes changements": "✕ Discard my changes",
+  "↑ Renommer sur GitHub": "↑ Rename on GitHub", "↓ Annuler le renommage": "↓ Undo the rename", "↑ Supprimer sur GitHub": "↑ Delete on GitHub", "↓ Annuler la suppression": "↓ Undo the deletion",
+  "Choisis pour chaque fichier ⚠": "Choose for each file ⚠", "Comparaison avec GitHub…": "Comparing with GitHub…",
+  "✔ pas changé sur GitHub : ta version peut partir": "✔ unchanged on GitHub: your version can go", "⚠ modifié aussi sur GitHub pendant que tu étais hors ligne": "⚠ also changed on GitHub while you were offline",
+  "⚠ supprimé sur GitHub entre-temps (↑ le recrée)": "⚠ deleted on GitHub meanwhile (↑ recreates it)", "⚠ un fichier du même nom existe déjà sur GitHub": "⚠ a file with the same name already exists on GitHub",
+  "✔ nouveau fichier, prêt à être créé": "✔ new file, ready to be created", "✔ prêt à être renommé sur GitHub": "✔ ready to be renamed on GitHub",
+  "✔ prêt à être supprimé sur GitHub": "✔ ready to be deleted on GitHub", "✔ déjà supprimé sur GitHub": "✔ already deleted on GitHub",
+  "⚠ dépôt retiré ou sans jeton : impossible pour l'instant": "⚠ repository removed or without a token: not possible for now",
+  // Messages
+  "Pas de connexion Internet.": "No Internet connection.", "Aucun jeton : va dans Réglages.": "No token: go to Settings.",
+  "Jeton refusé (expiré ou mal copié).": "Token refused (expired or wrongly copied).",
+  "Accès refusé : vérifie les permissions du jeton (Contents : Read and write).": "Access denied: check the token permissions (Contents: Read and write).",
+  "Introuvable : vérifie le propriétaire, le dépôt et la branche, et que le jeton y a accès.": "Not found: check the owner, repository and branch, and that the token has access.",
+  "Envoi vers GitHub…": "Sending to GitHub…", "Vérification sur GitHub…": "Checking on GitHub…", "Mise à jour…": "Updating…",
+  "Envoi annulé. Ta version reste dans l'onglet.": "Sending cancelled. Your version stays in the tab.",
+  "Un fichier porte déjà ce nom sur GitHub : ferme l'onglet et choisis un autre nom.": "A file already has this name on GitHub: close the tab and choose another name.",
+  "Le dépôt de cet onglet a été retiré des Réglages : ajoute-le à nouveau pour envoyer.": "This tab's repository was removed from Settings: add it again to send.",
+  "Le dépôt de cet onglet n'est plus configuré.": "This tab's repository is no longer configured.",
+  "Rechargé depuis GitHub ✔ (↶ pour revenir à la version d'avant)": "Reloaded from GitHub ✔ (↶ to go back to the previous version)",
+  "Cet onglet est déjà à jour avec GitHub ✔ (pour la liste des fichiers : 📁 › ↻ Actualiser)": "This tab is already up to date with GitHub ✔ (for the file list: 📁 › ↻ Refresh)",
+  "Ce fichier n'existe plus sur GitHub : touche ↻ Actualiser.": "This file no longer exists on GitHub: tap ↻ Refresh.",
+  "Fichier introuvable sur GitHub : touche ↻ Actualiser.": "File not found on GitHub: tap ↻ Refresh.",
+  "Ajoute d'abord un dépôt dans Réglages › Dépôts GitHub.": "First add a repository in Settings › GitHub repositories.",
+  "Ajoute d'abord un dépôt dans Réglages.": "First add a repository in Settings.",
+  "Ajoute d'abord un dépôt (📁 › Réglages › Dépôts GitHub) pour ouvrir ses scripts.": "First add a repository (📁 › Settings › GitHub repositories) to open its scripts.",
+  "Ce dépôt a des actions en attente d'Internet : synchronise-les d'abord (📁 › ⏳).": "This repository has actions waiting for Internet: sync them first (📁 › ⏳).",
+  "Des actions faites hors ligne attendent encore : synchronise-les d'abord (📁 › ⏳ Synchroniser).": "Actions made offline are still waiting: sync them first (📁 › ⏳ Sync).",
+  "📴 Hors ligne : tu peux continuer, les envois seront mis en attente.": "📴 Offline: you can keep going, sending will be queued.",
+  "📴 Il faut Internet pour préparer le hors ligne.": "📴 Internet is needed to prepare offline use.",
+  "📴 Toujours pas d'Internet : réessaie plus tard.": "📴 Still no Internet: try again later.",
+  "📴 Hors ligne : cette version n'a pas encore été consultée avec Internet.": "📴 Offline: this version has not been viewed with Internet yet.",
+  "Version restaurée dans l'onglet (pas encore envoyée) — ↶ pour annuler, Envoyer pour la garder sur GitHub": "Version restored in the tab (not sent yet) — ↶ to undo, Send to keep it on GitHub",
+  "Donne un nom au script.": "Give the script a name.", "Donne un nom au fichier.": "Give the file a name.",
+  "Nom du fichier (utilisé pour le téléchargement) :": "File name (used for the download):",
+  "GD Pocket : synchronisation après le hors ligne": "GD Pocket: sync after offline",
+  "rien n'a été envoyé": "nothing was sent", "dépôt retiré": "repository removed", "ce fichier": "this file",
+  "Ligne nouvelle ou modifiée (pas encore envoyée)": "New or changed line (not sent yet)", "Ligne(s) supprimée(s) ici": "Line(s) deleted here",
+  "Améliorations et corrections.": "Improvements and fixes.",
+  // Erreurs du code (vérification en direct)
+  "Bloc vide à la fin du fichier : ajoute au moins une ligne indentée (par exemple pass)": "Empty block at the end of the file: add at least one indented line (for example pass)",
+  "Il manque « : » à la fin de la déclaration de la fonction": "“:” is missing at the end of the function declaration",
+  "Indentation avec des espaces alors que le fichier utilise des tabulations (utilise ⇥)": "Indented with spaces while the file uses tabs (use ⇥)",
+  "Indentation avec des tabulations alors que le fichier utilise des espaces": "Indented with tabs while the file uses spaces",
+  "Indentation inattendue : la ligne au-dessus ne finit pas par « : »": "Unexpected indentation: the line above does not end with “:”",
+  "Indentation inattendue en début de fichier": "Unexpected indentation at the start of the file",
+  "Indentation incohérente : ce niveau ne correspond à aucun bloc ouvert au-dessus": "Inconsistent indentation: this level matches no open block above",
+  "Indentation qui mélange tabulations et espaces": "Indentation mixing tabs and spaces",
+  "« = » donne une valeur : pour comparer, utilise « == »": "“=” assigns a value: to compare, use “==”",
+  // Modèles de code (libellés)
+  "En-tête de script": "Script header", "func avec paramètre et retour": "func with parameter and return", "signal avec paramètre": "signal with parameter",
+  "émettre un signal": "emit a signal", "connecter un signal": "connect a signal", "for (tableau)": "for (array)", "attendre (timer)": "wait (timer)",
+  "précharger une scène": "preload a scene", "instancier une scène": "instantiate a scene"
+};
+// Morceaux de phrases (messages construits avec des valeurs : noms de fichiers, nombres…)
+var I18N_FRAG = [
+  ["Aucun fichier à envoyer : « ", "Nothing to send: “"], ["» n'a pas de modification depuis GitHub.", "” has no change since GitHub."], ["» n'a pas de modification.", "” has no change."],
+  [" Onglets modifiés : ", " Changed tabs: "], [" (ouvre-les puis Envoyer).", " (open them, then Send)."],
+  ["(pense à faire un pull sur le PC)", "(remember to pull on the PC)"], ["Envoyé sur GitHub ✔", "Sent to GitHub ✔"], ["Créé sur GitHub ✔", "Created on GitHub ✔"],
+  [" fichiers envoyés en un seul commit ✔", " files sent in a single commit ✔"], ["Envoi de ", "Sending "], [" fichiers en un seul commit…", " files in a single commit…"],
+  ["Vérification des ", "Checking the "], [" fichiers sur GitHub…", " files on GitHub…"],
+  ["Conflit : ", "Conflict: "], [". Recharge ces onglets (↻) ou envoie-les un par un.", ". Reload these tabs (↻) or send them one by one."],
+  [" (existe déjà)", " (already exists)"], [" (modifié sur GitHub)", " (changed on GitHub)"], [" (supprimé sur GitHub)", " (deleted on GitHub)"],
+  ["Liste à jour ✔ ", "List up to date ✔ "], [" fichiers dans le dépôt", " files in the repository"], [" fichier dans le dépôt", " file in the repository"],
+  [" · aucun changement", " · no change"], [" · nouveaux : ", " · new: "], [" · nouveau : ", " · new: "], [" masqués par le choix « Fichiers : … »)", " hidden by the “Files” filter)"],
+  [" masqué par le choix « Fichiers : … »)", " hidden by the “Files” filter)"], [" retirés", " removed"], [" retiré", " removed"], [" · dépôt très gros : liste incomplète", " · very large repository: incomplete list"],
+  ["📴 Hors ligne — liste enregistrée du ", "📴 Offline — list saved on "], ["📴 Hors ligne — liste enregistrée", "📴 Offline — saved list"],
+  [" fichier(s) disponibles hors ligne (✔)", " file(s) available offline (✔)"],
+  ["📴 Prêt pour le hors ligne ✔ ", "📴 Ready for offline ✔ "], [" fichiers sur l'appareil", " files on the device"], [" fichier sur l'appareil", " file on the device"],
+  [" téléchargés (", " downloaded ("], [" téléchargé (", " downloaded ("], [" · tout était déjà à jour", " · everything was already up to date"],
+  ["⚠ Mémoire de l'appareil pleine après ", "⚠ Device storage full after "], [" fichiers : choisis le filtre « Scripts » pour n'en garder que les scripts.", " files: choose the “Scripts” filter to keep only scripts."],
+  [" à màj", " to update"], ["Dépôt « ", "Repository “"], [" » : rien n'est encore gardé hors ligne. Touche « Préparer maintenant » avec Internet.", "”: nothing is kept offline yet. Tap “Prepare now” with Internet."],
+  [" fichiers gardés sur cet appareil (", " files kept on this device ("], [" fichier gardé sur cet appareil (", " file kept on this device ("], [" du filtre actuel à jour.", " of the current filter up to date."],
+  ["📴 Ouvert hors ligne (copie enregistrée sur l'appareil) — ", "📴 Opened offline (copy saved on the device) — "],
+  ["Pas d'Internet, et « ", "No Internet, and “"], [" » n'est pas encore disponible hors ligne (📁 › ⬇ Préparer le hors ligne, avec Internet).", "” is not available offline yet (📁 › ⬇ Offline, with Internet)."],
+  ["⏳ Envoi de « ", "⏳ Sending “"], ["⏳ Envoi de ", "⏳ Sending "], ["⏳ Suppression de « ", "⏳ Deleting “"], ["⏳ Renommage en « ", "⏳ Renaming to “"],
+  [" — mis en attente : il partira sur GitHub au retour d'Internet (📁 › ⏳ Synchroniser).", " — queued: it will go to GitHub when Internet is back (📁 › ⏳ Sync)."],
+  [" — ajouté à la synchronisation avec les actions faites hors ligne.", " — added to the sync with the actions made offline."],
+  ["⏳ Envoi en attente d'Internet — ", "⏳ Waiting for Internet to send — "], [" en attente — Synchroniser", " waiting — Sync"],
+  ["🔄 Synchronisé ✔ ", "🔄 Synced ✔ "], [" envoyés sur ", " sent to "], [" envoyé sur ", " sent to "], [" gardés pour plus tard", " kept for later"], [" gardé pour plus tard", " kept for later"],
+  [" — ce qui n'est pas parti reste en attente.", " — what was not sent stays queued."],
+  [" actions faites hors ligne", " actions made offline"], [" action faite hors ligne", " action made offline"], [" à décider (changé des deux côtés)", " to decide (changed on both sides)"],
+  [" · rien n'a changé en face, tout peut partir", " · nothing changed on the other side, everything can go"],
+  ["✎ Modifié : ", "✎ Changed: "], ["＋ Nouveau : ", "＋ New: "], ["✏️ Renommé : ", "✏️ Renamed: "], ["🗑 Supprimé : ", "🗑 Deleted: "],
+  ["⚠ introuvable sur GitHub : ", "⚠ not found on GitHub: "], ["⚠ le nouveau nom existe déjà sur GitHub : ", "⚠ the new name already exists on GitHub: "],
+  [" — en vert : seulement dans ta version (+", " — green: only in your version (+"], [") · en rouge : seulement sur GitHub (−", ") · red: only on GitHub (−"],
+  ["Vérifier avant d'envoyer — ", "Check before sending — "], [" ajoutées · ", " added · "], [" ajoutée · ", " added · "], [" supprimées · ", " deleted · "], [" supprimée · ", " deleted · "],
+  [" · pas coché : ne sera pas envoyé", " · not ticked: will not be sent"], ["Envoyer ", "Send "], [" fichiers", " files"], [", nouveau", ", new"],
+  [" erreurs dans ", " errors in "], [" erreur dans ", " error in "], ["… et ", "… and "], [" autre(s)", " more"], [" erreurs", " errors"], [" erreur", " error"],
+  ["⚠ Changé sur GitHub (↻ pour recharger) — ", "⚠ Changed on GitHub (↻ to reload) — "], ["Nouveau, pas encore envoyé — ", "New, not sent yet — "], ["Modifié — ", "Changed — "], ["À jour — ", "Up to date — "],
+  ["« ", "“"], [" » supprimé ✔", "” deleted ✔"], ["Renommé en « ", "Renamed to “"], [" » ✔", "” ✔"], ["Suppression de ", "Deleting "], ["Renommage…", "Renaming…"], ["Ouverture de ", "Opening "],
+  ["Erreur : ", "Error: "], ["⚠ Erreur : ", "⚠ Error: "], ["Ligne ", "Line "], [" : ", ": "],
+  ["Il manque « : » à la fin de la ligne « ", "“:” is missing at the end of the “"], [" » (après if, for, func…)", "” line (after if, for, func…)"],
+  ["Texte non fermé : il manque ", "Unclosed text: missing "], ["Texte sur plusieurs lignes jamais fermé : il manque ", "Multi-line text never closed: missing "],
+  ["Bloc vide : la ligne ", "Empty block: line "], [" finit par « : », il faut au moins une ligne plus indentée en dessous (par exemple pass)", " ends with “:”, it needs at least one more indented line below (for example pass)"],
+  [" ouvert ici n'est jamais fermé", " opened here is never closed"], [" » ferme « ", "” closes “"], [" » ouvert ligne ", "” opened on line "], [" : il faudrait « ", ": expected “"], ["» en trop", "” too many"],
+  ["Toucher reçu : ", "Tap received: "], ["Téléchargé : ", "Downloaded: "], ["Ouvert depuis le téléphone : ", "Opened from the phone: "],
+  ["Rien à envoyer, déjà à jour ✔", "Nothing to send, already up to date ✔"], [" mis à jour depuis GitHub", " updated from GitHub"], [" sur GitHub alors que tu as des changements (↻)", " on GitHub while you have changes (↻)"],
+  ["Connexion réussie ✔", "Connection successful ✔"], ["\nDépôt : ", "\nRepository: "], ["\nBranche : ", "\nBranch: "], ["\nJeton : ", "\nToken: "],
+  ["C'est maintenant le dépôt affiché dans 📁.", "It is now the repository shown in 📁."], ["Échec : ", "Failed: "],
+  ["Les informations sont enregistrées : corrige-les puis réessaie.", "The information is saved: fix it and try again."],
+  ["Mis à jour pour ", "Updated for "], [" dépôts.", " repositories."], [" dépôt.", " repository."], ["Utilisé par : ", "Used by: "], ["Modifier : ", "Edit: "],
+  ["laisser vide pour garder ", "leave empty to keep "], [" dépôts", " repositories"], [" dépôt", " repository"], ["Jeton partagé (", "Shared token ("],
+  ["Supprimer le jeton « ", "Delete the token “"], [" » de cette appli ?", "” from this app?"], [" dépôt(s) n'auront plus de jeton : ", " repository(ies) will have no token: "],
+  ["(Pense aussi à le révoquer sur GitHub si besoin.)", "(Also revoke it on GitHub if needed.)"], ["Retirer « ", "Remove “"],
+  [" » de la liste ?\n\nRien n'est supprimé sur GitHub. Son jeton reste dans 🔑 Jetons.", "” from the list?\n\nNothing is deleted on GitHub. Its token stays in 🔑 Tokens."],
+  ["Ferme d'abord les ", "First close the "], [" onglet(s) ouverts de ce dépôt.", " open tab(s) of this repository."],
+  ["Effacer la copie hors ligne du dépôt « ", "Clear the offline copy of repository “"], [" » sur cet appareil ?\n\nRien n'est supprimé sur GitHub ni dans tes onglets ouverts.", "” on this device?\n\nNothing is deleted on GitHub or in your open tabs."],
+  [" a des modifications non envoyées. Fermer quand même ?", " has unsent changes. Close anyway?"], [" » a des modifications non envoyées. Fermer quand même ?", "” has unsent changes. Close anyway?"],
+  ["Ce fichier a été modifié sur GitHub depuis que tu l'as ouvert.\n\nOK = écraser avec ta version\nAnnuler = ne rien envoyer", "This file was changed on GitHub since you opened it.\n\nOK = overwrite with your version\nCancel = send nothing"],
+  ["Tu as des modifications non envoyées dans « ", "You have unsent changes in “"], ["».\n\nOK = charger la version GitHub (↶ Annuler te rendra ta version)\nAnnuler = garder ta version", "”.\n\nOK = load the GitHub version (↶ Undo gives your version back)\nCancel = keep your version"],
+  ["Supprimer « ", "Delete “"], [" » du dépôt GitHub ?", "” from the GitHub repository?"], ["Son fichier compagnon « ", "Its companion file “"], [" » sera aussi supprimé.", "” will also be deleted."],
+  ["Attention : si une scène Godot utilise ce script, elle affichera une erreur. Détache-le d'abord dans Godot si besoin.", "Warning: if a Godot scene uses this script, it will show an error. Detach it in Godot first if needed."],
+  ["Ce fichier est ouvert avec des modifications non envoyées : elles seront perdues.", "This file is open with unsent changes: they will be lost."], ["(Il reste récupérable dans l'historique Git.)", "(It can still be recovered from the Git history.)"],
+  ["Son fichier .uid suit le script : les scènes Godot le retrouveront automatiquement.", "Its .uid file follows the script: Godot scenes will find it automatically."],
+  ["Pas de fichier .uid : les scènes qui utilisent ce script devront être corrigées dans Godot.", "No .uid file: scenes using this script will need fixing in Godot."],
+  ["Les preload() / load() qui écrivent l'ancien chemin en toutes lettres devront être mis à jour.", "preload() / load() calls that spell out the old path will need updating."],
+  ["Tes modifications non envoyées restent dans l'onglet : envoie-les ensuite.", "Your unsent changes stay in the tab: send them afterwards."],
+  ["Un fichier « ", "A file “"], [" » existe déjà.", "” already exists."],
+  ["Envoyer aussi les autres onglets modifiés de ce dépôt dans le même commit ?\n\n", "Also send the other changed tabs of this repository in the same commit?\n\n"], [").\n\nEnvoyer quand même ?", ").\n\nSend anyway?"],
+  ["Ouvrir un script du dépôt « ", "Open a script from repository “"], [" » — touche son onglet pour le renommer", "” — tap its tab to rename it"], [" » n'est pas un fichier texte : GD Pocket ne peut pas l'ouvrir (✏️ et 🗑 restent possibles).", "” is not a text file: GD Pocket cannot open it (✏️ and 🗑 still work)."],
+  [" versions — touche une version pour la comparer à ton onglet", " versions — tap a version to compare it with your tab"], [" — touche une version pour la comparer à ton onglet", " — tap a version to compare it with your tab"],
+  ["📴 Hors ligne — historique enregistré le ", "📴 Offline — history saved on "], [" · la plus récente", " · latest"], [" (Ctrl+Z ou ↶ pour annuler)", " (Ctrl+Z or ↶ to undo)"],
+  ["GD Pocket : modifie ", "GD Pocket: edit "], ["GD Pocket : ajoute ", "GD Pocket: add "], ["GD Pocket : supprime ", "GD Pocket: delete "], ["GD Pocket : renomme ", "GD Pocket: rename "], ["GD Pocket : déplace ", "GD Pocket: move "],
+  ["GD Pocket (hors ligne) : ", "GD Pocket (offline): "], [" vers ", " to "], [" en ", " to "], ["la racine", "the root"],
+  [" sur ", " of "], ["Fichiers (", "Files ("], [" dans « ", " in “"], [" » :", "”:"],
+  [" »", "”"], [" dans ce fichier", " in this file"], ["Fermer ", "Close "], ["Fichier local « ", "Local file “"]
+];
+I18N_FRAG.sort(function (a, b) { return b[0].length - a[0].length; });
+function tr(s) {
+  if (LANG !== "en" || typeof s !== "string" || !s) return s;
+  var k = s.trim();
+  if (I18N_EXACT.hasOwnProperty(k)) return s.replace(k, I18N_EXACT[k]);
+  if (!/[A-Za-zÀ-ÿ]/.test(k)) return s;
+  var out = s;
+  for (var i = 0; i < I18N_FRAG.length; i++) if (out.indexOf(I18N_FRAG[i][0]) !== -1) out = out.split(I18N_FRAG[i][0]).join(I18N_FRAG[i][1]);
+  return out;
+}
+var I18N_SKIP = ".CodeMirror, #diffView, #histView, #syncView, .CodeMirror-hints, #newPreview, .snipCode, .tourBox, .nolang";
+function trNode(n) {
+  if (n.nodeType === 3) {
+    var p = n.parentNode;
+    if (!p || (p.closest && p.closest(I18N_SKIP)) || p.nodeName === "SCRIPT" || p.nodeName === "STYLE") return;
+    var t = tr(n.data); if (t !== n.data) n.data = t;
+  } else if (n.nodeType === 1) {
+    if (n.closest && n.closest(I18N_SKIP)) return;
+    ["placeholder", "title", "aria-label"].forEach(function (a) { var v = n.getAttribute(a); if (v) { var t = tr(v); if (t !== v) n.setAttribute(a, t); } });
+    for (var c = n.firstChild; c; c = c.nextSibling) trNode(c);
+  }
+}
+if (LANG === "en") {
+  trNode(document.body);
+  new MutationObserver(function (ms) {
+    ms.forEach(function (m) {
+      if (m.type === "characterData") trNode(m.target);
+      else if (m.type === "attributes") trNode(m.target);
+      else m.addedNodes.forEach(function (n) { trNode(n); });
+    });
+  }).observe(document.body, {subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["placeholder", "title", "aria-label"]});
+  var _alert = window.alert, _confirm = window.confirm, _prompt = window.prompt;
+  window.alert = function (m) { return _alert.call(window, tr(String(m))); };
+  window.confirm = function (m) { return _confirm.call(window, tr(String(m))); };
+  window.prompt = function (m, d) { return _prompt.call(window, tr(String(m)), d === undefined ? d : tr(String(d))); };
+}
+
 // Détecte si le navigateur gère « gap » en flexbox (sinon : marges de secours)
 (function () {
   var d = document.createElement("div");
@@ -781,7 +1108,7 @@ function gdHint(cm) {
 }
 
 // ---------- Préférences d'affichage ----------
-const prefs = Object.assign({theme: "godot", wrap: false, startFiles: true, bottomCollapsed: false, viewMode: "all", sortMode: "az", setSec: "repos", fontSize: 15, showDiff: true, lint: true, typeFilter: "gd", compatInput: null, autoOffline: true}, store.get("prefs", {}));
+const prefs = Object.assign({theme: "godot", wrap: false, startFiles: true, bottomCollapsed: false, viewMode: "all", sortMode: "az", setSec: "repos", fontSize: 15, showDiff: true, lint: true, typeFilter: "gd", compatInput: null, autoOffline: true, lang: null}, store.get("prefs", {}));
 document.body.style.background = prefs.theme === "godot" ? "#1d2229" : "";
 document.documentElement.style.setProperty("--code-size", prefs.fontSize + "px");
 
@@ -1548,12 +1875,12 @@ async function renameGh() {
 const TEMPLATE = base => base ? `extends ${base}
 
 
-# Appelée quand le nœud entre dans la scène pour la première fois.
+${LANG === "en" ? "# Called when the node enters the scene tree for the first time." : "# Appelée quand le nœud entre dans la scène pour la première fois."}
 func _ready() -> void:
 \tpass
 
 
-# Appelée à chaque image. 'delta' est le temps écoulé depuis l'image précédente.
+${LANG === "en" ? "# Called every frame. 'delta' is the elapsed time since the previous frame." : "# Appelée à chaque image. 'delta' est le temps écoulé depuis l'image précédente."}
 func _process(delta: float) -> void:
 \tpass
 ` : "";
@@ -1642,7 +1969,7 @@ function fillRepoSel() {
   const sel = $("repoSel"); sel.innerHTML = "";
   repos.forEach(r => {
     const o = document.createElement("option"); o.value = r.id;
-    o.textContent = "Dépôt : " + (r.owner ? r.owner + "/" : "") + (r.repo || "?");
+    o.textContent = (r.owner ? r.owner + "/" : "") + (r.repo || "?");
     sel.appendChild(o);
   });
   const m = document.createElement("option"); m.value = "__manage"; m.textContent = "＋ Gérer les dépôts…"; sel.appendChild(m);
@@ -1669,7 +1996,7 @@ function showSec(sec) {
   document.querySelectorAll(".setbody section").forEach(x => x.classList.toggle("on", x.id === "sec-" + sec));
 }
 document.querySelectorAll(".setnav button").forEach(b => b.onclick = () => showSec(b.dataset.sec));
-showSec(["display", "tokens", "offline"].indexOf(prefs.setSec) !== -1 ? prefs.setSec : "repos");
+showSec(["display", "tokens", "offline", "report", "help"].indexOf(prefs.setSec) !== -1 ? prefs.setSec : "repos");
 
 // ---------- Réglages : dépôts ----------
 let editingId = null;   // null = nouveau dépôt
@@ -1824,6 +2151,12 @@ $("prefSize").onchange = () => {
 };
 $("prefLint").checked = prefs.lint;
 $("prefCompat").checked = useCompatInput();
+$("prefLang").value = prefs.lang || "";
+$("prefLang").onchange = () => {
+  prefs.lang = $("prefLang").value || null; store.set("prefs", prefs); saveTabs(true);
+  alert(prefs.lang === "en" || (!prefs.lang && !/^fr/i.test(navigator.language || "fr")) ? "The app will restart to change the language." : "L'appli va redémarrer pour changer de langue.");
+  location.reload();
+};
 $("prefCompat").onchange = () => {
   prefs.compatInput = $("prefCompat").checked; store.set("prefs", prefs);
   saveTabs(true);
@@ -2176,16 +2509,16 @@ function askSend(t, text, defMsg) {
         const d = info[k + 1];
         const lab = document.createElement("label"); lab.className = "check";
         const cb = document.createElement("input"); cb.type = "checkbox"; boxes.push(cb);
-        cb.onchange = () => { if ($("diffMsg").value === lastAuto) { lastAuto = autoMsg(); $("diffMsg").value = lastAuto; } refreshChips(); };
+        cb.onchange = () => { if ($("diffMsg").value === tr(lastAuto)) { lastAuto = autoMsg(); $("diffMsg").value = tr(lastAuto); } refreshChips(); };
         lab.append(cb, " " + x.name + "  (+" + d.add + " −" + d.del + (x.isNew ? ", nouveau" : "") + (d.errs.length ? ", ⛔ " + d.errs.length + " erreur" + (d.errs.length > 1 ? "s" : "") : "") + ")");
         ob.appendChild(lab);
       });
     }
     show(0); refreshChips();
-    $("diffMsg").value = defMsg;
+    $("diffMsg").value = tr(defMsg);
     $("diffDlg").classList.add("open");
     const done = v => { $("diffDlg").classList.remove("open"); resolve(v); };
-    $("diffSend").onclick = () => done({msg: $("diffMsg").value.trim() || defMsg, others: oth.filter((x, k) => boxes[k].checked)});
+    $("diffSend").onclick = () => done({msg: $("diffMsg").value.trim() || tr(defMsg), others: oth.filter((x, k) => boxes[k].checked)});
     $("diffCancel").onclick = () => done(null);
     $("diffMsg").onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); $("diffSend").click(); } };
   });
@@ -2495,7 +2828,17 @@ const SNIPPETS = [
   ["précharger une scène", "const ¦SCENE := preload(\"res://scenes/ma_scene.tscn\")"],
   ["instancier une scène", "var ¦instance := SCENE.instantiate()\nadd_child(instance)"],
 ];
+// Modèles en anglais : noms d'exemple traduits (le code GDScript reste le même)
+const SNIP_EN = [["MaClasse", "MyClass"], ["nom_du_signal", "signal_name"], ["_on_nom_du_signal", "_on_signal_name"], ["noeud", "node"], ["Noeud", "Node"],
+  ["autre_condition", "other_condition"], ["element", "item"], ["tableau", "array"], ["valeur", "value"], ["Groupe", "Group"], ["NOM", "NAME"], ["nom", "name"],
+  ["Etat", "State"], ["ARRET", "STOPPED"], ["MARCHE", "RUNNING"], ["ma_scene", "my_scene"]];
+function snipCode(code) {
+  if (LANG !== "en") return code;
+  SNIP_EN.forEach(([a, b]) => { code = code.replace(new RegExp("\\b" + a + "\\b", "g"), b); });
+  return code;
+}
 function insertSnippet(code) {
+  code = snipCode(code);
   const c = cm.getCursor(), line = cm.getLine(c.line), ind = line.match(/^[ \t]*/)[0];
   let text = code.split("\n").map((l, i) => i === 0 ? l : ind + l).join("\n");
   const mark = text.indexOf("¦"); text = text.replace("¦", "");
@@ -2512,7 +2855,7 @@ function openSnippets() {
   SNIPPETS.forEach(s => {
     const li = document.createElement("li"), b = document.createElement("button");
     const t = document.createElement("span"); t.className = "nm"; t.textContent = s[0];
-    const pre = document.createElement("span"); pre.className = "pv"; pre.textContent = s[1].replace("¦", "").replace(/\t/g, "  ").split("\n")[0];
+    const pre = document.createElement("span"); pre.className = "pv"; pre.textContent = snipCode(s[1]).replace("¦", "").replace(/\t/g, "  ").split("\n")[0];
     b.append(t, pre); b.onclick = () => insertSnippet(s[1]);
     li.appendChild(b); ul.appendChild(li);
   });
@@ -2762,7 +3105,7 @@ function refreshOffState() {
   const st = offStats(id), el = $("offlineState");
   if (!st.kept) { el.textContent = "pas préparé"; el.className = "sub"; $("offlineIc").textContent = "⬇"; }
   else if (st.ok >= st.want) { el.textContent = st.ok + "/" + st.want; el.className = "sub ok"; $("offlineIc").textContent = "✔"; }
-  else { el.textContent = (st.want - st.ok) + " à mettre à jour"; el.className = "sub old"; $("offlineIc").textContent = "⬇"; }
+  else { el.textContent = (st.want - st.ok) + " à màj"; el.className = "sub old"; $("offlineIc").textContent = "⬇"; }
   $("offInfo").textContent = st.kept
     ? "Dépôt « " + st.repo + " » : " + st.kept + " fichier" + (st.kept > 1 ? "s" : "") + " gardé" + (st.kept > 1 ? "s" : "") + " sur cet appareil (" + Math.max(1, Math.ceil(st.size / 1024)) + " Ko) · " + st.ok + " / " + st.want + " du filtre actuel à jour."
     : "Dépôt « " + st.repo + " » : rien n'est encore gardé hors ligne. Touche « Préparer maintenant » avec Internet.";
@@ -2871,7 +3214,7 @@ function renderSync() {
   });
   const msgs = [];
   syncItems.forEach(it => { if (it.choice === "up" && it.q.message && msgs.indexOf(it.q.message) === -1) msgs.push(it.q.message); });
-  if (!$("syncMsg").dataset.edited) $("syncMsg").value = msgs.length === 1 ? msgs[0] : msgs.length ? "GD Pocket (hors ligne) : " + msgs.map(m => m.replace(/^GD Pocket\s*:\s*/, "")).join(" ; ") : "";
+  if (!$("syncMsg").dataset.edited) $("syncMsg").value = tr(msgs.length === 1 ? msgs[0] : msgs.length ? "GD Pocket (hors ligne) : " + msgs.map(m => m.replace(/^GD Pocket\s*:\s*/, "")).join(" ; ") : "");
   const undecided = syncItems.filter(it => !it.choice).length;
   $("syncGo").disabled = !!undecided;
   $("syncGo").textContent = undecided ? "Choisis pour chaque fichier ⚠" : "Synchroniser";
@@ -2986,6 +3329,180 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) setT
 setTimeout(maybeSync, 2500);
 refreshSyncBtn();
 
+// ---------- v0.14 : textes bilingues des nouvelles parties ----------
+const L = (fr, en) => LANG === "en" ? en : fr;
+const REPO_URL = "https://github.com/LutiinBlack/gd-pocket";
+
+// ---------- Sécurité du jeton (Réglages › Jetons) ----------
+(function () {
+  const b = $("secBox");
+  const h = document.createElement("b"); h.textContent = L("ℹ️ Sécurité de ton jeton", "ℹ️ Your token's security"); b.appendChild(h);
+  const ul = document.createElement("div");
+  ul.textContent = L(
+    "Crée un jeton « fine-grained » limité aux seuls dépôts voulus, avec uniquement « Contents : Read and write » et une date d'expiration. Il reste sur cet appareil et n'est envoyé qu'à api.github.com (HTTPS). GD Pocket n'a ni serveur, ni compte, ni statistiques. Téléphone perdu : révoque le jeton sur GitHub. ",
+    "Create a “fine-grained” token limited to the repositories you need, with only “Contents: Read and write” and an expiry date. It stays on this device and is only sent to api.github.com (HTTPS). GD Pocket has no server, no account and no analytics. Lost phone: revoke the token on GitHub. ");
+  const a = document.createElement("a"); a.href = REPO_URL + "/blob/main/" + L("SECURITE.md", "SECURITY.md"); a.target = "_blank"; a.rel = "noopener";
+  a.textContent = L("En savoir plus →", "Learn more →");
+  ul.appendChild(a); b.appendChild(ul);
+})();
+
+// ---------- Signaler un problème (Réglages › Signaler) ----------
+const REP_TYPES = [["bug", L("🐞 Bug (quelque chose ne marche pas)", "🐞 Bug (something doesn't work)"), "Bug"],
+                   ["idea", L("💡 Idée (amélioration)", "💡 Idea (improvement)"), L("Idée", "Idea")],
+                   ["question", L("❓ Question", "❓ Question"), "Question"]];
+(function () {
+  $("repIntro").textContent = L("Ton signalement est envoyé sur GitHub, dans le dépôt public de GD Pocket : tu peux suivre la réponse, et chacun peut voir si un bug est déjà signalé. Ton jeton n'est jamais ajouté.",
+    "Your report goes to GitHub, in GD Pocket's public repository: you can follow the answer, and everyone can see whether a bug was already reported. Your token is never included.");
+  $("repTypeL").textContent = L("Type", "Type"); $("repTitleL").textContent = L("Titre", "Title"); $("repBodyL").textContent = L("Description", "Description");
+  $("repTitle").placeholder = L("ex. Le mot « if » disparaît après un espace", "e.g. The word “if” disappears after a space");
+  $("repBody").placeholder = L("Ce que tu faisais, ce qui s'est passé, ce que tu attendais…", "What you were doing, what happened, what you expected…");
+  $("repInfoL").textContent = L("Joindre les infos techniques (version, appareil, navigateur, dernière erreur)", "Attach technical info (version, device, browser, last error)");
+  $("repSend").textContent = L("Envoyer via GitHub", "Send via GitHub");
+  $("repSee").textContent = L("Voir les signalements existants", "See existing reports");
+  REP_TYPES.forEach(t => { const o = document.createElement("option"); o.value = t[0]; o.textContent = t[1]; $("repType").appendChild(o); });
+  const d = store.get("reportDraft", null);
+  if (d) { $("repType").value = d.type || "bug"; $("repTitle").value = d.title || ""; $("repBody").value = d.body || ""; }
+  const save = () => { store.set("reportDraft", {type: $("repType").value, title: $("repTitle").value, body: $("repBody").value}); refreshRepInfo(); };
+  ["repType", "repTitle", "repBody"].forEach(id => { $(id).addEventListener("input", save); $(id).addEventListener("change", save); });
+  $("repInfo").onchange = refreshRepInfo;
+  refreshRepInfo();
+})();
+function repTechInfo() {
+  return [
+    "GD Pocket v" + APP_VERSION + " · " + L("langue", "language") + " : " + LANG,
+    L("Appareil / navigateur", "Device / browser") + " : " + navigator.userAgent,
+    L("Écran", "Screen") + " : " + screen.width + "×" + screen.height + " · " + L("fenêtre", "window") + " " + window.innerWidth + "×" + window.innerHeight,
+    L("Saisie compatible Android", "Android-compatible typing") + " : " + (useCompatInput() ? L("oui", "yes") : L("non", "no")) + " · " + L("en ligne", "online") + " : " + (navigator.onLine ? L("oui", "yes") : L("non", "no")),
+    L("Dernière erreur", "Last error") + " : " + (lastAppError || L("aucune", "none"))
+  ].join("\n");
+}
+function refreshRepInfo() {
+  $("repInfoView").style.display = $("repInfo").checked ? "" : "none";
+  $("repInfoView").textContent = repTechInfo();
+  $("repHint").textContent = L("Le brouillon reste ici (même sans Internet) jusqu'à ce que tu l'envoies. « Envoyer via GitHub » ouvre la page de signalement déjà remplie : il ne reste qu'à la valider (compte GitHub).",
+    "The draft stays here (even offline) until you send it. “Send via GitHub” opens the report page already filled in: you just have to confirm it (GitHub account).");
+}
+$("repSend").onclick = () => {
+  const title = $("repTitle").value.trim(), body = $("repBody").value.trim();
+  if (!title || !body) { say(L("Donne un titre et une description à ton signalement.", "Give your report a title and a description."), "warn"); return; }
+  if (!navigator.onLine) { say(L("📴 Pas d'Internet : ton brouillon est gardé, envoie-le au retour d'Internet.", "📴 No Internet: your draft is kept, send it when Internet is back."), "warn"); return; }
+  const type = REP_TYPES.filter(t => t[0] === $("repType").value)[0] || REP_TYPES[0];
+  let full = body;
+  if ($("repInfo").checked) full += "\n\n---\n**" + L("Infos techniques", "Technical info") + "**\n```\n" + repTechInfo() + "\n```";
+  const url = REPO_URL + "/issues/new?title=" + encodeURIComponent("[" + type[2] + "] " + title) + "&body=" + encodeURIComponent(full.slice(0, 6000));
+  window.open(url, "_blank", "noopener");
+  notify(L("Page GitHub ouverte ✔ Valide le signalement sur GitHub. Ton brouillon reste ici en attendant.", "GitHub page opened ✔ Confirm the report on GitHub. Your draft stays here meanwhile."), "ok");
+};
+$("repSee").onclick = () => window.open(REPO_URL + "/issues", "_blank", "noopener");
+
+// ---------- Aide (Réglages › Aide) ----------
+$("helpTitle").textContent = L("Tutoriel", "Tutorial");
+$("helpText").textContent = L("Le tutoriel montre chaque bouton et chaque partie de l'écran avec une bulle d'explication. Tu peux aussi le relancer avec le bouton « ? » en haut du panneau 📁.",
+  "The tutorial shows every button and every part of the screen with an explanation bubble. You can also start it again with the “?” button at the top of the 📁 panel.");
+$("helpTour").textContent = L("▶ Lancer le tutoriel", "▶ Start the tutorial");
+
+// ---------- Tutoriel avec bulles ----------
+const TOUR = [
+  {page: "editor", sel: null, t: L("Bienvenue dans GD Pocket 👋", "Welcome to GD Pocket 👋"),
+   d: L("Un éditeur GDScript de poche relié à tes dépôts GitHub. Cette visite montre chaque bouton en quelques bulles. Tu pourras la revoir avec le bouton « ? ».",
+        "A pocket GDScript editor linked to your GitHub repositories. This tour shows every button in a few bubbles. You can watch it again with the “?” button.")},
+  {page: "editor", sel: "#btnFiles", t: L("📁 Fichiers et réglages", "📁 Files and settings"),
+   d: L("Ouvre le panneau des fichiers de ton dépôt GitHub et les Réglages (dépôts, jetons, affichage, hors ligne…).", "Opens the panel with your GitHub repository files and the Settings (repositories, tokens, display, offline…).")},
+  {page: "editor", sel: "#undoBtn", t: L("↶ ↷ Annuler et rétablir", "↶ ↷ Undo and redo"),
+   d: L("Annule ou rétablit ta dernière modification dans l'onglet affiché.", "Undoes or redoes your last change in the current tab.")},
+  {page: "editor", sel: "#outlineBtn", t: L("☰ Plan du script", "☰ Script outline"),
+   d: L("Liste les func, signal, const et @export du script : un toucher t'amène à la bonne ligne.", "Lists the script's func, signal, const and @export: one tap takes you to the right line.")},
+  {page: "editor", sel: "#find", t: L("🔍 Rechercher", "🔍 Search"),
+   d: L("Cherche un mot dans le script (▲ ▼ pour passer d'un résultat à l'autre, ⇄ pour remplacer).", "Searches a word in the script (▲ ▼ to move between results, ⇄ to replace).")},
+  {page: "editor", sel: "#save", t: L("Envoyer", "Send"),
+   d: L("Envoie tes changements sur GitHub (un commit). Une fenêtre montre d'abord les différences et les erreurs. Sans Internet, l'envoi est mis en attente ⏳.",
+        "Sends your changes to GitHub (a commit). A window first shows the differences and errors. Offline, sending is queued ⏳.")},
+  {page: "editor", sel: "#tabbar", t: L("Onglets", "Tabs"),
+   d: L("Chaque fichier ouvert a son onglet. ● orange = modifié pas encore envoyé, ⟳ = changé sur GitHub, ⏳ = en attente d'Internet. « ＋ » ouvre ou crée un script.",
+        "Each open file has its tab. Orange ● = changed, not sent yet, ⟳ = changed on GitHub, ⏳ = waiting for Internet. “＋” opens or creates a script.")},
+  {page: "editor", sel: ".CodeMirror-gutters", t: L("La marge", "The margin"),
+   d: L("● rouge = erreur dans la ligne (touche-la pour l'explication). ● orange = ligne nouvelle ou modifiée, ▸ orange = lignes supprimées ici.",
+        "Red ● = error on the line (tap it for the explanation). Orange ● = new or changed line, orange ▸ = lines deleted here.")},
+  {page: "editor", sel: "#keys", t: L("Barre de touches", "Key bar"),
+   d: L("🧩 modèles de code, flèches ← ↑ ↓ → pour déplacer le curseur (appui long = continu), et les caractères utiles du GDScript. \" ( [ { ouvrent la paire.",
+        "🧩 code templates, ← ↑ ↓ → arrows to move the cursor (long press = continuous), and handy GDScript characters. \" ( [ { open the pair.")},
+  {page: "editor", sel: "#statusRow", t: L("Barre d'état", "Status bar"),
+   d: L("Montre l'état du fichier et les messages. 🕘 = historique des versions, ↻ = recharger l'onglet depuis GitHub, ▾ = replier la barre.",
+        "Shows the file state and messages. 🕘 = version history, ↻ = reload the tab from GitHub, ▾ = collapse the bar.")},
+  {page: "files", sel: "#repoSel", block: true, t: L("Dépôt", "Repository"),
+   d: L("Le dépôt GitHub affiché. ⏳ Synchroniser apparaît ici quand des actions faites hors ligne attendent.", "The GitHub repository shown. ⏳ Sync appears here when actions made offline are waiting.")},
+  {page: "files", sel: ".actgrid", t: L("Actions", "Actions"),
+   d: L("＋ Nouveau script, ↻ Actualiser la liste, Hors ligne (copie des fichiers sur l'appareil et son état), 📂 Ouvrir un fichier de l'appareil, 💾 Télécharger l'onglet.",
+        "＋ New script, ↻ Refresh the list, Offline (copy of the files on the device and its state), 📂 Open a file from the device, 💾 Download the tab.")},
+  {page: "files", sel: "#filter", block: true, t: L("Recherche", "Search"),
+   d: L("Filtre la liste par nom (ex. voiture).", "Filters the list by name (e.g. car).")},
+  {page: "files", sel: ".listopts", block: true, t: L("Filtres", "Filters"),
+   d: L("Affichage (tout ou par dossier), tri, et types de fichiers (scripts, scènes et textes, ou tous). Légende hors ligne : ✔ copie à jour, ⬇ copie ancienne.",
+        "Display (all or by folder), sort, and file types (scripts, scenes and text, or all). Offline legend: ✔ up-to-date copy, ⬇ old copy.")},
+  {page: "files", sel: "#list", t: L("Fichiers", "Files"),
+   d: L("Touche un fichier pour l'ouvrir. ✏️ = renommer / déplacer, 🗑 = supprimer (le .uid de Godot suit le script).", "Tap a file to open it. ✏️ = rename / move, 🗑 = delete (Godot's .uid follows the script).")},
+  {page: "settings", sel: ".setnav", t: L("Réglages", "Settings"),
+   d: L("Dépôts GitHub, 🔑 Jetons (un jeton pour un ou plusieurs dépôts), 🎨 Affichage (thème, taille, langue…), 📴 Hors ligne, 🐞 Signaler un problème et ❓ Aide.",
+        "GitHub repositories, 🔑 Tokens (one token for one or several repositories), 🎨 Display (theme, size, language…), 📴 Offline, 🐞 Report a problem and ❓ Help.")},
+  {page: "settings", sec: "report", sel: "#repSend", t: L("🐞 Signaler un problème", "🐞 Report a problem"),
+   d: L("Écris ce qui ne va pas : le signalement part sur GitHub, avec un suivi public de la réponse.", "Describe what's wrong: the report goes to GitHub, with a public follow-up of the answer.")},
+  {page: "settings", sel: "#helpBtn", t: L("C'est tout ! 🎉", "That's all! 🎉"),
+   d: L("Tu peux revoir ce tutoriel à tout moment avec ce bouton « ? ». Bon code !", "You can watch this tutorial again at any time with this “?” button. Happy coding!")}
+];
+let tourI = 0, tourWasPanel = false;
+function tourPage(st) {
+  if (st.page === "editor") { if ($("panel").classList.contains("open")) closePanel(); return; }
+  if (!$("panel").classList.contains("open")) openPanel();
+  showTab(st.page === "settings" ? "settings" : "files");
+  if (st.page === "settings") showSec(st.sec || "repos");
+}
+function tourShow() {
+  const st = TOUR[tourI];
+  tourPage(st);
+  $("tourStep").textContent = (tourI + 1) + " / " + TOUR.length;
+  $("tourT").textContent = st.t; $("tourD").textContent = st.d;
+  $("tourPrev").style.visibility = tourI ? "visible" : "hidden";
+  $("tourNext").textContent = tourI === TOUR.length - 1 ? L("Terminer", "Finish") : L("Suivant →", "Next →");
+  setTimeout(() => {
+    let el = st.sel ? document.querySelector(st.sel) : null;
+    if (el && st.block && el.closest(".fblock")) el = el.closest(".fblock");
+    const hole = $("tourHole"), box = $("tourBox");
+    if (el && el.scrollIntoView) el.scrollIntoView({block: "nearest"});
+    const r = el ? el.getBoundingClientRect() : null;
+    if (!r || !r.width || !r.height) {
+      hole.className = "none"; hole.style.cssText = "";
+      box.style.top = "30%"; box.style.bottom = "";
+      return;
+    }
+    hole.className = "";
+    const pad = 4, top = Math.max(2, r.top - pad), h = Math.min(window.innerHeight - top - 2, r.height + pad * 2);
+    hole.style.left = Math.max(2, r.left - pad) + "px"; hole.style.top = top + "px";
+    hole.style.width = Math.min(window.innerWidth - 4, r.width + pad * 2) + "px"; hole.style.height = h + "px";
+    if (r.top + r.height / 2 < window.innerHeight / 2) { box.style.top = Math.min(window.innerHeight - 200, top + h + 10) + "px"; box.style.bottom = ""; }
+    else { box.style.top = ""; box.style.bottom = Math.min(window.innerHeight - 200, window.innerHeight - top + 10) + "px"; }
+  }, 120);
+}
+function startTour() {
+  hideNotice();
+  tourWasPanel = $("panel").classList.contains("open");
+  tourI = 0;
+  $("tour").classList.add("open");
+  tourShow();
+}
+function endTour() {
+  $("tour").classList.remove("open");
+  store.set("tourDone", APP_VERSION);
+  if (tourWasPanel) { if (!$("panel").classList.contains("open")) openPanel(); showTab("files"); } else if ($("panel").classList.contains("open")) closePanel();
+}
+$("tourSkip").textContent = L("Passer", "Skip"); $("tourPrev").textContent = L("← Précédent", "← Back");
+$("tourNext").onclick = () => { if (tourI < TOUR.length - 1) { tourI++; tourShow(); } else endTour(); };
+$("tourPrev").onclick = () => { if (tourI > 0) { tourI--; tourShow(); } };
+$("tourSkip").onclick = endTour;
+$("helpBtn").onclick = startTour;
+$("helpTour").onclick = startTour;
+window.addEventListener("resize", () => { if ($("tour").classList.contains("open")) tourShow(); });
+if (!store.get("tourDone", null)) setTimeout(() => { if (!$("updDlg").classList.contains("open") && !$("syncDlg").classList.contains("open")) startTour(); }, 1500);
+
 // ---------- Mises à jour : fenêtre « Nouvelle version » ----------
 let pendingWorker = null, updateAccepted = false;
 function verCmp(a, b) {
@@ -3003,7 +3520,7 @@ async function showUpdate(worker) {
     let vs = j.versions.filter(v => verCmp(v.version, APP_VERSION) > 0);
     if (!vs.length) vs = j.versions.slice(0, 1);
     title = "Nouvelle version v" + vs[0].version;
-    vs.forEach(v => v.notes.forEach(n => notes.push((vs.length > 1 ? "v" + v.version + " — " : "") + n)));
+    vs.forEach(v => ((LANG === "en" && v.notes_en) || v.notes).forEach(n => notes.push((vs.length > 1 ? "v" + v.version + " — " : "") + n)));
   } catch (e) {}
   if (!notes.length) notes = ["Améliorations et corrections."];
   $("updTitle").textContent = title;
