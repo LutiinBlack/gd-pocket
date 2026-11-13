@@ -3649,7 +3649,8 @@ async function runProjSearch() {
     let info = hits.length
       ? L(hits.length + " ligne" + (hits.length > 1 ? "s" : "") + " dans " + files + " fichier" + (files > 1 ? "s" : ""), hits.length + " line" + (hits.length > 1 ? "s" : "") + " in " + files + " file" + (files > 1 ? "s" : ""))
       : L("Aucun résultat pour « " + q + " »", "No result for “" + q + "”");
-    info += L(" · " + Object.keys(out).length + " fichiers lus", " · " + Object.keys(out).length + " files read");
+    const nRead = Object.keys(out).length;
+    info += L(" · " + nRead + " fichier" + (nRead > 1 ? "s" : "") + " lu" + (nRead > 1 ? "s" : ""), " · " + nRead + " file" + (nRead > 1 ? "s" : "") + " read");
     if (hits.length >= MAX) info += L(" · seulement les " + MAX + " premières lignes", " · first " + MAX + " lines only");
     if (missing.length) info += L(" · 📴 " + missing.length + " non disponible" + (missing.length > 1 ? "s" : "") + " hors ligne", " · 📴 " + missing.length + " not available offline");
     $("projInfo").textContent = info;
