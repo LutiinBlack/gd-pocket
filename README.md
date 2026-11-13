@@ -81,6 +81,7 @@ Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), a
 | `changelog.json` | nouveautés affichées dans la fenêtre « Nouvelle version » |
 | `manifest.webmanifest`, `icons/` | installation sur l'écran d'accueil |
 | `SECURITE.md`, `SECURITY.md` | sécurité du jeton (français, anglais) |
+| `LICENSE` | licence MIT |
 
 Publier une nouvelle version : changer `VERSION` dans `sw.js`, `APP_VERSION` dans `index.html`, ajouter une entrée en tête de `changelog.json`, puis pousser sur `main` (GitHub Pages met jusqu'à ~10 min à se mettre à jour).
 
@@ -99,4 +100,10 @@ Publier une nouvelle version : changer `VERSION` dans `sw.js`, `APP_VERSION` dan
 | v0.7.x | 28–29/10/2026 | Renommer / déplacer, compatibilité iOS 12, démarrage sur la liste |
 | v0.1–v0.6 | 28/10/2026 | Prototype, PWA, connexion GitHub, couleurs Godot, onglets, création et suppression |
 
-Basé sur [CodeMirror 5](https://codemirror.net/5/).
+## Licence
+
+GD Pocket est distribué sous licence [MIT](LICENSE) : chacun peut l'utiliser, le modifier et le partager, en gardant la mention de copyright.
+
+Conçu, dirigé et testé par Lutiin Black, développé avec l'aide de Claude (IA).
+
+Basé sur [CodeMirror 5](https://codemirror.net/5/) (licence MIT).
