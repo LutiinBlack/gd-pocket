@@ -79,6 +79,18 @@
   .ftitle { font-size:11px; letter-spacing:.06em; text-transform:uppercase; opacity:.55; margin:0 0 6px 2px; font-family:system-ui, sans-serif; }
   .fblock select, .fblock input[type=search], .fblock input[type=text], .fblock button.wide { margin:0; }
   .fblock button.wide + select, .fblock select + button.wide { margin-top:8px; }
+  #projDlg { position:fixed; top:0; right:0; bottom:0; left:0; background:rgba(0,0,0,.55); z-index:200; display:none; align-items:flex-start; justify-content:center; padding-top:6vh; }
+  #projDlg.open { display:flex; }
+  #projDlg .box { background:var(--bar); border-radius:10px; padding:14px; width:min(94vw,640px); max-height:86vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  #projDlg h2 { margin:0 0 8px; font-size:17px; }
+  #projCase.on { background:var(--acc); color:#fff; }
+  #projList { list-style:none; margin:8px 0 0; padding:0; }
+  #projList .pf { font-weight:600; font-size:13px; margin:10px 0 2px; word-break:break-all; color:#8ec5ff; }
+  #projList button.hit { display:flex; gap:8px; width:100%; text-align:left; background:var(--bg); border:0; border-radius:6px; padding:6px 8px; margin:2px 0; font-family:ui-monospace, monospace; font-size:12.5px; color:inherit; }
+  #projList .ln { opacity:.5; min-width:34px; text-align:right; flex:none; }
+  #projList .tx { white-space:pre; overflow:hidden; text-overflow:ellipsis; }
+  #projList mark { background:#ffb86c; color:#1d2229; border-radius:2px; }
+  #findProj { white-space:nowrap; }
   .secbox { background:var(--bar); border-left:3px solid var(--acc); border-radius:8px; padding:8px 10px; font-size:13px; line-height:1.45; margin:4px 0 10px; }
   .secbox b { display:block; margin-bottom:4px; font-size:14px; }
   .secbox a, .reportbox a { color:#57b3ff; }
@@ -335,6 +347,7 @@
   <button id="findPrev" class="ghost" aria-label="Précédent">▲</button>
   <button id="findNext" class="ghost" aria-label="Suivant">▼</button>
   <button id="replToggle" class="ghost">⇄ Remplacer</button>
+  <button id="findProj" class="ghost nolang"></button>
   <button id="findClose" class="ghost" aria-label="Fermer la recherche">✕</button>
 </div>
 <div id="replBar">
@@ -388,6 +401,7 @@
     <section class="fblock">
       <div class="ftitle">Recherche</div>
       <input id="filter" type="search" placeholder="🔍 Filtrer (ex. voiture)">
+      <button id="projBtn" class="ghost wide nolang" style="margin-top:8px"></button>
     </section>
     <section class="fblock">
       <div class="ftitle">Filtres</div>
@@ -422,6 +436,7 @@
         <button data-sec="tokens">🔑 Jetons</button>
         <button data-sec="display">🎨 Affichage</button>
         <button data-sec="offline">📴 Hors ligne</button>
+        <button data-sec="backup" class="nolang" id="navBackup"></button>
         <button data-sec="report">🐞 Signaler</button>
         <button data-sec="help">❓ Aide</button>
       </nav>
@@ -518,6 +533,13 @@
             <button id="repSee" class="ghost"></button>
           </div>
           <p class="hint nolang" id="repHint"></p>
+        </section>
+        <section id="sec-backup" class="nolang">
+          <h3 id="bakTitle"></h3>
+          <p id="bakIntro"></p>
+          <div class="fblock"><div class="ftitle" id="bakExpT"></div><button id="bakExport" class="wide"></button><p class="hint" id="bakExpHint"></p></div>
+          <div class="fblock"><div class="ftitle" id="bakImpT"></div><button id="bakImport" class="wide ghost"></button><p class="hint" id="bakImpHint"></p></div>
+          <input id="bakFile" type="file" accept=".json,application/json" hidden>
         </section>
         <section id="sec-help">
           <h3 class="nolang" id="helpTitle"></h3>
@@ -693,6 +715,21 @@
   </div>
 </div>
 
+<!-- Fenêtre : rechercher dans tout le projet (v0.15) -->
+<div id="projDlg" class="nolang">
+  <div class="box">
+    <h2 id="projTitle"></h2>
+    <div class="row" style="align-items:center;gap:6px">
+      <input id="projQ" type="search" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="flex:1;margin:0">
+      <button id="projCase" class="ghost" aria-label="Aa">Aa</button>
+      <button id="projGo"></button>
+    </div>
+    <div id="projInfo" class="hint"></div>
+    <ul id="projList"></ul>
+    <div class="row"><button id="projClose" class="ghost"></button></div>
+  </div>
+</div>
+
 <!-- Fenêtre : renommer / déplacer -->
 <div id="renDlg">
   <div class="box">
@@ -719,7 +756,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
 <script>
 // ---------- Version et rapport d'erreurs (utile sur les vieux appareils) ----------
-var APP_VERSION = "0.14.0";
+var APP_VERSION = "0.15.0";
 var lastAppError = "";
 function showError(msg) {
   lastAppError = String(msg).slice(0, 300);
@@ -744,6 +781,8 @@ var LANG = (function () {
 })();
 document.documentElement.lang = LANG;
 var I18N_EXACT = {
+  "(aucun script)": "(no script)", "inconnue": "unknown",
+  "❓ Aide": "❓ Help", "Aide": "Help",
   "Script du dépôt": "Repository script", "Ouvrir du dépôt": "Open from the repository", "Ouvrir de l'appareil": "Open from the device", "Signaler un problème": "Report a problem",
   // En-tête, onglets, barre du bas
   "Envoyer": "Send", "Enregistrer": "Save", "Annuler": "Cancel", "Fermer": "Close", "Créer": "Create", "OK": "OK",
@@ -945,7 +984,8 @@ var I18N_FRAG = [
   ["GD Pocket : modifie ", "GD Pocket: edit "], ["GD Pocket : ajoute ", "GD Pocket: add "], ["GD Pocket : supprime ", "GD Pocket: delete "], ["GD Pocket : renomme ", "GD Pocket: rename "], ["GD Pocket : déplace ", "GD Pocket: move "],
   ["GD Pocket (hors ligne) : ", "GD Pocket (offline): "], [" vers ", " to "], [" en ", " to "], ["la racine", "the root"],
   [" sur ", " of "], ["Fichiers (", "Files ("], [" dans « ", " in “"], [" » :", "”:"],
-  [" »", "”"], [" dans ce fichier", " in this file"], ["Fermer ", "Close "], ["Fichier local « ", "Local file “"]
+  [" »", "”"], [" dans ce fichier", " in this file"], [" (ligne ", " (line "], [" dernières version", " latest version"], [" dernière version", " latest version"],
+  [" — si tu restaures : +", " — if you restore: +"], [" ligne(s) reviennent, −", " line(s) come back, −"], [" disparaissent", " disappear"], ["Nouvelle version v", "New version v"], ["rien n'a été envoyé", "nothing was sent"], ["Fermer ", "Close "], ["Fichier local « ", "Local file “"]
 ];
 I18N_FRAG.sort(function (a, b) { return b[0].length - a[0].length; });
 function tr(s) {
@@ -1788,6 +1828,7 @@ function openRenDlg(path) {
   const sel = $("renDir"); sel.innerHTML = "";
   dirs.forEach(d => { const o = document.createElement("option"); o.value = d; o.textContent = d ? d + "/" : "(racine du dépôt)"; sel.appendChild(o); });
   sel.value = dir;
+  addFolderChoice(sel, updateRenPreview);
   const name = path.slice(i + 1), ext = extOf(name);
   $("renFrom").textContent = "Actuel : " + path;
   $("renName").value = ext ? name.slice(0, -ext.length) : name;
@@ -1804,7 +1845,6 @@ function renPath() {
 }
 function updateRenPreview() { $("renPreview").textContent = renPath() ? "→ " + renPath() : ""; }
 $("renName").oninput = updateRenPreview;
-$("renDir").onchange = updateRenPreview;
 $("renCancel").onclick = () => $("renDlg").classList.remove("open");
 $("renOk").onclick = renameGh;
 
@@ -1820,9 +1860,29 @@ async function renameGh() {
   let warn = `Renommer « ${from} »\nen « ${to} » ?`;
   if (moves.length > 1) warn += "\n\nSon fichier .uid suit le script : les scènes Godot le retrouveront automatiquement.";
   else if (isGd) warn += "\n\nPas de fichier .uid : les scènes qui utilisent ce script devront être corrigées dans Godot.";
-  if (isGd) warn += "\n\nLes preload() / load() qui écrivent l'ancien chemin en toutes lettres devront être mis à jour.";
+  const online = navigator.onLine && !queue.some(q => q.repoId === activeId());
+  if (!online) warn += L("\n\nHors ligne : les preload() / load() qui citent l'ancien chemin ne seront pas corrigés (à faire avec Internet, ou dans Godot).", "\n\nOffline: preload() / load() calls that cite the old path won't be fixed (do it with Internet, or in Godot).");
   if (ti >= 0 && isDirty(tabs[ti])) warn += "\n\nTes modifications non envoyées restent dans l'onglet : envoie-les ensuite.";
   if (!confirm(warn)) return;
+  // v0.15 : les autres scripts qui citent l'ancien chemin (res://…)
+  let refs = [], dirtyFixed = [];
+  if (online) {
+    try {
+      const skip = moves.map(m => m[0]);
+      refs = await findPathRefs(cfg(), from, to, skip);
+      $("filesHint").textContent = "";
+    } catch (e) { refs = []; }
+    const dirty = refs.filter(r => tabs.some(t => t.kind === "gh" && t.repoId === activeId() && t.path === r.path && isDirty(t)));
+    if (refs.length) {
+      const list = refs.map(r => "• " + r.path + " (" + r.count + ")").join("\n");
+      const ask = L("Ces scripts citent l'ancien chemin « res://" + from + " » :\n" + list + "\n\nOK = les corriger dans le même commit\nAnnuler = renommer sans les corriger",
+                    "These scripts cite the old path “res://" + from + "”:\n" + list + "\n\nOK = fix them in the same commit\nCancel = rename without fixing them");
+      if (confirm(ask)) {
+        dirty.forEach(r => { const t = tabs.find(x => x.kind === "gh" && x.repoId === activeId() && x.path === r.path); if (t && fixRefsInDirtyTab(t, from, to)) dirtyFixed.push(r.path); });
+        refs = refs.filter(r => dirty.indexOf(r) === -1);
+      } else refs = [];
+    }
+  }
   const fromName = from.split("/").pop(), toName = to.split("/").pop();
   const def = fromName === toName ? `GD Pocket : déplace ${fromName} vers ${to.slice(0, to.lastIndexOf("/") + 1) || "la racine"}`
                                   : `GD Pocket : renomme ${fromName} en ${toName}`;
@@ -1845,6 +1905,7 @@ async function renameGh() {
         entries.push({path: b, mode: "100644", type: "blob", sha: blobs[k]});
         entries.push({path: a, mode: "100644", type: "blob", sha: null});
       });
+      refs.forEach(r => entries.push({path: r.path, mode: "100644", type: "blob", content: r.text}));
       const t = await gh(`${R}/git/trees`, {method: "POST", body: JSON.stringify({base_tree: base, tree: entries})});
       const nc = await gh(`${R}/git/commits`, {method: "POST", body: JSON.stringify({message: message || def, tree: t.sha, parents: [head]})});
       try {
@@ -1861,8 +1922,17 @@ async function renameGh() {
     const aid2 = activeId();
     tabs.forEach(t => { if (t.kind === "gh" && t.path === from && t.repoId === aid2) { t.path = to; t.name = toName; } });
     moves.forEach(([a, b]) => cacheMove(aid2, a, b));
+    for (const r of refs) {
+      const sha = await gitBlobSha(r.text);
+      cachePut(aid2, r.path, sha, r.text);
+      const t = tabs.find(x => x.kind === "gh" && x.repoId === aid2 && x.path === r.path);
+      if (t) applyRemote(t, sha, r.text);
+    }
     saveTabs(true); renderTabs(); refreshStatus(); renderList();
-    $("filesHint").textContent = `Renommé en « ${to} » ✔ (pense à faire un pull sur le PC)`; notify($("filesHint").textContent, "ok");
+    let done = `Renommé en « ${to} » ✔ (pense à faire un pull sur le PC)`;
+    if (refs.length) done += L(" · chemin corrigé dans " + refs.length + " script" + (refs.length > 1 ? "s" : ""), " · path fixed in " + refs.length + " script" + (refs.length > 1 ? "s" : ""));
+    if (dirtyFixed.length) done += L(" · corrigé aussi dans l'onglet modifié " + dirtyFixed.join(", ") + " (à envoyer)", " · also fixed in the changed tab " + dirtyFixed.join(", ") + " (to send)");
+    $("filesHint").textContent = done; notify(done, "ok");
   } catch (e) {
     if (netErr(e)) { queueRename(moves, message || def); return; }
     $("filesHint").textContent = e.status === 404
@@ -1891,6 +1961,7 @@ function openNewDlg() {
   dirs.forEach(d => { const o = document.createElement("option"); o.value = d; o.textContent = d ? d + "/" : "(racine du dépôt)"; sel.appendChild(o); });
   const last = store.get("lastDir", dirs.includes("scripts") ? "scripts" : "");
   if (dirs.includes(last)) sel.value = last;
+  addFolderChoice(sel, updateNewPreview);
   $("newName").value = "";
   updateNewPreview();
   $("newDlg").classList.add("open");
@@ -1904,7 +1975,6 @@ function newPath() {
 }
 function updateNewPreview() { $("newPreview").textContent = newPath() ? "→ " + newPath() : ""; }
 $("newName").oninput = updateNewPreview;
-$("newDir").onchange = updateNewPreview;
 $("newCancel").onclick = () => $("newDlg").classList.remove("open");
 $("newCreate").onclick = () => {
   const p = newPath();
@@ -1996,7 +2066,7 @@ function showSec(sec) {
   document.querySelectorAll(".setbody section").forEach(x => x.classList.toggle("on", x.id === "sec-" + sec));
 }
 document.querySelectorAll(".setnav button").forEach(b => b.onclick = () => showSec(b.dataset.sec));
-showSec(["display", "tokens", "offline", "report", "help"].indexOf(prefs.setSec) !== -1 ? prefs.setSec : "repos");
+showSec(["display", "tokens", "offline", "backup", "report", "help"].indexOf(prefs.setSec) !== -1 ? prefs.setSec : "repos");
 
 // ---------- Réglages : dépôts ----------
 let editingId = null;   // null = nouveau dépôt
@@ -2091,7 +2161,7 @@ function renderTokList() {
   tokens.forEach(k => {
     const b = document.createElement("button"); b.className = "repoItem" + (k.id === editingTok ? " editing" : "");
     const u = tokUsers(k.id);
-    b.textContent = k.name + "  " + maskTok(k.value);
+    b.textContent = k.name + "  " + (k.value ? maskTok(k.value) : (LANG === "en" ? "⚠ token to paste" : "⚠ jeton à coller"));
     const s2 = document.createElement("span"); s2.className = "badge"; s2.style.background = u.length ? "" : "#ffb86c";
     s2.textContent = u.length ? u.length + " dépôt" + (u.length > 1 ? "s" : "") : "inutilisé";
     b.appendChild(s2);
@@ -2152,6 +2222,7 @@ $("prefSize").onchange = () => {
 $("prefLint").checked = prefs.lint;
 $("prefCompat").checked = useCompatInput();
 $("prefLang").value = prefs.lang || "";
+$("prefLang").options[0].textContent = LANG === "en" ? "Automatic (device language)" : "Automatique (langue de l'appareil)";
 $("prefLang").onchange = () => {
   prefs.lang = $("prefLang").value || null; store.set("prefs", prefs); saveTabs(true);
   alert(prefs.lang === "en" || (!prefs.lang && !/^fr/i.test(navigator.language || "fr")) ? "The app will restart to change the language." : "L'appli va redémarrer pour changer de langue.");
@@ -2434,7 +2505,7 @@ function renderDiff(lines, view) {
   const CTX = 2, show = new Array(lines.length).fill(false);
   lines.forEach((l, i) => { if (l.t !== " ") for (let k = Math.max(0, i - CTX); k <= Math.min(lines.length - 1, i + CTX); k++) show[k] = true; });
   let hidden = 0;
-  const flush = () => { if (hidden) { const g = document.createElement("div"); g.className = "dl gap"; g.textContent = "⋯ " + hidden + " ligne" + (hidden > 1 ? "s" : "") + " sans changement"; view.appendChild(g); hidden = 0; } };
+  const flush = () => { if (hidden) { const g = document.createElement("div"); g.className = "dl gap"; g.textContent = "⋯ " + hidden + L(" ligne" + (hidden > 1 ? "s" : "") + " sans changement", " unchanged line" + (hidden > 1 ? "s" : "")); view.appendChild(g); hidden = 0; } };
   lines.forEach((l, i) => {
     if (!show[i]) { hidden++; return; }
     flush();
@@ -2593,7 +2664,7 @@ function buildOutline() {
 }
 function openOutline() {
   const items = buildOutline(), ul = $("outlineList"); ul.innerHTML = "";
-  $("outlineInfo").textContent = items.length ? cur().name + " — " + items.length + " élément" + (items.length > 1 ? "s" : "") : "Aucune func, signal ni @export dans ce fichier.";
+  $("outlineInfo").textContent = items.length ? cur().name + " — " + items.length + L(" élément" + (items.length > 1 ? "s" : ""), " item" + (items.length > 1 ? "s" : "")) : "Aucune func, signal ni @export dans ce fichier.";
   const curLine = cm.getCursor().line;
   items.forEach(it => {
     const li = document.createElement("li"); if (it.inner) li.className = "inner";
@@ -3502,6 +3573,227 @@ $("helpBtn").onclick = startTour;
 $("helpTour").onclick = startTour;
 window.addEventListener("resize", () => { if ($("tour").classList.contains("open")) tourShow(); });
 if (!store.get("tourDone", null)) setTimeout(() => { if (!$("updDlg").classList.contains("open") && !$("syncDlg").classList.contains("open")) startTour(); }, 1500);
+
+// ---------- v0.15 : textes partagés ----------
+// Lire le texte de fichiers du dépôt : copie locale si elle est à jour, sinon téléchargement (et mise en copie locale)
+async function repoTexts(c, paths, shas, onStep) {
+  const out = {}, missing = [];
+  let i = 0;
+  for (const p of paths) {
+    if (onStep) onStep(++i, paths.length);
+    const ca = cacheGet(c.id, p);
+    if (ca && (!(p in shas) || ca.sha === shas[p])) { out[p] = {text: ca.text, sha: ca.sha}; continue; }
+    if (!navigator.onLine) { if (ca) out[p] = {text: ca.text, sha: ca.sha, old: true}; else missing.push(p); continue; }
+    try {
+      const f = await gh(`/repos/${c.owner}/${c.repo}/contents/${encPath(p)}?ref=${encodeURIComponent(c.branch)}`, {}, c);
+      const text = b64ToText(f.content);
+      cachePut(c.id, p, f.sha, text);
+      out[p] = {text, sha: f.sha};
+    } catch (e) {
+      if (netErr(e)) { if (ca) out[p] = {text: ca.text, sha: ca.sha, old: true}; else missing.push(p); }
+      else if (e.status !== 404) throw e;
+    }
+  }
+  return {out, missing};
+}
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// ---------- v0.15 : rechercher dans tout le projet ----------
+let projCaseOn = false, projBusy = false;
+$("projBtn").textContent = L("🔎 Chercher dans le contenu des scripts", "🔎 Search inside the scripts");
+$("findProj").textContent = L("⧉ Projet", "⧉ Project");
+$("findProj").setAttribute("aria-label", L("Chercher dans tout le projet", "Search the whole project"));
+$("projTitle").textContent = L("Rechercher dans le projet", "Search the project");
+$("projQ").placeholder = L("Mot à chercher (ex. vitesse_max)", "Word to find (e.g. max_speed)");
+$("projGo").textContent = L("Chercher", "Search");
+$("projClose").textContent = L("Fermer", "Close");
+$("projCase").title = L("Respecter majuscules et minuscules", "Match case");
+function openProjSearch(q) {
+  if (q) $("projQ").value = q;
+  $("projDlg").classList.add("open");
+  if (!$("projList").children.length) $("projInfo").textContent = L("Cherche dans tous les fichiers du choix « Fichiers » (Scripts par défaut) du dépôt « " + (cfg().repo || "?") + " ». Sans Internet : dans la copie hors ligne.",
+    "Searches every file of the “Files” filter (Scripts by default) in repository “" + (cfg().repo || "?") + "”. Offline: in the offline copy.");
+  setTimeout(() => { $("projQ").focus(); if ($("projQ").value) runProjSearch(); }, 60);
+}
+$("projBtn").onclick = () => openProjSearch($("filter").value.trim());
+$("findProj").onclick = () => openProjSearch($("find").value);
+$("projClose").onclick = () => $("projDlg").classList.remove("open");
+$("projCase").onclick = () => { projCaseOn = !projCaseOn; $("projCase").classList.toggle("on", projCaseOn); if ($("projQ").value) runProjSearch(); };
+$("projGo").onclick = () => runProjSearch();
+$("projQ").onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); runProjSearch(); } };
+async function runProjSearch() {
+  const q = $("projQ").value;
+  if (!q.trim() || projBusy) return;
+  const c = cfg();
+  if (!c.owner || !c.repo) { $("projInfo").textContent = L("Ajoute d'abord un dépôt dans Réglages › Dépôts GitHub.", "First add a repository in Settings › GitHub repositories."); return; }
+  projBusy = true; $("projGo").disabled = true; $("projList").innerHTML = "";
+  try {
+    const re = typeRe();
+    const paths = tree.filter(p => re.test(p) && OPEN_RE.test(p));
+    const shas = store.get("shas:" + c.id, {});
+    const {out, missing} = await repoTexts(c, paths, shas, (i, n) => { $("projInfo").textContent = L("Lecture des fichiers… ", "Reading files… ") + i + " / " + n; });
+    // les onglets ouverts : on cherche dans ce que tu vois (modifications non envoyées comprises)
+    tabs.forEach(t => { if (t.kind === "gh" && t.repoId === c.id && t.doc && re.test(t.path)) out[t.path] = {text: t.doc.getValue(), tab: true}; });
+    const rx = new RegExp(escRe(q), projCaseOn ? "g" : "gi");
+    const hits = [], MAX = 400;
+    let files = 0;
+    Object.keys(out).sort().forEach(p => {
+      const lines = out[p].text.split("\n"); let found = false;
+      for (let n = 0; n < lines.length && hits.length < MAX; n++) {
+        rx.lastIndex = 0; const m = rx.exec(lines[n]);
+        if (m) { hits.push({p, line: n, ch: m.index, len: m[0].length, text: lines[n]}); found = true; }
+      }
+      if (found) files++;
+    });
+    renderProjHits(hits, q);
+    let info = hits.length
+      ? L(hits.length + " ligne" + (hits.length > 1 ? "s" : "") + " dans " + files + " fichier" + (files > 1 ? "s" : ""), hits.length + " line" + (hits.length > 1 ? "s" : "") + " in " + files + " file" + (files > 1 ? "s" : ""))
+      : L("Aucun résultat pour « " + q + " »", "No result for “" + q + "”");
+    info += L(" · " + Object.keys(out).length + " fichiers lus", " · " + Object.keys(out).length + " files read");
+    if (hits.length >= MAX) info += L(" · seulement les " + MAX + " premières lignes", " · first " + MAX + " lines only");
+    if (missing.length) info += L(" · 📴 " + missing.length + " non disponible" + (missing.length > 1 ? "s" : "") + " hors ligne", " · 📴 " + missing.length + " not available offline");
+    $("projInfo").textContent = info;
+  } catch (e) { $("projInfo").textContent = L("Erreur : ", "Error: ") + friendly(e); }
+  finally { projBusy = false; $("projGo").disabled = false; }
+}
+function renderProjHits(hits, q) {
+  const ul = $("projList"); ul.innerHTML = "";
+  let last = null;
+  hits.forEach(h => {
+    if (h.p !== last) { const li = document.createElement("li"); li.className = "pf"; li.textContent = h.p; ul.appendChild(li); last = h.p; }
+    const li = document.createElement("li"), b = document.createElement("button"); b.className = "hit";
+    const ln = document.createElement("span"); ln.className = "ln"; ln.textContent = h.line + 1;
+    const tx = document.createElement("span"); tx.className = "tx";
+    const start = Math.max(0, h.ch - 30), pre = h.text.slice(start, h.ch).replace(/^\s+/, ""), mid = h.text.slice(h.ch, h.ch + h.len);
+    const mk = document.createElement("mark"); mk.textContent = mid;
+    tx.append((start > 0 ? "…" : "") + pre, mk, h.text.slice(h.ch + h.len, h.ch + h.len + 60));
+    b.append(ln, tx);
+    b.onclick = () => goProjHit(h);
+    li.appendChild(b); ul.appendChild(li);
+  });
+}
+async function goProjHit(h) {
+  $("projDlg").classList.remove("open");
+  closePanel();
+  await openGh(h.p);
+  const t = cur();
+  if (!t || t.path !== h.p) return;
+  if (h.line < cm.lineCount()) {
+    gotoLine(h.line);
+    cm.setSelection({line: h.line, ch: h.ch}, {line: h.line, ch: h.ch + h.len});
+  }
+}
+
+// ---------- v0.15 : corriger les chemins res:// au renommage ----------
+async function findPathRefs(c, from, to, skip) {
+  const t = await gh(`/repos/${c.owner}/${c.repo}/git/trees/${encodeURIComponent(c.branch)}?recursive=1`, {}, c);
+  const shas = {}; t.tree.forEach(x => { if (x.type === "blob") shas[x.path] = x.sha; });
+  const paths = Object.keys(shas).filter(p => GD_RE.test(p) && skip.indexOf(p) === -1);
+  const {out} = await repoTexts(c, paths, shas, (i, n) => { $("filesHint").textContent = L("Recherche des chemins à corriger… ", "Looking for paths to fix… ") + i + " / " + n; });
+  const rx = new RegExp(escRe("res://" + from) + "(?=[\"'])", "g");
+  const refs = [];
+  Object.keys(out).forEach(p => {
+    const n = (out[p].text.match(rx) || []).length;
+    if (n) refs.push({path: p, count: n, text: out[p].text.replace(rx, "res://" + to)});
+  });
+  return refs;
+}
+function fixRefsInDirtyTab(t, from, to) {
+  const rx = new RegExp(escRe("res://" + from) + "(?=[\"'])", "g"), v = t.doc.getValue();
+  if (rx.test(v)) { t.doc.setValue(v.replace(new RegExp(rx.source, "g"), "res://" + to)); return true; }
+  return false;
+}
+
+// ---------- v0.15 : nouveau dossier (Nouveau script, Renommer / déplacer) ----------
+function addFolderChoice(sel, after) {
+  const o = document.createElement("option"); o.value = "__new__"; o.textContent = L("＋ Nouveau dossier…", "＋ New folder…");
+  sel.appendChild(o);
+  sel.dataset.prev = sel.value;
+  sel.onchange = () => {
+    if (sel.value !== "__new__") { sel.dataset.prev = sel.value; after(); return; }
+    const base = sel.dataset.prev ? sel.dataset.prev + "/" : "";
+    const v = prompt(L("Nom du nouveau dossier (tu peux écrire un chemin, ex. scripts/ia) :", "Name of the new folder (you can type a path, e.g. scripts/ai):"), base);
+    const clean = (v || "").split("/").map(x => x.trim().replace(/\s+/g, "_").replace(/[^\w.\-]/g, "")).filter(x => x && x !== "." && x !== "..").join("/");
+    if (!clean) { sel.value = sel.dataset.prev || ""; after(); return; }
+    let opt = [].slice.call(sel.options).filter(x => x.value === clean)[0];
+    if (!opt) { opt = document.createElement("option"); opt.value = clean; opt.textContent = clean + "/ " + L("(nouveau)", "(new)"); sel.insertBefore(opt, sel.lastChild); }
+    sel.value = clean; sel.dataset.prev = clean; after();
+    notify(L("Le dossier « " + clean + " » sera créé sur GitHub avec le fichier, au premier « Envoyer ».", "Folder “" + clean + "” will be created on GitHub with the file, at the first “Send”."), "ok");
+  };
+}
+
+// ---------- v0.15 : sauvegarder / transférer les réglages ----------
+$("navBackup").textContent = L("💾 Sauvegarde", "💾 Backup");
+$("bakTitle").textContent = L("Sauvegarde des réglages", "Settings backup");
+$("bakIntro").textContent = L("Pour changer d'appareil sans tout refaire : exporte tes dépôts et réglages dans un fichier, puis importe-le sur l'autre appareil.",
+  "To switch devices without redoing everything: export your repositories and settings to a file, then import it on the other device.");
+$("bakExpT").textContent = L("Exporter", "Export");
+$("bakExport").textContent = L("💾 Exporter mes réglages", "💾 Export my settings");
+$("bakExpHint").textContent = L("Le fichier contient tes dépôts, le nom de tes jetons et tes préférences d'affichage. Il ne contient JAMAIS la valeur de tes jetons GitHub.",
+  "The file holds your repositories, your token names and your display preferences. It NEVER holds the value of your GitHub tokens.");
+$("bakImpT").textContent = L("Importer", "Import");
+$("bakImport").textContent = L("📂 Importer un fichier de réglages", "📂 Import a settings file");
+$("bakImpHint").textContent = L("Les dépôts du fichier sont ajoutés ou mis à jour, ceux déjà présents sont gardés. Ensuite, recolle chaque jeton dans 🔑 Jetons (champ « Remplacer »).",
+  "The file's repositories are added or updated; the ones already here are kept. Then paste each token again in 🔑 Tokens (“Replace” field).");
+function exportSettings() {
+  const p = {}; Object.keys(prefs).forEach(k => { if (k !== "compatInput" && k !== "setSec") p[k] = prefs[k]; });
+  const data = {
+    app: "GD Pocket", kind: "settings", format: 1, appVersion: APP_VERSION, exportedAt: new Date().toISOString(),
+    repos: repos.map(r => ({id: r.id, owner: r.owner || "", repo: r.repo || "", branch: r.branch || "", tokenId: r.tokenId || null})),
+    tokens: tokens.map(k => ({id: k.id, name: k.name})),          // jamais k.value
+    activeRepo: store.get("activeRepo", null), lastDir: store.get("lastDir", null), prefs: p
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "gd-pocket-" + L("reglages", "settings") + "-" + new Date().toISOString().slice(0, 10) + ".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+  notify(L("Réglages exportés ✔ ", "Settings exported ✔ ") + a.download + L(" (sans les jetons)", " (without tokens)"), "ok");
+}
+function importSettings(data) {
+  if (!data || data.app !== "GD Pocket" || data.kind !== "settings" || !Array.isArray(data.repos)) { notify(L("Ce fichier n'est pas une sauvegarde de réglages GD Pocket.", "This file is not a GD Pocket settings backup."), "err"); return; }
+  const fileToks = Array.isArray(data.tokens) ? data.tokens.filter(k => k && k.id) : [];
+  if (!confirm(L("Importer les réglages de ce fichier ?\n\n" + data.repos.length + " dépôt(s), " + fileToks.length + " jeton(s) (noms seulement). Tes dépôts actuels sont gardés.\n\nLes jetons ne sont jamais dans le fichier : recolle-les ensuite dans 🔑 Jetons.",
+    "Import the settings from this file?\n\n" + data.repos.length + " repository(ies), " + fileToks.length + " token(s) (names only). Your current repositories are kept.\n\nTokens are never in the file: paste them again afterwards in 🔑 Tokens."))) return;
+  fileToks.forEach(k => { if (!tokenById(k.id)) tokens.push({id: String(k.id), name: String(k.name || L("Jeton", "Token")), value: ""}); });
+  let added = 0, updated = 0;
+  data.repos.forEach(r => {
+    if (!r || !r.owner || !r.repo) return;
+    const same = repos.find(x => (x.owner || "").toLowerCase() === String(r.owner).toLowerCase() && (x.repo || "").toLowerCase() === String(r.repo).toLowerCase());
+    const tok = r.tokenId && tokenById(r.tokenId) ? r.tokenId : null;
+    if (same) { same.branch = r.branch || same.branch; if (tok && !(same.tokenId && tokenById(same.tokenId) && tokenById(same.tokenId).value)) same.tokenId = tok; updated++; }
+    else {
+      const id = r.id && !repoById(r.id) ? String(r.id) : "r" + Date.now().toString(36) + repos.length;
+      repos.push(attachTok({id, owner: String(r.owner), repo: String(r.repo), branch: String(r.branch || ""), tokenId: tok})); added++;
+    }
+  });
+  if (data.prefs && typeof data.prefs === "object") Object.keys(data.prefs).forEach(k => { if (k !== "compatInput" && k !== "setSec") prefs[k] = data.prefs[k]; });
+  if (!repoById(store.get("activeRepo", null)) && data.activeRepo && repoById(data.activeRepo)) store.set("activeRepo", data.activeRepo);
+  if (data.lastDir) store.set("lastDir", data.lastDir);
+  saveTokens(); saveRepos(); prefs.setSec = "tokens"; store.set("prefs", prefs);
+  store.set("afterImport", {added, updated, empty: tokens.filter(k => !k.value).length});
+  saveTabs(true); skipUnloadWarn = true; location.reload();
+}
+$("bakExport").onclick = exportSettings;
+$("bakImport").onclick = () => $("bakFile").click();
+$("bakFile").onchange = async () => {
+  const f = $("bakFile").files[0]; $("bakFile").value = "";
+  if (!f) return;
+  let data = null;
+  try { data = JSON.parse(await f.text()); } catch (e) { notify(L("Fichier illisible : ce n'est pas un fichier de réglages.", "Unreadable file: this is not a settings file."), "err"); return; }
+  importSettings(data);
+};
+(function () {
+  const done = store.get("afterImport", null);
+  if (!done) return;
+  store.del("afterImport");
+  setTimeout(() => {
+    openPanel(); showTab("settings"); showSec("tokens");
+    notify(L("Réglages importés ✔ " + done.added + " dépôt(s) ajouté(s), " + done.updated + " mis à jour." + (done.empty ? " Colle maintenant le jeton GitHub de chaque ligne « ⚠ jeton à coller » (champ « Remplacer »)." : ""),
+      "Settings imported ✔ " + done.added + " repository(ies) added, " + done.updated + " updated." + (done.empty ? " Now paste the GitHub token of each “⚠ token to paste” line (“Replace” field)." : "")), done.empty ? "warn" : "ok");
+  }, 600);
+})();
 
 // ---------- Mises à jour : fenêtre « Nouvelle version » ----------
 let pendingWorker = null, updateAccepted = false;

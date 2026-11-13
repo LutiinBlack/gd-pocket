@@ -2,7 +2,7 @@
 
 Éditeur GDScript de poche pour modifier les scripts d'un projet Godot 4 depuis un téléphone ou une tablette, directement dans un dépôt GitHub.
 
-- **Version actuelle : v0.14.0** (09/11/2026) — validée sur le téléphone Android et l'iPad mini 2 (iOS 12)
+- **Version actuelle : v0.15.0** (13/11/2026) — v0.14.0 validée sur le téléphone Android et l'iPad mini 2 (iOS 12)
 - **Langues :** français et anglais (English)
 - **Appli en ligne :** https://lutiinblack.github.io/gd-pocket/
 - **Format :** application web installable (PWA), distribuée hors Google Play et App Store
@@ -28,6 +28,7 @@ Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), a
 - **Modèles de code 🧩** : 25 modèles (func, _ready, _process, signal, @export, @onready, for, match, await…) insérés à la bonne indentation
 - ↶ Annuler, ↷ Rétablir, ☰ Plan du script (fonctions, signaux, constantes…)
 - Recherche (Ctrl+F) et remplacer (Ctrl+H), avec respect des majuscules en option
+- **Recherche dans tout le projet** (📁 › « 🔎 Chercher dans le contenu des scripts », ou « ⧉ Projet » dans la recherche) : résultats par fichier et par ligne, un toucher ouvre le script à la bonne ligne ; aussi hors ligne
 - Onglets : plusieurs fichiers ouverts, point orange = modifié non envoyé, ⟳ = changé sur GitHub
 - Taille du texte réglable, retour à la ligne en option
 - Lignes modifiées repérées dans la marge : ● orange (nouvelle ou modifiée), ▸ orange (lignes supprimées), jusqu'à l'envoi
@@ -41,7 +42,8 @@ Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), a
 - **Envoi groupé** : plusieurs onglets modifiés envoyés en un seul commit ; chaque fichier peut être consulté (différences, erreurs) avant l'envoi
 - **Historique 🕘** : 30 dernières versions d'un fichier, comparaison avec l'onglet, restauration
 - ↻ Recharger un onglet depuis GitHub ; mise à jour automatique des onglets sans modifications
-- Créer un script (avec modèle `extends`), renommer / déplacer et supprimer, le fichier `.gd.uid` de Godot 4.4+ suivant le script
+- Créer un script (avec modèle `extends`), renommer / déplacer et supprimer, le fichier `.gd.uid` de Godot 4.4+ suivant le script ; « ＋ Nouveau dossier… » pour ranger un script dans un dossier qui n'existe pas encore
+- Renommer / déplacer corrige les `preload()` / `load()` des autres scripts qui citent l'ancien chemin, dans le même commit
 - Détection des conflits si le fichier a changé sur GitHub depuis son ouverture
 - Plusieurs dépôts ; jetons partagés entre dépôts ou un jeton par dépôt
 
@@ -54,6 +56,7 @@ Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), a
 - **Tutoriel en bulles** au premier lancement, à revoir avec le bouton « ? » (📁) ou Réglages › ❓ Aide
 - **Langue** : français ou anglais (Réglages › 🎨 Affichage), celle de l'appareil par défaut
 - **🐞 Signaler un problème** (Réglages) : ouvre un signalement pré-rempli dans les [Issues](https://github.com/LutiinBlack/gd-pocket/issues) du dépôt, avec les infos techniques (jamais le jeton) ; brouillon gardé hors ligne
+- **💾 Sauvegarde des réglages** (Réglages) : export des dépôts et réglages dans un fichier et import sur un autre appareil ; les jetons ne sont jamais exportés
 - Fenêtre « Nouvelle version » avec les nouveautés : « Mettre à jour » ou « Plus tard »
 - Compatible avec les navigateurs récents et Safari 12 (iOS 12)
 
@@ -68,7 +71,7 @@ Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), a
 
 - La vérification en direct regarde la forme du code seulement : les variables inconnues, fautes de frappe dans les noms et erreurs de type restent à voir dans Godot.
 - Autocomplétion par mots, sans analyse des types.
-- Le renommage ne corrige pas les `preload()` / `load()` qui citent l'ancien chemin.
+- Hors ligne, le renommage ne corrige pas les `preload()` / `load()` qui citent l'ancien chemin ; les scènes (`.tscn`) sont retrouvées par Godot grâce au `.uid`.
 - Hors ligne, seuls les fichiers préparés (⬇) ou déjà ouverts sont disponibles, et seules les versions d'historique déjà consultées.
 - iPad iOS 12 : la place du clavier est estimée (Safari 12 ne la donne pas).
 
@@ -89,6 +92,7 @@ Publier une nouvelle version : changer `VERSION` dans `sw.js`, `APP_VERSION` dan
 
 | Version | Date | Nouveautés |
 |---|---|---|
+| v0.15.0 | 13/11/2026 | Recherche dans tout le projet, chemins corrigés au renommage, nouveau dossier, sauvegarde des réglages, traduction anglaise terminée |
 | v0.14.0 | 09/11/2026 | Tutoriel en bulles, appli en anglais, 🐞 Signaler un problème, page sécurité du jeton, fenêtres ＋ et « Nouveau script » en blocs |
 | v0.13.0 | 09/11/2026 | Bandeau de messages, « Aucun fichier à envoyer », lignes modifiées dans la marge, panneau 📁 en blocs, hors ligne plus clair |
 | v0.12.1 | 08/11/2026 | Correctif clavier Samsung (saisie compatible Android), paires de la barre de touches |

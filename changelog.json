@@ -1,6 +1,24 @@
 {
   "versions": [
     {
+      "version": "0.15.0",
+      "date": "13/11/2026",
+      "notes": [
+        "Recherche dans tout le projet : 📁 › « 🔎 Chercher dans le contenu des scripts » ou « ⧉ Projet » dans la recherche de l'éditeur. Résultats par fichier avec la ligne ; un toucher ouvre le script à la bonne ligne. Marche aussi hors ligne avec la copie locale.",
+        "Renommer / déplacer un script corrige les preload() / load() des autres scripts qui citent l'ancien chemin, dans le même commit (après ta confirmation).",
+        "Nouveau dossier : dans « Nouveau script » et « Renommer / déplacer », choisis « ＋ Nouveau dossier… ». Il est créé sur GitHub avec le fichier.",
+        "💾 Sauvegarde des réglages (Réglages) : exporte tes dépôts et réglages dans un fichier, puis importe-le sur un autre appareil. Les jetons ne sont jamais dans le fichier.",
+        "Traduction anglaise terminée : les derniers textes restés en français sont traduits."
+      ],
+      "notes_en": [
+        "Search the whole project: 📁 › “🔎 Search inside the scripts” or “⧉ Project” in the editor search. Results by file with the line; one tap opens the script at the right line. Also works offline with the local copy.",
+        "Renaming / moving a script fixes the preload() / load() calls of other scripts that cite the old path, in the same commit (after you confirm).",
+        "New folder: in “New script” and “Rename / move”, pick “＋ New folder…”. It is created on GitHub with the file.",
+        "💾 Settings backup (Settings): export your repositories and settings to a file, then import it on another device. Tokens are never in the file.",
+        "English translation finished: the last texts left in French are translated."
+      ]
+    },
+    {
       "version": "0.14.0",
       "date": "09/11/2026",
       "notes": [
