@@ -1,6 +1,24 @@
 {
   "versions": [
     {
+      "version": "0.16.0",
+      "date": "14/11/2026",
+      "notes": [
+        "Réglages sur téléphone en portrait : la colonne de gauche ne garde que les icônes pour laisser plus de place. Nouvelles icônes ✈️ Hors ligne et 📦 Dépôts GitHub ; les noms restent sur tablette et en paysage.",
+        "⭐ Mes modèles de code (🧩) : sélectionne du code puis « Enregistrer la sélection comme modèle ». Renommer ✏️, supprimer 🗑, et inclus dans la 💾 sauvegarde des réglages.",
+        "🎯 Aller à la définition (barre de touches, F12 ou Ctrl + clic) : saute à l'endroit où une fonction, variable, signal ou constante est déclaré, dans le script ou dans un autre script du dépôt.",
+        "Noms inconnus soulignés en orange : un nom jamais déclaré (ni dans le script, ni dans tes autres scripts, ni dans Godot) est signalé comme un doute, pas une erreur. Désactivable dans 🎨 Affichage.",
+        "Nouveau logo « la poche », écran de démarrage soigné, et écran d'accueil dans le navigateur (présentation, Installer l'appli, FR / EN) — jamais dans l'appli installée, revisible dans ❓ Aide."
+      ],
+      "notes_en": [
+        "Settings on a phone in portrait: the left column keeps only the icons to leave more room. New ✈️ Offline and 📦 GitHub repositories icons; names stay on tablets and in landscape.",
+        "⭐ My code templates (🧩): select some code then “Save the selection as a template”. Rename ✏️, delete 🗑, and included in the 💾 settings backup.",
+        "🎯 Go to definition (key bar, F12 or Ctrl + click): jumps to where a function, variable, signal or constant is declared, in the script or in another script of the repository.",
+        "Unknown names underlined in orange: a name never declared (not in the script, your other scripts or Godot) is flagged as a doubt, not an error. Can be turned off in 🎨 Display.",
+        "New “pocket” logo, polished launch screen, and a welcome screen in the browser (presentation, Install the app, FR / EN) — never in the installed app, viewable again in ❓ Help."
+      ]
+    },
+    {
       "version": "0.15.0",
       "date": "13/11/2026",
       "notes": [

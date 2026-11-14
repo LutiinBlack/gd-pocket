@@ -2,7 +2,7 @@
 // Change VERSION à chaque mise à jour de l'appli (et APP_VERSION dans index.html, et changelog.json).
 // Une nouvelle version s'installe en arrière-plan puis ATTEND : l'appli affiche la fenêtre
 // « Nouvelle version » et ne passe à la nouvelle version que si l'utilisateur appuie sur « Mettre à jour ».
-const VERSION = "gd-pocket-v0.15.0";
+const VERSION = "gd-pocket-v0.16.0";
 const CDN = "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/";
 const CDN_FILES = [
   CDN + "codemirror.min.css", CDN + "theme/dracula.min.css", CDN + "addon/hint/show-hint.min.css",
@@ -11,7 +11,8 @@ const CDN_FILES = [
   CDN + "addon/selection/active-line.min.js"
 ];
 const LOCAL_FILES = ["./index.html", "./manifest.webmanifest",
-  "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png"];
+  "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png",
+  "./icons/logo.svg", "./icons/apple-touch-icon.png", "./icons/favicon-32.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSION).then(c => Promise.all([

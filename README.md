@@ -1,16 +1,18 @@
 # GD Pocket
 
+<img src="icons/icon-192.png" alt="Logo de GD Pocket : une poche en jean avec le symbole du code" width="96">
+
 Éditeur GDScript de poche pour modifier les scripts d'un projet Godot 4 depuis un téléphone ou une tablette, directement dans un dépôt GitHub.
 
-- **Version actuelle : v0.15.0** (13/11/2026) — validée sur le téléphone Android (v0.14.0 aussi sur l'iPad mini 2, iOS 12)
+- **Version actuelle : v0.16.0** (14/11/2026) — en test (v0.15.0 validée sur le téléphone Android, v0.14.0 aussi sur l'iPad mini 2, iOS 12)
 - **Langues :** français et anglais (English)
 - **Appli en ligne :** https://lutiinblack.github.io/gd-pocket/
 - **Format :** application web installable (PWA), distribuée hors Google Play et App Store
 
 ## Installer
 
-1. Ouvrir l'adresse de l'appli dans Chrome (Android) ou Safari (iPhone / iPad).
-2. Android : menu ⋮ › « Ajouter à l'écran d'accueil ». iOS : bouton Partager › « Sur l'écran d'accueil ».
+1. Ouvrir l'adresse de l'appli dans Chrome (Android) ou Safari (iPhone / iPad) : l'écran d'accueil présente GD Pocket.
+2. « 📲 Installer l'appli » (Android : fenêtre d'installation ; iOS : bouton Partager › « Sur l'écran d'accueil »). L'appli installée s'ouvre directement sur l'éditeur.
 3. Dans l'appli : 📁 › Réglages › Dépôts GitHub › ＋ Ajouter un dépôt (propriétaire, nom, branche, jeton existant ou nouveau).
 
 Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), avec la permission **Contents : Read and write**. Un même jeton peut servir à plusieurs dépôts (Réglages › 🔑 Jetons) ; le remplacer à son expiration met à jour tous ses dépôts. Il reste uniquement sur l'appareil et n'est envoyé qu'à `api.github.com`. Sur iOS, l'appli installée a son propre stockage : y recoller le jeton.
@@ -25,7 +27,9 @@ Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), a
 - Indentation par tabulations, automatique après une ligne finissant par `:`
 - **Erreurs en direct, comme dans Godot** : ligne fautive en rouge, ● dans la marge et explication dans la barre d'état (« : » oublié, parenthèses / crochets / guillemets non fermés, indentation incohérente, bloc vide, `=` au lieu de `==`…)
 - Barre de touches : 🧩 modèles de code, flèches ← ↑ ↓ → (appui long = déplacement continu), Tab (`"` `(` `[` `{` ouvrent la paire, comme le clavier), `:`, `(`, `)`, `_`, `"`, `$`, `@`, `=`, `.`, `[]`, `{}`, `->`, `#`
-- **Modèles de code 🧩** : 25 modèles (func, _ready, _process, signal, @export, @onready, for, match, await…) insérés à la bonne indentation
+- **Modèles de code 🧩** : 25 modèles (func, _ready, _process, signal, @export, @onready, for, match, await…) insérés à la bonne indentation, et **⭐ mes modèles** enregistrés depuis une sélection (renommer, supprimer, inclus dans la sauvegarde)
+- **🎯 Aller à la définition** (barre de touches, F12 ou Ctrl + clic) : saute à la déclaration d'une fonction, variable, signal ou constante, dans le script (variable locale d'abord) ou dans un autre script du dépôt
+- **Noms inconnus soulignés en orange** : un nom déclaré nulle part (ni dans le script, ni dans les autres scripts, ni parmi les noms Godot connus, autoloads compris) est signalé comme un doute ; désactivable
 - ↶ Annuler, ↷ Rétablir, ☰ Plan du script (fonctions, signaux, constantes…)
 - Recherche (Ctrl+F) et remplacer (Ctrl+H), avec respect des majuscules en option
 - **Recherche dans tout le projet** (📁 › « 🔎 Chercher dans le contenu des scripts », ou « ⧉ Projet » dans la recherche) : résultats par fichier et par ligne, un toucher ouvre le script à la bonne ligne ; aussi hors ligne
@@ -48,11 +52,13 @@ Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), a
 - Plusieurs dépôts ; jetons partagés entre dépôts ou un jeton par dépôt
 
 ### Hors ligne
-- Bouton « Hors ligne » (📁) : garde une copie des scripts sur l'appareil et montre l'état (✔ 26/26, « 3 à màj ») ; dans la liste ✔ copie à jour, ⬇ copie ancienne ; Réglages › 📴 Hors ligne pour la place utilisée et l'effacement
+- Bouton « Hors ligne » (📁) : garde une copie des scripts sur l'appareil et montre l'état (✔ 26/26, « 3 à màj ») ; dans la liste ✔ copie à jour, ⬇ copie ancienne ; Réglages › ✈️ Hors ligne pour la place utilisée et l'effacement
 - Sans Internet : ouvrir, modifier, créer, renommer, supprimer et envoyer (actions mises en attente ⏳) ; historique déjà consulté lisible
 - Au retour d'Internet, fenêtre « Synchroniser » : pour chaque fichier, ↑ envoyer sa version ou ↓ reprendre celle de GitHub, avec comparaison ; conflits signalés ⚠ ; un seul commit par dépôt
 
 ### Appli
+- **Écran d'accueil** dans le navigateur (présentation, Installer l'appli, présentation PDF, FR / EN) ; jamais dans l'appli installée, revisible dans Réglages › ❓ Aide
+- **Réglages** : sur téléphone en portrait, colonne d'icônes seules (📦 🔑 🎨 ✈️ 💾 🐞 ❓) ; noms affichés sur tablette et en paysage
 - **Tutoriel en bulles** au premier lancement, à revoir avec le bouton « ? » (📁) ou Réglages › ❓ Aide
 - **Langue** : français ou anglais (Réglages › 🎨 Affichage), celle de l'appareil par défaut
 - **🐞 Signaler un problème** (Réglages) : ouvre un signalement pré-rempli dans les [Issues](https://github.com/LutiinBlack/gd-pocket/issues) du dépôt, avec les infos techniques (jamais le jeton) ; brouillon gardé hors ligne
@@ -82,7 +88,8 @@ Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), a
 | `index.html` | l'appli entière (interface, éditeur, GitHub) |
 | `sw.js` | service worker : cache hors ligne et mises à jour |
 | `changelog.json` | nouveautés affichées dans la fenêtre « Nouvelle version » |
-| `manifest.webmanifest`, `icons/` | installation sur l'écran d'accueil |
+| `manifest.webmanifest`, `icons/` | installation sur l'écran d'accueil (logo « la poche », écrans de démarrage iOS) |
+| `presentation/` | présentation de GD Pocket en PDF (français, anglais) |
 | `SECURITE.md`, `SECURITY.md` | sécurité du jeton (français, anglais) |
 | `LICENSE` | licence MIT |
 
@@ -92,6 +99,7 @@ Publier une nouvelle version : changer `VERSION` dans `sw.js`, `APP_VERSION` dan
 
 | Version | Date | Nouveautés |
 |---|---|---|
+| v0.16.0 | 14/11/2026 | Réglages en icônes sur téléphone, mes modèles de code, aller à la définition, noms inconnus en orange, logo « la poche » et écran d'accueil |
 | v0.15.0 | 13/11/2026 | Recherche dans tout le projet, chemins corrigés au renommage, nouveau dossier, sauvegarde des réglages, traduction anglaise terminée |
 | v0.14.0 | 09/11/2026 | Tutoriel en bulles, appli en anglais, 🐞 Signaler un problème, page sécurité du jeton, fenêtres ＋ et « Nouveau script » en blocs |
 | v0.13.0 | 09/11/2026 | Bandeau de messages, « Aucun fichier à envoyer », lignes modifiées dans la marge, panneau 📁 en blocs, hors ligne plus clair |

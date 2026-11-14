@@ -9,8 +9,12 @@
 <meta name="apple-mobile-web-app-title" content="GD Pocket">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<link rel="icon" href="icons/logo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash-1536x2048.png">
+<link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" href="icons/splash-2048x1536.png">
+<link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash-1170x2532.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
@@ -61,6 +65,15 @@
   .setnav { flex:0 0 28%; max-width:190px; min-width:92px; position:-webkit-sticky; position:sticky; top:0; display:flex; flex-direction:column; }
   .setnav button { background:transparent; text-align:left; border-radius:6px; padding:10px 8px; font-size:14px; margin-bottom:4px; opacity:.75; border-left:3px solid transparent; word-break:break-word; }
   .setnav button.on { background:var(--mut); opacity:1; border-left-color:var(--acc); }
+  .setnav .ni { display:inline-block; min-width:1.35em; text-align:center; margin-right:4px; }
+  /* v0.16 : téléphone en portrait → colonne d'icônes seules (les noms restent sur l'iPad et en paysage) */
+  @media (orientation: portrait) and (max-width: 600px) {
+    .setnav { flex:0 0 56px; width:56px; min-width:56px; max-width:56px; }
+    .setnav .nl { display:none; }
+    .setnav .ni { margin-right:0; }
+    .setnav button { text-align:center; padding:10px 0; font-size:22px; line-height:1.2; }
+    .setbody { padding-left:10px; margin-left:6px; }
+  }
   .setbody { flex:1 1 0; min-width:0; padding-left:12px; margin-left:10px; border-left:1px solid var(--mut); }
   .setbody section { display:none; }
   .setbody section.on { display:block; }
@@ -231,6 +244,9 @@
   #outlineList .k-const, #outlineList .k-enum { color:#a1ffe0; } #outlineList .k-class { color:#8fffdb; }
   #outlineList li.inner button { padding-left:20px; }
   .cm-flash { background:rgba(87,179,255,.25) !important; }
+  /* v0.16 : nom inconnu (doute, pas erreur) */
+  .cm-unknown { text-decoration:underline; -webkit-text-decoration:underline wavy #ffb86c; text-decoration:underline wavy #ffb86c; text-decoration-skip-ink:none; text-underline-offset:2px; }
+  #status.unk { color:#ffcf99; opacity:1; }
 
   /* Différences avant envoi */
   #diffStats { font-size:13px; margin-top:4px; word-break:break-all; }
@@ -267,6 +283,13 @@
   #snipList .nm, #histList .nm { display:block; font-size:14px; }
   #snipList .pv, #histList .pv { display:block; font-size:12px; opacity:.6; font-family:ui-monospace, monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
   #keys button.snip { background:var(--acc); }
+  #mySnipList { list-style:none; margin:0; padding:0; }
+  #mySnipList li { display:flex; align-items:stretch; border-bottom:1px solid var(--mut); }
+  #mySnipList li .ins { flex:1 1 0; min-width:0; display:block; text-align:left; background:transparent; border-radius:0; padding:9px 4px; }
+  #mySnipList .nm { display:block; font-size:14px; }
+  #mySnipList .pv { display:block; font-size:12px; opacity:.6; font-family:ui-monospace, monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+  #mySnipList li .ed, #mySnipList li .rm { flex:0 0 auto; background:transparent; padding:8px 10px; font-size:16px; opacity:.7; }
+  #snipDlg .box { max-height:88vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
   #keys button.arrow { background:#3a4f66; font-size:17px; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
   #keys { -webkit-user-select:none; user-select:none; }
   /* Clavier ouvert sur l'iPad (iOS 12) : barre de touches en haut, sous les onglets */
@@ -330,6 +353,25 @@
   .no-gap .check > * + * { margin-left:8px; }
   .no-gap .row > * { margin:0 8px 8px 0; }
   .no-gap .listopts > * + * { margin-left:8px; }
+  /* v0.16 : écran d'accueil (seulement dans le navigateur, jamais dans l'appli installée) */
+  #welcome { position:fixed; top:0; right:0; bottom:0; left:0; z-index:400; background:var(--bg); display:none; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  #welcome.open { display:block; }
+  .wbox { max-width:420px; margin:0 auto; padding:14px 22px 26px; text-align:center; }
+  .wlang { text-align:right; font-size:13px; }
+  .wlang button { background:transparent; color:#8b8fa8; padding:6px 6px; font-size:13px; }
+  .wlang button.on { color:#8fc0e6; font-weight:bold; }
+  .wlogo { width:104px; height:104px; margin:8px auto 0; display:block; }
+  #welcome h1 { margin:10px 0 4px; font-size:28px; font-weight:600; }
+  #wSub { margin:0 auto; font-size:15px; color:#b8bccf; line-height:1.5; max-width:330px; }
+  #wFeat { list-style:none; margin:18px auto; padding:0; text-align:left; display:inline-block; font-size:14px; line-height:1.9; color:#d6d8e4; }
+  #wFeat li::before { content:"✓ "; color:var(--ok); }
+  #wOpen, #wInstall { display:block; width:100%; padding:13px; font-size:16px; border-radius:10px; }
+  #wInstall { margin-top:10px; background:transparent; border:1px solid var(--acc); color:#8fc0e6; }
+  #wInstHelp { display:none; margin:10px 0 0; text-align:left; background:var(--bar); border-left:3px solid var(--acc); border-radius:8px; padding:9px 11px; }
+  .wlinks { margin-top:14px; font-size:14px; }
+  .wlinks a { color:#8fc0e6; margin:0 10px; text-decoration:none; }
+  #wOffL { justify-content:center; font-size:13px; opacity:.8; margin-top:14px; }
+  .wcredit { margin:16px 0 0; padding-top:12px; border-top:1px solid var(--mut); font-size:12px; color:#8b8fa8; line-height:1.5; }
 </style>
 </head>
 <body>
@@ -432,13 +474,13 @@
   <div class="pane" id="pane-settings">
     <div class="setwrap">
       <nav class="setnav">
-        <button data-sec="repos" class="on">🔗 Dépôts GitHub</button>
-        <button data-sec="tokens">🔑 Jetons</button>
-        <button data-sec="display">🎨 Affichage</button>
-        <button data-sec="offline">📴 Hors ligne</button>
-        <button data-sec="backup" class="nolang" id="navBackup"></button>
-        <button data-sec="report">🐞 Signaler</button>
-        <button data-sec="help">❓ Aide</button>
+        <button data-sec="repos" class="on"><span class="ni">📦</span><span class="nl">Dépôts GitHub</span></button>
+        <button data-sec="tokens"><span class="ni">🔑</span><span class="nl">Jetons</span></button>
+        <button data-sec="display"><span class="ni">🎨</span><span class="nl">Affichage</span></button>
+        <button data-sec="offline"><span class="ni">✈️</span><span class="nl">Hors ligne</span></button>
+        <button data-sec="backup" class="nolang" id="navBackup"><span class="ni">💾</span><span class="nl" id="navBackupL"></span></button>
+        <button data-sec="report"><span class="ni">🐞</span><span class="nl">Signaler</span></button>
+        <button data-sec="help"><span class="ni">❓</span><span class="nl">Aide</span></button>
       </nav>
       <div class="setbody">
         <section id="sec-repos" class="on">
@@ -508,6 +550,7 @@
           </select>
           <label class="check"><input id="prefDiff" type="checkbox"> Voir les différences avant d'envoyer</label>
           <label class="check"><input id="prefLint" type="checkbox"> Signaler les erreurs en direct (lignes rouges)</label>
+          <label class="check nolang"><input id="prefUnknown" type="checkbox"> <span id="prefUnknownL"></span></label>
           <label for="prefLang">Langue</label>
           <select id="prefLang" class="nolang">
             <option value="">Automatique (langue de l'appareil) · Automatic</option>
@@ -544,7 +587,7 @@
         <section id="sec-help">
           <h3 class="nolang" id="helpTitle"></h3>
           <p class="nolang" id="helpText"></p>
-          <div class="row nolang"><button id="helpTour"></button></div>
+          <div class="row nolang"><button id="helpTour"></button><button id="helpWelcome" class="ghost"></button></div>
         </section>
         <section id="sec-offline">
           <h3>Hors ligne</h3>
@@ -649,6 +692,13 @@
   <div class="box">
     <h2>Modèles de code</h2>
     <div class="hint">Le modèle est inséré à la ligne du curseur, avec la bonne indentation.</div>
+    <section class="fblock nolang" id="mySnipBox" style="margin-top:10px">
+      <div class="ftitle" id="mySnipT"></div>
+      <ul id="mySnipList"></ul>
+      <p class="hint" id="mySnipHint" style="margin:4px 2px 6px"></p>
+      <button id="mySnipAdd" class="wide" style="margin-top:4px"></button>
+    </section>
+    <div class="ftitle nolang" id="snipStdT" style="margin:12px 0 0 2px"></div>
     <ul id="snipList"></ul>
     <div class="row"><button id="snipClose" class="ghost">Fermer</button></div>
   </div>
@@ -675,6 +725,23 @@
 <!-- Tutoriel : bulles -->
 <div id="tour" class="nolang"><div id="tourHole"></div><div class="tourBox" id="tourBox"><div id="tourStep"></div><b id="tourT"></b><div id="tourD"></div>
   <div class="tourBtns"><button id="tourSkip" class="ghost"></button><span style="flex:1"></span><button id="tourPrev" class="ghost"></button><button id="tourNext"></button></div></div></div>
+
+<!-- v0.16 : écran d'accueil (visiteurs du navigateur) -->
+<div id="welcome" class="nolang" role="dialog" aria-modal="true" aria-labelledby="wTitle">
+  <div class="wbox">
+    <div class="wlang"><button id="wFr" type="button">FR</button>·<button id="wEn" type="button">EN</button></div>
+    <img class="wlogo" src="icons/logo.svg" alt="">
+    <h1 id="wTitle">GD Pocket</h1>
+    <p id="wSub"></p>
+    <ul id="wFeat"></ul>
+    <button id="wOpen" type="button"></button>
+    <button id="wInstall" type="button"></button>
+    <p id="wInstHelp" class="hint"></p>
+    <div class="wlinks"><a id="wPdf" target="_blank" rel="noopener"></a><a id="wGit" target="_blank" rel="noopener">GitHub</a></div>
+    <label class="check" id="wOffL"><input id="wOff" type="checkbox"> <span id="wOffT"></span></label>
+    <p class="wcredit" id="wCredit"></p>
+  </div>
+</div>
 
 <!-- Bandeau de messages -->
 <div id="notice" role="status" aria-live="polite"><span id="noticeTxt"></span><button id="noticeOk" type="button">OK</button></div>
@@ -719,7 +786,7 @@
 <div id="projDlg" class="nolang">
   <div class="box">
     <h2 id="projTitle"></h2>
-    <div class="row" style="align-items:center;gap:6px">
+    <div class="row" id="projSearchRow" style="align-items:center;gap:6px">
       <input id="projQ" type="search" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="flex:1;margin:0">
       <button id="projCase" class="ghost" aria-label="Aa">Aa</button>
       <button id="projGo"></button>
@@ -756,7 +823,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
 <script>
 // ---------- Version et rapport d'erreurs (utile sur les vieux appareils) ----------
-var APP_VERSION = "0.15.0";
+var APP_VERSION = "0.16.0";
 var lastAppError = "";
 function showError(msg) {
   lastAppError = String(msg).slice(0, 300);
@@ -794,7 +861,7 @@ var I18N_EXACT = {
   "Historique de ce fichier": "History of this file", "Historique du fichier": "File history",
   "Recharger cet onglet depuis GitHub": "Reload this tab from GitHub",
   "Replier la barre du bas": "Collapse the bottom bar", "Déplier la barre du bas": "Expand the bottom bar",
-  "Curseur à gauche": "Cursor left", "Curseur à droite": "Cursor right", "Ligne du dessus": "Line above", "Ligne du dessous": "Line below",
+  "Aller à la définition": "Go to definition", "Curseur à gauche": "Cursor left", "Curseur à droite": "Cursor right", "Ligne du dessus": "Line above", "Ligne du dessous": "Line below",
   "Tape un mot à chercher": "Type a word to search", "Aucun résultat": "No results",
   // Panneau Fichiers
   "Dépôt": "Repository", "Actions": "Actions", "Recherche": "Search", "Filtres": "Filters",
@@ -812,7 +879,7 @@ var I18N_EXACT = {
   "changement en attente d'Internet": "change waiting for Internet",
   // Réglages
   "🔗 Dépôts GitHub": "🔗 GitHub repositories", "🔑 Jetons": "🔑 Tokens", "🎨 Affichage": "🎨 Display", "📴 Hors ligne": "📴 Offline", "🐞 Signaler": "🐞 Report",
-  "Dépôts GitHub": "GitHub repositories", "Jetons": "Tokens", "Affichage": "Display",
+  "Dépôts GitHub": "GitHub repositories", "Jetons": "Tokens", "Affichage": "Display", "Signaler": "Report",
   "＋ Ajouter un dépôt": "＋ Add a repository", "Nouveau dépôt": "New repository", "Propriétaire du dépôt": "Repository owner", "Nom du dépôt": "Repository name",
   "Branche (vide = branche principale)": "Branch (empty = default branch)", "Jeton GitHub": "GitHub token", "Jeton GitHub (fine-grained)": "GitHub token (fine-grained)",
   "Nom du nouveau jeton": "New token name", "ex. Téléphone — tous mes projets": "e.g. Phone — all my projects",
@@ -1148,7 +1215,7 @@ function gdHint(cm) {
 }
 
 // ---------- Préférences d'affichage ----------
-const prefs = Object.assign({theme: "godot", wrap: false, startFiles: true, bottomCollapsed: false, viewMode: "all", sortMode: "az", setSec: "repos", fontSize: 15, showDiff: true, lint: true, typeFilter: "gd", compatInput: null, autoOffline: true, lang: null}, store.get("prefs", {}));
+const prefs = Object.assign({theme: "godot", wrap: false, startFiles: true, bottomCollapsed: false, viewMode: "all", sortMode: "az", setSec: "repos", fontSize: 15, showDiff: true, lint: true, typeFilter: "gd", compatInput: null, autoOffline: true, lang: null, unknown: true}, store.get("prefs", {}));
 document.body.style.background = prefs.theme === "godot" ? "#1d2229" : "";
 document.documentElement.style.setProperty("--code-size", prefs.fontSize + "px");
 
@@ -1300,6 +1367,7 @@ const cm = CodeMirror($("editor"), {
     },
     "Ctrl-Space": c => c.showHint({hint: gdHint, completeSingle: false}),
     "Ctrl-S": () => save(),
+    "F12": () => gotoDef(),
     "Cmd-S": () => save()
   }
 });
@@ -1397,6 +1465,12 @@ function refreshHist() {
   b.addEventListener("mousedown", e => e.preventDefault());
   b.onclick = () => openSnippets();
   $("keys").appendChild(b);
+  // v0.16 : aller à la définition du nom sous le curseur
+  const d = document.createElement("button");
+  d.className = "snip"; d.id = "defBtn"; d.textContent = "🎯"; d.setAttribute("aria-label", "Aller à la définition"); d.title = "Aller à la définition";
+  d.addEventListener("mousedown", e => e.preventDefault());
+  d.onclick = () => gotoDef();
+  $("keys").appendChild(d);
 })();
 // Flèches : déplacent le curseur ; appui long = déplacement continu
 function repeatBtn(b, fn) {
@@ -1472,7 +1546,8 @@ function refreshStatus(msg) {
   $("reloadBtn").style.display = t.kind === "gh" && !t.isNew ? "" : "none";
   $("histBtn").style.display = $("reloadBtn").style.display;
   const nErr = (typeof lintErrs !== "undefined" && lintErrs) ? lintErrs.length : 0;
-  const errTxt = nErr ? "⛔ " + nErr + " erreur" + (nErr > 1 ? "s" : "") + " — " : "";
+  const nUnk = (typeof unkList !== "undefined" && unkList) ? unkList.length : 0;
+  const errTxt = (nErr ? "⛔ " + nErr + " erreur" + (nErr > 1 ? "s" : "") + " — " : "") + (nUnk ? (LANG === "en" ? "🟠 " + nUnk + " unknown name" + (nUnk > 1 ? "s" : "") + " — " : "🟠 " + nUnk + " nom" + (nUnk > 1 ? "s" : "") + " inconnu" + (nUnk > 1 ? "s" : "") + " — ") : "");
   s.classList.toggle("dirty", isDirty(t));
   $("bottomShow").classList.toggle("dirty", isDirty(t));
   if (msg) { s.textContent = msg; return; }
@@ -2066,6 +2141,8 @@ function showSec(sec) {
   document.querySelectorAll(".setbody section").forEach(x => x.classList.toggle("on", x.id === "sec-" + sec));
 }
 document.querySelectorAll(".setnav button").forEach(b => b.onclick = () => showSec(b.dataset.sec));
+// v0.16 : nom de la section en info-bulle (utile quand seules les icônes sont affichées)
+function navTitles() { document.querySelectorAll(".setnav button").forEach(b => { const l = b.querySelector(".nl"); if (l && l.textContent) { b.title = l.textContent; b.setAttribute("aria-label", l.textContent); } }); }
 showSec(["display", "tokens", "offline", "backup", "report", "help"].indexOf(prefs.setSec) !== -1 ? prefs.setSec : "repos");
 
 // ---------- Réglages : dépôts ----------
@@ -2235,6 +2312,8 @@ $("prefCompat").onchange = () => {
   location.reload();
 };
 $("prefLint").onchange = () => { prefs.lint = $("prefLint").checked; store.set("prefs", prefs); runLint(); refreshStatus(); };
+$("prefUnknown").checked = prefs.unknown !== false;
+$("prefUnknown").onchange = () => { prefs.unknown = $("prefUnknown").checked; store.set("prefs", prefs); runLint(); refreshStatus(); };
 $("prefDiff").checked = prefs.showDiff;
 $("prefDiff").onchange = () => { prefs.showDiff = $("prefDiff").checked; store.set("prefs", prefs); };
 $("prefWrap").onchange = () => {
@@ -2800,7 +2879,9 @@ function lintText(text) {
 
 // ---------- Erreurs en direct (lignes rouges) ----------
 var lintErrs = []; let lintHandles = [], lintTimer = null, lastLintLine = -1;
+var unkList = [], unkMarks = [], unkReady = false;   // v0.16 : noms inconnus soulignés en orange (actif une fois l'appli chargée)
 function clearLint() {
+  clearUnknown();
   cm.operation(() => {
     lintHandles.forEach(h => cm.removeLineClass(h, "background", "cm-lint-line"));
     cm.clearGutter("lint-gutter");
@@ -2856,17 +2937,24 @@ function runLint() {
       cm.setGutterMarker(line, "lint-gutter", m);
     });
   });
+  if (unkReady && prefs.unknown !== false && t && /\.gd$/i.test(t.name)) markUnknown(t);
   lastLintLine = -1; lintCursor(true);
 }
 function scheduleLint() { clearTimeout(lintTimer); lintTimer = setTimeout(runLint, 450); }
 function lintMsgFor(line) { return lintErrs.filter(e => e.line === line).map(e => e.msg); }
 function lintCursor(force) {
   const line = cm.getCursor().line;
-  if (!force && line === lastLintLine) return;
+  if (!force && line === lastLintLine && !unkList.length) return;
   lastLintLine = line;
   const m = lintMsgFor(line);
+  $("status").classList.remove("unk");
   if (m.length) { refreshStatus("⛔ Ligne " + (line + 1) + " : " + m.join(" · ")); $("status").classList.add("lint"); }
-  else { $("status").classList.remove("lint"); refreshStatus(); }
+  else {
+    $("status").classList.remove("lint");
+    const u = unknownAt(cm.getCursor());
+    if (u) { refreshStatus(unknownMsg(u.name)); $("status").classList.add("unk"); }
+    else refreshStatus();
+  }
 }
 cm.on("cursorActivity", () => lintCursor(false));
 cm.on("gutterClick", (c, line, gutter) => { if (gutter === "lint-gutter" || lintMsgFor(line).length) { cm.setCursor({line, ch: 0}); lintCursor(true); } });
@@ -2908,8 +2996,8 @@ function snipCode(code) {
   SNIP_EN.forEach(([a, b]) => { code = code.replace(new RegExp("\\b" + a + "\\b", "g"), b); });
   return code;
 }
-function insertSnippet(code) {
-  code = snipCode(code);
+function insertSnippet(code, raw) {
+  if (!raw) code = snipCode(code);
   const c = cm.getCursor(), line = cm.getLine(c.line), ind = line.match(/^[ \t]*/)[0];
   let text = code.split("\n").map((l, i) => i === 0 ? l : ind + l).join("\n");
   const mark = text.indexOf("¦"); text = text.replace("¦", "");
@@ -2922,6 +3010,7 @@ function insertSnippet(code) {
   cm.focus();
 }
 function openSnippets() {
+  renderMySnips();
   const ul = $("snipList"); ul.innerHTML = "";
   SNIPPETS.forEach(s => {
     const li = document.createElement("li"), b = document.createElement("button");
@@ -2933,6 +3022,59 @@ function openSnippets() {
   $("snipDlg").classList.add("open");
 }
 $("snipClose").onclick = () => $("snipDlg").classList.remove("open");
+
+// ---------- v0.16 : mes modèles de code ----------
+let mySnips = store.get("mysnips", []);
+function saveMySnips() { store.set("mysnips", mySnips); }
+// Retire l'indentation commune (le modèle sera réindenté à la ligne du curseur)
+function dedentCode(text) {
+  const lines = text.replace(/\r/g, "").split("\n");
+  while (lines.length && !lines[0].trim()) lines.shift();
+  while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+  let min = null;
+  lines.forEach(l => { if (!l.trim()) return; const n = l.match(/^[ \t]*/)[0].length; if (min === null || n < min) min = n; });
+  return lines.map(l => l.trim() ? l.slice(min || 0) : "").join("\n");
+}
+function askText(msg, def) { return typeof _prompt === "function" ? _prompt.call(window, msg, def) : prompt(msg, def); }   // sans traduire le code proposé
+function renderMySnips() {
+  $("mySnipT").textContent = L("Mes modèles", "My templates") + (mySnips.length ? " (" + mySnips.length + ")" : "");
+  $("snipStdT").textContent = L("Modèles fournis", "Built-in templates");
+  $("mySnipAdd").textContent = L("＋ Enregistrer la sélection comme modèle", "＋ Save the selection as a template");
+  $("mySnipHint").textContent = mySnips.length ? "" : L("Sélectionne du code dans l'éditeur (par exemple le début d'un script de voiture), puis touche 🧩 et « Enregistrer la sélection ». Tes modèles sont gardés sur cet appareil et dans la 💾 sauvegarde des réglages.",
+    "Select some code in the editor (for example the start of a car script), then tap 🧩 and “Save the selection”. Your templates are kept on this device and in the 💾 settings backup.");
+  $("mySnipHint").style.display = mySnips.length ? "none" : "";
+  const ul = $("mySnipList"); ul.innerHTML = "";
+  mySnips.forEach(sn => {
+    const li = document.createElement("li");
+    const b = document.createElement("button"); b.className = "ins";
+    const t = document.createElement("span"); t.className = "nm"; t.textContent = "⭐ " + sn.name;
+    const pv = document.createElement("span"); pv.className = "pv"; pv.textContent = sn.code.replace("¦", "").replace(/\t/g, "  ").split("\n")[0];
+    b.append(t, pv); b.onclick = () => insertSnippet(sn.code, true);
+    const ed = document.createElement("button"); ed.className = "ed"; ed.textContent = "✏️"; ed.title = L("Renommer", "Rename"); ed.setAttribute("aria-label", ed.title);
+    ed.onclick = () => {
+      const v = askText(L("Nouveau nom du modèle :", "New template name:"), sn.name);
+      if (v === null || !v.trim()) return;
+      sn.name = v.trim().slice(0, 60); saveMySnips(); renderMySnips();
+    };
+    const rm = document.createElement("button"); rm.className = "rm"; rm.textContent = "🗑"; rm.title = L("Supprimer", "Delete"); rm.setAttribute("aria-label", rm.title);
+    rm.onclick = () => {
+      if (!confirm(L("Supprimer le modèle « " + sn.name + " » ?", "Delete the template “" + sn.name + "”?"))) return;
+      mySnips = mySnips.filter(x => x !== sn); saveMySnips(); renderMySnips();
+    };
+    li.append(b, ed, rm); ul.appendChild(li);
+  });
+}
+$("mySnipAdd").onclick = () => {
+  const sel = cm.getSelection();
+  if (!sel.trim()) { notify(L("Sélectionne d'abord dans l'éditeur le code à garder (appui long sur le texte), puis touche à nouveau 🧩.", "First select the code to keep in the editor (long press on the text), then tap 🧩 again."), "warn"); return; }
+  const code = dedentCode(sel);
+  const def = (code.split("\n").filter(l => l.trim())[0] || "").trim().replace(/:$/, "").slice(0, 40);
+  const v = askText(L("Nom du modèle :", "Template name:"), def);
+  if (v === null) return;
+  mySnips.push({id: "s" + Date.now().toString(36), name: (v.trim() || def || L("Mon modèle", "My template")).slice(0, 60), code});
+  saveMySnips(); renderMySnips();
+  notify(L("Modèle « " + mySnips[mySnips.length - 1].name + " » enregistré ✔ (⭐ dans 🧩)", "Template “" + mySnips[mySnips.length - 1].name + "” saved ✔ (⭐ in 🧩)"), "ok");
+};
 
 // ---------- Envoi de plusieurs onglets en un seul commit ----------
 async function gitBlobSha(text) {
@@ -3513,8 +3655,8 @@ const TOUR = [
   {page: "files", sel: "#list", t: L("Fichiers", "Files"),
    d: L("Touche un fichier pour l'ouvrir. ✏️ = renommer / déplacer, 🗑 = supprimer (le .uid de Godot suit le script).", "Tap a file to open it. ✏️ = rename / move, 🗑 = delete (Godot's .uid follows the script).")},
   {page: "settings", sel: ".setnav", t: L("Réglages", "Settings"),
-   d: L("Dépôts GitHub, 🔑 Jetons (un jeton pour un ou plusieurs dépôts), 🎨 Affichage (thème, taille, langue…), 📴 Hors ligne, 🐞 Signaler un problème et ❓ Aide.",
-        "GitHub repositories, 🔑 Tokens (one token for one or several repositories), 🎨 Display (theme, size, language…), 📴 Offline, 🐞 Report a problem and ❓ Help.")},
+   d: L("📦 Dépôts GitHub, 🔑 Jetons (un jeton pour un ou plusieurs dépôts), 🎨 Affichage (thème, taille, langue…), ✈️ Hors ligne, 💾 Sauvegarde, 🐞 Signaler un problème et ❓ Aide. Sur téléphone en portrait, seules les icônes sont affichées : le nom de la section reste écrit en haut à droite.",
+        "📦 GitHub repositories, 🔑 Tokens (one token for one or several repositories), 🎨 Display (theme, size, language…), ✈️ Offline, 💾 Backup, 🐞 Report a problem and ❓ Help. On a phone in portrait, only the icons are shown: the section name stays written at the top right.")},
   {page: "settings", sec: "report", sel: "#repSend", t: L("🐞 Signaler un problème", "🐞 Report a problem"),
    d: L("Écris ce qui ne va pas : le signalement part sur GitHub, avec un suivi public de la réponse.", "Describe what's wrong: the report goes to GitHub, with a public follow-up of the answer.")},
   {page: "settings", sel: "#helpBtn", t: L("C'est tout ! 🎉", "That's all! 🎉"),
@@ -3572,7 +3714,8 @@ $("tourSkip").onclick = endTour;
 $("helpBtn").onclick = startTour;
 $("helpTour").onclick = startTour;
 window.addEventListener("resize", () => { if ($("tour").classList.contains("open")) tourShow(); });
-if (!store.get("tourDone", null)) setTimeout(() => { if (!$("updDlg").classList.contains("open") && !$("syncDlg").classList.contains("open")) startTour(); }, 1500);
+function maybeFirstTour() { if (!store.get("tourDone", null) && !$("welcome").classList.contains("open") && !$("updDlg").classList.contains("open") && !$("syncDlg").classList.contains("open") && !$("tour").classList.contains("open")) startTour(); }
+setTimeout(maybeFirstTour, 1500);
 
 // ---------- v0.15 : textes partagés ----------
 // Lire le texte de fichiers du dépôt : copie locale si elle est à jour, sinon téléchargement (et mise en copie locale)
@@ -3609,6 +3752,8 @@ $("projGo").textContent = L("Chercher", "Search");
 $("projClose").textContent = L("Fermer", "Close");
 $("projCase").title = L("Respecter majuscules et minuscules", "Match case");
 function openProjSearch(q) {
+  $("projTitle").textContent = L("Rechercher dans le projet", "Search the project");
+  if ($("projSearchRow").style.display === "none") { $("projSearchRow").style.display = ""; $("projList").innerHTML = ""; }
   if (q) $("projQ").value = q;
   $("projDlg").classList.add("open");
   if (!$("projList").children.length) $("projInfo").textContent = L("Cherche dans tous les fichiers du choix « Fichiers » (Scripts par défaut) du dépôt « " + (cfg().repo || "?") + " ». Sans Internet : dans la copie hors ligne.",
@@ -3724,14 +3869,15 @@ function addFolderChoice(sel, after) {
 }
 
 // ---------- v0.15 : sauvegarder / transférer les réglages ----------
-$("navBackup").textContent = L("💾 Sauvegarde", "💾 Backup");
+$("navBackupL").textContent = L("Sauvegarde", "Backup");
+navTitles();
 $("bakTitle").textContent = L("Sauvegarde des réglages", "Settings backup");
 $("bakIntro").textContent = L("Pour changer d'appareil sans tout refaire : exporte tes dépôts et réglages dans un fichier, puis importe-le sur l'autre appareil.",
   "To switch devices without redoing everything: export your repositories and settings to a file, then import it on the other device.");
 $("bakExpT").textContent = L("Exporter", "Export");
 $("bakExport").textContent = L("💾 Exporter mes réglages", "💾 Export my settings");
-$("bakExpHint").textContent = L("Le fichier contient tes dépôts, le nom de tes jetons et tes préférences d'affichage. Il ne contient JAMAIS la valeur de tes jetons GitHub.",
-  "The file holds your repositories, your token names and your display preferences. It NEVER holds the value of your GitHub tokens.");
+$("bakExpHint").textContent = L("Le fichier contient tes dépôts, le nom de tes jetons, tes préférences d'affichage et tes modèles de code. Il ne contient JAMAIS la valeur de tes jetons GitHub.",
+  "The file holds your repositories, your token names, your display preferences and your code templates. It NEVER holds the value of your GitHub tokens.");
 $("bakImpT").textContent = L("Importer", "Import");
 $("bakImport").textContent = L("📂 Importer un fichier de réglages", "📂 Import a settings file");
 $("bakImpHint").textContent = L("Les dépôts du fichier sont ajoutés ou mis à jour, ceux déjà présents sont gardés. Ensuite, recolle chaque jeton dans 🔑 Jetons (champ « Remplacer »).",
@@ -3742,7 +3888,8 @@ function exportSettings() {
     app: "GD Pocket", kind: "settings", format: 1, appVersion: APP_VERSION, exportedAt: new Date().toISOString(),
     repos: repos.map(r => ({id: r.id, owner: r.owner || "", repo: r.repo || "", branch: r.branch || "", tokenId: r.tokenId || null})),
     tokens: tokens.map(k => ({id: k.id, name: k.name})),          // jamais k.value
-    activeRepo: store.get("activeRepo", null), lastDir: store.get("lastDir", null), prefs: p
+    activeRepo: store.get("activeRepo", null), lastDir: store.get("lastDir", null), prefs: p,
+    snippets: mySnips.map(x => ({name: x.name, code: x.code}))     // v0.16 : mes modèles de code
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
   const a = document.createElement("a");
@@ -3755,8 +3902,9 @@ function exportSettings() {
 function importSettings(data) {
   if (!data || data.app !== "GD Pocket" || data.kind !== "settings" || !Array.isArray(data.repos)) { notify(L("Ce fichier n'est pas une sauvegarde de réglages GD Pocket.", "This file is not a GD Pocket settings backup."), "err"); return; }
   const fileToks = Array.isArray(data.tokens) ? data.tokens.filter(k => k && k.id) : [];
-  if (!confirm(L("Importer les réglages de ce fichier ?\n\n" + data.repos.length + " dépôt(s), " + fileToks.length + " jeton(s) (noms seulement). Tes dépôts actuels sont gardés.\n\nLes jetons ne sont jamais dans le fichier : recolle-les ensuite dans 🔑 Jetons.",
-    "Import the settings from this file?\n\n" + data.repos.length + " repository(ies), " + fileToks.length + " token(s) (names only). Your current repositories are kept.\n\nTokens are never in the file: paste them again afterwards in 🔑 Tokens."))) return;
+  const fileSnips = Array.isArray(data.snippets) ? data.snippets.filter(x => x && typeof x.code === "string" && x.code) : [];
+  if (!confirm(L("Importer les réglages de ce fichier ?\n\n" + data.repos.length + " dépôt(s), " + fileToks.length + " jeton(s) (noms seulement)" + (fileSnips.length ? ", " + fileSnips.length + " modèle(s) de code" : "") + ". Tes dépôts actuels sont gardés.\n\nLes jetons ne sont jamais dans le fichier : recolle-les ensuite dans 🔑 Jetons.",
+    "Import the settings from this file?\n\n" + data.repos.length + " repository(ies), " + fileToks.length + " token(s) (names only)" + (fileSnips.length ? ", " + fileSnips.length + " code template(s)" : "") + ". Your current repositories are kept.\n\nTokens are never in the file: paste them again afterwards in 🔑 Tokens."))) return;
   fileToks.forEach(k => { if (!tokenById(k.id)) tokens.push({id: String(k.id), name: String(k.name || L("Jeton", "Token")), value: ""}); });
   let added = 0, updated = 0;
   data.repos.forEach(r => {
@@ -3772,8 +3920,11 @@ function importSettings(data) {
   if (data.prefs && typeof data.prefs === "object") Object.keys(data.prefs).forEach(k => { if (k !== "compatInput" && k !== "setSec") prefs[k] = data.prefs[k]; });
   if (!repoById(store.get("activeRepo", null)) && data.activeRepo && repoById(data.activeRepo)) store.set("activeRepo", data.activeRepo);
   if (data.lastDir) store.set("lastDir", data.lastDir);
+  let snipsAdded = 0;
+  fileSnips.forEach(x => { if (!mySnips.some(y => y.code === x.code && y.name === x.name)) { mySnips.push({id: "s" + Date.now().toString(36) + mySnips.length, name: String(x.name || L("Mon modèle", "My template")).slice(0, 60), code: x.code}); snipsAdded++; } });
+  saveMySnips();
   saveTokens(); saveRepos(); prefs.setSec = "tokens"; store.set("prefs", prefs);
-  store.set("afterImport", {added, updated, empty: tokens.filter(k => !k.value).length});
+  store.set("afterImport", {added, updated, snips: snipsAdded, empty: tokens.filter(k => !k.value).length});
   saveTabs(true); skipUnloadWarn = true; location.reload();
 }
 $("bakExport").onclick = exportSettings;
@@ -3791,10 +3942,311 @@ $("bakFile").onchange = async () => {
   store.del("afterImport");
   setTimeout(() => {
     openPanel(); showTab("settings"); showSec("tokens");
-    notify(L("Réglages importés ✔ " + done.added + " dépôt(s) ajouté(s), " + done.updated + " mis à jour." + (done.empty ? " Colle maintenant le jeton GitHub de chaque ligne « ⚠ jeton à coller » (champ « Remplacer »)." : ""),
-      "Settings imported ✔ " + done.added + " repository(ies) added, " + done.updated + " updated." + (done.empty ? " Now paste the GitHub token of each “⚠ token to paste” line (“Replace” field)." : "")), done.empty ? "warn" : "ok");
+    notify(L("Réglages importés ✔ " + done.added + " dépôt(s) ajouté(s), " + done.updated + " mis à jour." + (done.snips ? " " + done.snips + " modèle(s) de code ajouté(s)." : "") + (done.empty ? " Colle maintenant le jeton GitHub de chaque ligne « ⚠ jeton à coller » (champ « Remplacer »)." : ""),
+      "Settings imported ✔ " + done.added + " repository(ies) added, " + done.updated + " updated." + (done.snips ? " " + done.snips + " code template(s) added." : "") + (done.empty ? " Now paste the GitHub token of each “⚠ token to paste” line (“Replace” field)." : "")), done.empty ? "warn" : "ok");
   }, 600);
 })();
+
+// ---------- v0.16 : outils communs (code sans textes ni commentaires) ----------
+// Remplace le contenu des textes "…", '…', """…""" et des commentaires # par des espaces (même longueur, mêmes retours à la ligne)
+function blankCode(text) {
+  let out = "", i = 0;
+  const n = text.length;
+  while (i < n) {
+    const c = text[i];
+    if (c === "#") { while (i < n && text[i] !== "\n") { out += " "; i++; } continue; }
+    if (c === '"' || c === "'") {
+      const tri = text.substr(i, 3) === c + c + c;
+      const end = tri ? c + c + c : c;
+      out += tri ? "   " : " "; i += tri ? 3 : 1;
+      while (i < n) {
+        if (!tri && text[i] === "\n") break;                       // texte non fermé : on s'arrête à la ligne
+        if (text[i] === "\\") { out += text[i + 1] === "\n" ? " \n" : "  "; i += 2; continue; }
+        if (text.substr(i, end.length) === end) { out += end.replace(/./g, " "); i += end.length; break; }
+        out += text[i] === "\n" ? "\n" : " "; i++;
+      }
+      continue;
+    }
+    out += c; i++;
+  }
+  return out;
+}
+let _godotNames = null;
+function godotNames() {
+  if (_godotNames) return _godotNames;
+  const extra = ["get", "set", "_", "delta", "event", "global_basis", "top_level", "skew", "z_index", "y_sort_enabled", "self_modulate",
+    "material", "texture", "mesh", "material_override", "cast_shadow", "layers", "collision_layer", "collision_mask", "monitoring", "monitorable",
+    "gravity_scale", "mass", "inertia", "freeze", "sleeping", "lock_rotation", "contact_monitor", "max_contacts_reported", "linear_damp", "angular_damp",
+    "center_of_mass", "floor_snap_length", "wall_min_slide_angle", "motion_mode", "slide_on_ceiling", "max_slides", "safe_margin",
+    "wheel_radius", "wheel_rest_length", "suspension_travel", "suspension_stiffness", "damping_compression", "damping_relaxation",
+    "wheel_friction_slip", "wheel_roll_influence", "use_as_traction", "use_as_steering", "anchor_left", "anchor_right", "anchor_top", "anchor_bottom",
+    "offset_left", "offset_right", "offset_top", "offset_bottom", "size_flags_horizontal", "size_flags_vertical", "custom_minimum_size", "pivot_offset",
+    "mouse_filter", "focus_mode", "tooltip_text", "theme", "disabled", "toggle_mode", "button_pressed", "icon", "flat", "horizontal_alignment",
+    "vertical_alignment", "autowrap_mode", "value", "min_value", "max_value", "step", "wait_time", "one_shot", "autostart", "time_left", "paused",
+    "stream", "volume_db", "pitch_scale", "playing", "autoplay", "bus", "max_distance", "unit_size", "light_energy", "light_color", "shadow_enabled",
+    "omni_range", "spot_range", "spot_angle", "near", "far", "projection", "h_offset", "v_offset", "keep_aspect", "zoom", "offset", "enabled",
+    "target_position", "exclude_parent", "shape", "speed_scale", "current_animation", "assigned_animation", "emitting", "amount", "lifetime",
+    "explosiveness", "randomness", "process_material", "progress", "progress_ratio", "loop", "curve", "environment", "multiplayer",
+    "scene_file_path", "unique_name_in_owner", "process_priority", "frame", "animation", "sprite_frames", "flip_h", "flip_v", "centered",
+    "hframes", "vframes", "region_enabled", "region_rect", "billboard", "pixel_size", "light_mask", "visibility_layer", "texture_filter",
+    "label_settings", "uppercase", "visible_characters", "visible_ratio", "placeholder_text", "editable", "secret", "bbcode_enabled", "selected",
+    "stretch_mode", "expand_mode", "layer", "gravity", "priority", "constant_force", "constant_torque", "physics_material_override",
+    "can_sleep", "linear_velocity", "angular_velocity", "steering", "brake", "engine_force", "max_contacts", "rotation_order", "font_size"];
+  _godotNames = new Set([].concat(KEYWORDS, KW, FLOW, BASE, ENGINE, TYPES, GFUNC, BUILTINS, MEMBERS, extra));
+  return _godotNames;
+}
+// Noms déclarés dans un script : {name: [index, …]} (index = position dans le texte)
+function declaredNames(code, topOnly) {
+  const out = Object.create(null);
+  const add = (name, idx) => { if (!name) return; (out[name] = out[name] || []).push(idx); };
+  const scan = (re, g) => { let m; re.lastIndex = 0; while ((m = re.exec(code))) { const nm = m[g || 1]; add(nm, m.index + m[0].lastIndexOf(nm)); if (!m[0].length) re.lastIndex++; } };
+  const top = topOnly ? "^" : "^[ \\t]*";
+  scan(new RegExp(top + "(?:static[ \\t]+)?func[ \\t]+([A-Za-z_]\\w*)", "gm"));
+  scan(new RegExp(top + "(?:@\\w+(?:\\([^)\\n]*\\))?[ \\t]+)*(?:static[ \\t]+)?var[ \\t]+([A-Za-z_]\\w*)", "gm"));
+  scan(new RegExp(top + "const[ \\t]+([A-Za-z_]\\w*)", "gm"));
+  scan(new RegExp(top + "signal[ \\t]+([A-Za-z_]\\w*)", "gm"));
+  scan(new RegExp(top + "enum[ \\t]+([A-Za-z_]\\w*)", "gm"));
+  scan(new RegExp(top + "class_name[ \\t]+([A-Za-z_]\\w*)", "gm"));
+  scan(new RegExp(top + "class[ \\t]+([A-Za-z_]\\w*)", "gm"));
+  // membres d'enum
+  let m; const en = new RegExp(top + "enum\\b[^{\\n]*\\{([^}]*)\\}", "gm");
+  while ((m = en.exec(code))) { const base = m.index + m[0].indexOf("{") + 1; const re = /([A-Za-z_]\w*)\s*(?:=[^,}]*)?(?:,|$)/g; let k; while ((k = re.exec(m[1]))) { add(k[1], base + k.index); if (!k[0].length) re.lastIndex++; } }
+  if (topOnly) return out;
+  // variables locales n'importe où (y compris « match … var x »), boucles for, paramètres (fonctions, lambdas, signaux, set(value))
+  scan(/\bvar[ \t]+([A-Za-z_]\w*)/g);
+  scan(/\bfor[ \t]+([A-Za-z_]\w*)(?:[ \t]*:[ \t]*[\w.\[\]]+)?[ \t]+in\b/g);
+  const pr = /\b(?:func|signal)\b[ \t]*[A-Za-z_]?\w*[ \t]*\(([^)]*)\)/g;
+  while ((m = pr.exec(code))) {
+    const base = m.index + m[0].indexOf("(") + 1, re = /(?:^|,)\s*([A-Za-z_]\w*)/g; let k;
+    while ((k = re.exec(m[1]))) add(k[1], base + k.index + k[0].indexOf(k[1]));
+  }
+  scan(/\bset[ \t]*\([ \t]*([A-Za-z_]\w*)/g);
+  return out;
+}
+
+// ---------- v0.16 : noms inconnus soulignés en orange ----------
+let projNamesCache = {key: "", names: null};
+function projectNames(t) {
+  const id = t.repoId, idx = id ? cidx(id) : {};
+  const gdPaths = Object.keys(idx).filter(p => GD_RE.test(p) && p !== t.path);
+  const key = id + "|" + gdPaths.map(p => idx[p]).join(",") + "|" + ("project.godot" in idx ? idx["project.godot"] : "");
+  if (projNamesCache.key !== key) {
+    const set = new Set();
+    gdPaths.forEach(p => { const c = cacheGet(id, p); if (c) Object.keys(declaredNames(blankCode(c.text), true)).forEach(n => set.add(n)); });
+    const pg = id ? cacheGet(id, "project.godot") : null;           // autoloads (singletons) du projet
+    if (pg) { const sec = pg.text.split(/^\[autoload\]\s*$/m)[1]; if (sec) (sec.split(/^\[/m)[0].match(/^[A-Za-z_]\w*(?==)/gm) || []).forEach(n => set.add(n)); }
+    projNamesCache = {key, names: set};
+  }
+  // les autres onglets ouverts du même dépôt (modifications non envoyées comprises)
+  const set = new Set(projNamesCache.names);
+  tabs.forEach(x => { if (x !== t && x.doc && /\.gd$/i.test(x.name || x.path || "") && (!id || x.repoId === id)) Object.keys(declaredNames(blankCode(x.doc.getValue()), true)).forEach(n => set.add(n)); });
+  return set;
+}
+function findUnknown(text, known) {
+  const code = blankCode(text).replace(/\$(?:"[^"\n]*"|[\w\/]+)/g, s => s.replace(/[^\n]/g, " "));
+  const decl = declaredNames(code, false), out = [];
+  const re = /[A-Za-z_]\w*/g; let m, depth = 0, last = 0;
+  while ((m = re.exec(code))) {
+    for (let k = last; k < m.index; k++) { const c = code[k]; if (c === "{") depth++; else if (c === "}") depth = Math.max(0, depth - 1); }
+    last = m.index;
+    const nm = m[0], prev = m.index ? code[m.index - 1] : "";
+    if (/[\w.@$%&^]/.test(prev)) continue;                                   // .membre, @annotation, $Noeud, nombre (1e5)…
+    if (prev === " " || prev === "\t") { let k = m.index - 1; while (k >= 0 && (code[k] === " " || code[k] === "\t")) k--; if (code[k] === ".") continue; }
+    if (/^[A-Z]/.test(nm)) continue;                                          // classes, CONSTANTES, enums
+    if (decl[nm] || known.has(nm) || godotNames().has(nm)) continue;
+    const after = code.slice(m.index + nm.length, m.index + nm.length + 40);
+    if (/^\s*\(/.test(after)) continue;                                       // appel de fonction (héritée ou de Godot)
+    if (depth && /^\s*=(?!=)/.test(after)) continue;                          // clé de dictionnaire { cle = valeur }
+    out.push({name: nm, index: m.index});
+    if (out.length >= 200) break;
+  }
+  return out;
+}
+function clearUnknown() { unkMarks.forEach(k => k.clear()); unkMarks = []; unkList = []; }
+function markUnknown(t) {
+  const text = cm.getValue();
+  let list = findUnknown(text, projectNames(t));
+  const curIdx = cm.indexFromPos(cm.getCursor());
+  list = list.filter(u => !(curIdx >= u.index && curIdx <= u.index + u.name.length && cm.hasFocus()));   // le mot en train d'être tapé
+  cm.operation(() => {
+    list.forEach(u => {
+      const from = cm.posFromIndex(u.index), to = cm.posFromIndex(u.index + u.name.length);
+      u.from = from; u.to = to;
+      unkMarks.push(cm.markText(from, to, {className: "cm-unknown", attributes: {title: unknownMsg(u.name)}}));
+    });
+  });
+  unkList = list;
+}
+function unknownAt(pos) {
+  for (let i = 0; i < unkList.length; i++) { const u = unkList[i]; if (u.from && u.from.line === pos.line && pos.ch >= u.from.ch && pos.ch <= u.to.ch) return u; }
+  return null;
+}
+function unknownMsg(name) {
+  return L("🟠 « " + name + " » n'est déclaré nulle part : faute de frappe ? (un doute, pas une erreur)",
+    "🟠 “" + name + "” isn't declared anywhere: a typo? (a doubt, not an error)");
+}
+
+// ---------- v0.16 : aller à la définition (🎯, F12, Ctrl + clic) ----------
+function nameAtCursor() {
+  const sel = cm.getSelection();
+  if (sel && /^[A-Za-z_]\w*$/.test(sel.trim())) return sel.trim();
+  const c = cm.getCursor(), line = cm.getLine(c.line) || "";
+  let a = c.ch, b = c.ch;
+  while (a > 0 && /\w/.test(line[a - 1])) a--;
+  while (b < line.length && /\w/.test(line[b])) b++;
+  const w = line.slice(a, b);
+  return /^[A-Za-z_]\w*$/.test(w) ? w : "";
+}
+// Définitions d'un nom dans un texte : [{line, ch, len, kind, indent}]
+function defsIn(text, name, topOnly) {
+  const code = blankCode(text), d = declaredNames(code, !!topOnly)[name] || [];
+  const seen = {}, out = [];
+  d.forEach(idx => {
+    if (seen[idx]) return; seen[idx] = 1;
+    const before = code.slice(0, idx), line = (before.match(/\n/g) || []).length, ls = before.lastIndexOf("\n") + 1;
+    const lineCode = code.slice(ls, code.indexOf("\n", ls) === -1 ? code.length : code.indexOf("\n", ls));
+    out.push({line, ch: idx - ls, len: name.length, indent: lineCode.match(/^[ \t]*/)[0].length, top: /^(?:static\s+)?(?:@\w+(?:\([^)]*\))?\s+)*(?:func|var|const|signal|enum|class_name|class)\b/.test(lineCode)});
+  });
+  return out.sort((a, b) => a.line - b.line || a.ch - b.ch);
+}
+// La meilleure définition dans le script affiché : variable locale ou paramètre de la fonction en cours d'abord
+function pickLocalDef(defs, curLine) {
+  if (!defs.length) return null;
+  let fStart = -1, fInd = 0;
+  const curInd = cm.getLine(curLine).match(/^[ \t]*/)[0].length;
+  for (let l = curLine; l >= 0; l--) {
+    const tx = cm.getLine(l), mm = tx.match(/^([ \t]*)(?:static\s+)?func\b/);
+    if (mm && (l === curLine || mm[1].length < curInd)) { fStart = l; fInd = mm[1].length; break; }
+    if (l !== curLine && tx.trim() && !/^\s*#/.test(tx) && tx.match(/^[ \t]*/)[0].length === 0) break;   // on est sorti de toute fonction
+  }
+  if (fStart >= 0) {
+    let fEnd = cm.lineCount() - 1;
+    for (let l = fStart + 1; l < cm.lineCount(); l++) { const tx = cm.getLine(l); if (tx.trim() && !/^\s*#/.test(tx) && tx.match(/^[ \t]*/)[0].length <= fInd) { fEnd = l - 1; break; } }
+    const loc = defs.filter(d => d.line >= fStart && d.line <= Math.min(fEnd, curLine) && !(d.top && d.indent <= fInd && d.line !== fStart));
+    if (loc.length) return loc[loc.length - 1];
+  }
+  const lvl0 = defs.filter(d => d.top && d.indent === 0);
+  return (lvl0.length ? lvl0 : defs)[0];
+}
+function showDefAt(line, ch, len) {
+  gotoLine(line);
+  cm.setSelection({line, ch}, {line, ch: ch + len});
+}
+let defBusy = false;
+async function gotoDef() {
+  const t = cur(), name = nameAtCursor();
+  if (!name) { notify(L("Place le curseur sur un nom (fonction, variable, signal, constante…), puis touche 🎯.", "Put the cursor on a name (function, variable, signal, constant…), then tap 🎯."), "warn"); return; }
+  const pos = cm.getCursor();
+  const here = defsIn(cm.getValue(), name, false);
+  const best = pickLocalDef(here, pos.line);
+  if (best) {
+    if (best.line === pos.line && pos.ch >= best.ch && pos.ch <= best.ch + best.len && !cm.getSelection()) {
+      notify(L("C'est ici que « " + name + " » est déclaré (ligne " + (best.line + 1) + ").", "This is where “" + name + "” is declared (line " + (best.line + 1) + ")."), "ok");
+      return;
+    }
+    showDefAt(best.line, best.ch, best.len);
+    refreshStatus(L("🎯 Définition de « " + name + " » : ligne " + (best.line + 1), "🎯 Definition of “" + name + "”: line " + (best.line + 1)));
+    return;
+  }
+  if (godotNames().has(name)) {
+    notify(L("« " + name + " » fait partie de Godot : il n'a pas de définition dans ton projet. Sa documentation est dans l'aide de Godot.", "“" + name + "” is part of Godot: it has no definition in your project. Its documentation is in Godot's help."), "ok");
+    return;
+  }
+  const c = t.kind === "gh" ? repoById(t.repoId) : null;
+  if (!c || !c.owner || c.id !== activeId()) { notify(L("Aucune définition de « " + name + " » dans ce fichier." + (c && c.owner ? " Pour chercher dans les autres scripts, choisis le dépôt « " + c.repo + " » dans 📁." : ""), "No definition of “" + name + "” in this file." + (c && c.owner ? " To search the other scripts, choose repository “" + c.repo + "” in 📁." : "")), "warn"); return; }
+  if (defBusy) return;
+  defBusy = true;
+  try {
+    const shas = store.get("shas:" + c.id, {});
+    const paths = tree.filter(p => GD_RE.test(p) && p !== t.path);
+    const {out, missing} = await repoTexts(c, paths, shas, (i, n) => refreshStatus(L("🎯 Recherche de « " + name + " » dans le projet… ", "🎯 Looking for “" + name + "” in the project… ") + i + " / " + n));
+    tabs.forEach(x => { if (x !== t && x.kind === "gh" && x.repoId === c.id && x.doc && GD_RE.test(x.path)) out[x.path] = {text: x.doc.getValue()}; });
+    const hits = [];
+    Object.keys(out).sort().forEach(p => {
+      const lines = out[p].text.split("\n");
+      defsIn(out[p].text, name, true).forEach(d => hits.push({p, line: d.line, ch: d.ch, len: d.len, text: lines[d.line] || ""}));
+    });
+    refreshStatus();
+    if (!hits.length) {
+      notify(L("Aucune définition de « " + name + " » trouvée dans le projet" + (missing.length ? " (📴 " + missing.length + " script(s) non disponibles hors ligne)" : "") + ".",
+        "No definition of “" + name + "” found in the project" + (missing.length ? " (📴 " + missing.length + " script(s) not available offline)" : "") + "."), "warn");
+      return;
+    }
+    if (hits.length === 1) { await goProjHit(hits[0]); refreshStatus(L("🎯 Définition de « " + name + " » : " + hits[0].p + ", ligne " + (hits[0].line + 1), "🎯 Definition of “" + name + "”: " + hits[0].p + ", line " + (hits[0].line + 1))); return; }
+    // plusieurs scripts déclarent ce nom : on laisse choisir
+    $("projTitle").textContent = L("Définitions de « " + name + " »", "Definitions of “" + name + "”");
+    $("projSearchRow").style.display = "none";
+    $("projInfo").textContent = L(hits.length + " scripts déclarent « " + name + " » : touche celui que tu veux ouvrir.", hits.length + " scripts declare “" + name + "”: tap the one you want to open.");
+    renderProjHits(hits, name);
+    $("projDlg").classList.add("open");
+  } catch (e) { refreshStatus(); notify(L("Erreur : ", "Error: ") + friendly(e), "err"); }
+  finally { defBusy = false; }
+}
+cm.on("mousedown", (c, e) => { if (e.ctrlKey || e.metaKey) setTimeout(gotoDef, 0); });
+$("prefUnknownL").textContent = L("Signaler les noms inconnus (soulignés en orange)", "Underline unknown names (in orange)");
+unkReady = true; setTimeout(runLint, 0);
+
+// ---------- v0.16 : écran d'accueil ----------
+// Seulement quand GD Pocket est ouvert dans le navigateur (jamais dans l'appli installée), et revisible depuis Réglages › Aide.
+const IS_STANDALONE = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+let installEvt = null;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; });
+window.addEventListener("appinstalled", () => { installEvt = null; notify(L("GD Pocket est installé ✔ Ouvre-le depuis son icône (la poche) sur ton écran d'accueil.", "GD Pocket is installed ✔ Open it from its icon (the pocket) on your home screen."), "ok"); });
+function sessGet(k) { try { return sessionStorage.getItem("gdpocket_" + k); } catch (e) { return null; } }
+function sessSet(k, v) { try { sessionStorage.setItem("gdpocket_" + k, v); } catch (e) {} }
+function showWelcome() {
+  $("wFr").classList.toggle("on", LANG === "fr"); $("wEn").classList.toggle("on", LANG === "en");
+  $("wSub").textContent = L("L'éditeur GDScript de poche pour Godot, relié à tes dépôts GitHub.", "The pocket GDScript editor for Godot, linked to your GitHub repositories.");
+  const ul = $("wFeat"); ul.innerHTML = "";
+  [L("Coloration et aide GDScript, comme dans Godot", "GDScript colors and help, like in Godot"),
+   L("Envoi direct sur GitHub (commits)", "Sends straight to GitHub (commits)"),
+   L("Marche aussi sans Internet", "Works without Internet too"),
+   L("Sur téléphone et tablette", "On phone and tablet")].forEach(x => { const li = document.createElement("li"); li.textContent = x; ul.appendChild(li); });
+  $("wOpen").textContent = L("Ouvrir l'éditeur", "Open the editor");
+  $("wInstall").textContent = L("📲 Installer l'appli", "📲 Install the app");
+  $("wInstall").style.display = IS_STANDALONE ? "none" : "";
+  $("wInstHelp").style.display = "none";
+  $("wPdf").textContent = L("Présentation (PDF)", "Presentation (PDF)");
+  $("wPdf").href = L("presentation/GD_Pocket_presentation.pdf", "presentation/GD_Pocket_presentation_EN.pdf");
+  $("wGit").href = REPO_URL;
+  $("wOffT").textContent = L("Ne plus afficher dans ce navigateur", "Don't show again in this browser");
+  $("wOffL").style.display = IS_STANDALONE ? "none" : "";
+  $("wOff").checked = !!store.get("welcomeOff", false);
+  $("wCredit").textContent = L("Conçu, dirigé et testé par Lutiin Black, développé avec l'aide de Claude (IA)", "Designed, directed and tested by Lutiin Black, developed with the help of Claude (AI)") + " · v" + APP_VERSION + " · " + L("Licence MIT", "MIT license");
+  $("welcome").classList.add("open");
+  $("welcome").scrollTop = 0;
+}
+function closeWelcome() {
+  $("welcome").classList.remove("open");
+  if (!IS_STANDALONE) { if ($("wOff").checked) store.set("welcomeOff", true); else store.del("welcomeOff"); }
+  sessSet("welcomed", "1");
+  setTimeout(maybeFirstTour, 500);
+}
+$("wOpen").onclick = closeWelcome;
+$("wInstall").onclick = async () => {
+  if (installEvt) {
+    const e = installEvt; installEvt = null;
+    try { e.prompt(); await e.userChoice; } catch (err) {}
+    return;
+  }
+  $("wInstHelp").textContent = IS_IOS
+    ? L("Sur iPhone et iPad, dans Safari : touche le bouton Partager (le carré avec une flèche ↑), puis « Sur l'écran d'accueil ». L'icône de la poche apparaît avec tes applis.",
+        "On iPhone and iPad, in Safari: tap the Share button (the square with an ↑ arrow), then “Add to Home Screen”. The pocket icon appears with your apps.")
+    : L("Ouvre le menu du navigateur (⋮ ou ☰), puis choisis « Installer l'application » ou « Ajouter à l'écran d'accueil ». Si rien n'apparaît, GD Pocket est peut-être déjà installé.",
+        "Open the browser menu (⋮ or ☰), then choose “Install app” or “Add to Home screen”. If nothing shows up, GD Pocket may already be installed.");
+  $("wInstHelp").style.display = "block";
+};
+function setLangReload(l) {
+  if (l === LANG) return;
+  prefs.lang = l; store.set("prefs", prefs);
+  saveTabs(true); skipUnloadWarn = true; location.reload();
+}
+$("wFr").onclick = () => setLangReload("fr");
+$("wEn").onclick = () => setLangReload("en");
+$("helpWelcome").textContent = L("🏠 Voir l'écran d'accueil", "🏠 Show the welcome screen");
+$("helpWelcome").onclick = showWelcome;
+if (!IS_STANDALONE && !store.get("welcomeOff", false) && !sessGet("welcomed") && !/[?&]app\b/.test(location.search)) showWelcome();
 
 // ---------- Mises à jour : fenêtre « Nouvelle version » ----------
 let pendingWorker = null, updateAccepted = false;
