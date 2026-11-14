@@ -283,6 +283,8 @@
   #snipList .nm, #histList .nm { display:block; font-size:14px; }
   #snipList .pv, #histList .pv { display:block; font-size:12px; opacity:.6; font-family:ui-monospace, monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
   #keys button.snip { background:var(--acc); }
+  #keys button.selkey { font-family:system-ui, sans-serif; font-size:14px; }
+  #keys button.selkey.on { background:#ffb86c; color:#1d2229; font-weight:bold; }
   #mySnipList { list-style:none; margin:0; padding:0; }
   #mySnipList li { display:flex; align-items:stretch; border-bottom:1px solid var(--mut); }
   #mySnipList li .ins { flex:1 1 0; min-width:0; display:block; text-align:left; background:transparent; border-radius:0; padding:9px 4px; }
@@ -823,7 +825,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
 <script>
 // ---------- Version et rapport d'erreurs (utile sur les vieux appareils) ----------
-var APP_VERSION = "0.16.0";
+var APP_VERSION = "0.16.1";
 var lastAppError = "";
 function showError(msg) {
   lastAppError = String(msg).slice(0, 300);
@@ -1471,7 +1473,24 @@ function refreshHist() {
   d.addEventListener("mousedown", e => e.preventDefault());
   d.onclick = () => gotoDef();
   $("keys").appendChild(d);
+  // v0.16.1 : touche Sélection — quand elle est allumée, les flèches agrandissent la sélection
+  // (en saisie compatible Android, l'appui long n'a pas les poignées de sélection)
+  const sb = document.createElement("button");
+  sb.className = "selkey nolang"; sb.id = "selBtn"; sb.textContent = LANG === "en" ? "Sel" : "Sél";
+  sb.setAttribute("aria-label", LANG === "en" ? "Selection: the arrows extend the selection" : "Sélection : les flèches agrandissent la sélection");
+  sb.title = sb.getAttribute("aria-label");
+  sb.addEventListener("mousedown", e => e.preventDefault());
+  sb.onclick = () => setSelMode(!selMode);
+  $("keys").appendChild(sb);
 })();
+var selMode = false;
+function setSelMode(on) {
+  selMode = !!on;
+  cm.setExtending(selMode);
+  $("selBtn").classList.toggle("on", selMode);
+  if (selMode) refreshStatus(LANG === "en" ? "Selection on: ← ↑ ↓ → extend the selection (double tap = a word, triple tap = a line). Tap Sel again to stop." : "Sélection allumée : ← ↑ ↓ → agrandissent la sélection (double toucher = un mot, triple toucher = une ligne). Touche Sél pour arrêter.");
+  else refreshStatus();
+}
 // Flèches : déplacent le curseur ; appui long = déplacement continu
 function repeatBtn(b, fn) {
   let t1 = null, t2 = null;
@@ -3040,8 +3059,8 @@ function renderMySnips() {
   $("mySnipT").textContent = L("Mes modèles", "My templates") + (mySnips.length ? " (" + mySnips.length + ")" : "");
   $("snipStdT").textContent = L("Modèles fournis", "Built-in templates");
   $("mySnipAdd").textContent = L("＋ Enregistrer la sélection comme modèle", "＋ Save the selection as a template");
-  $("mySnipHint").textContent = mySnips.length ? "" : L("Sélectionne du code dans l'éditeur (par exemple le début d'un script de voiture), puis touche 🧩 et « Enregistrer la sélection ». Tes modèles sont gardés sur cet appareil et dans la 💾 sauvegarde des réglages.",
-    "Select some code in the editor (for example the start of a car script), then tap 🧩 and “Save the selection”. Your templates are kept on this device and in the 💾 settings backup.");
+  $("mySnipHint").textContent = mySnips.length ? "" : L("Sélectionne du code dans l'éditeur (double toucher = un mot, triple toucher = une ligne, touche « Sél » + flèches pour agrandir), puis touche 🧩 et « Enregistrer la sélection ». Sans sélection, tu choisis les lignes (ex. 230-250). Tes modèles sont gardés sur cet appareil et dans la 💾 sauvegarde des réglages.",
+    "Select some code in the editor (double tap = a word, triple tap = a line, “Sel” key + arrows to extend), then tap 🧩 and “Save the selection”. Without a selection, you pick the lines (e.g. 230-250). Your templates are kept on this device and in the 💾 settings backup.");
   $("mySnipHint").style.display = mySnips.length ? "none" : "";
   const ul = $("mySnipList"); ul.innerHTML = "";
   mySnips.forEach(sn => {
@@ -3064,9 +3083,41 @@ function renderMySnips() {
     li.append(b, ed, rm); ul.appendChild(li);
   });
 }
+// v0.16.1 : sans sélection, on propose des lignes (par défaut la fonction où se trouve le curseur)
+function funcRangeAt(line) {
+  for (let l = line; l >= 0; l--) {
+    const m = cm.getLine(l).match(/^([ \t]*)(?:static\s+)?func\b/);
+    if (!m) continue;
+    let end = l;
+    for (let k = l + 1; k < cm.lineCount(); k++) {
+      const tx = cm.getLine(k);
+      if (!tx.trim()) continue;
+      if (tx.match(/^[ \t]*/)[0].length <= m[1].length && !/^\s*#/.test(tx)) break;
+      end = k;
+    }
+    if (end >= line) return [l, end];
+    break;
+  }
+  return [line, line];
+}
+function linesForSnippet() {
+  const r = funcRangeAt(cm.getCursor().line);
+  const v = askText(L("Rien n'est sélectionné. Quelles lignes garder comme modèle ? (ex. 230-250)\nAstuce : double toucher = un mot, triple toucher = une ligne, touche « Sél » + flèches pour agrandir.",
+    "Nothing is selected. Which lines should be kept as a template? (e.g. 230-250)\nTip: double tap = a word, triple tap = a line, “Sel” key + arrows to extend."), (r[0] + 1) + "-" + (r[1] + 1));
+  if (v === null) return null;
+  const m = String(v).match(/^\s*(\d+)\s*(?:[-–à:]\s*(\d+))?\s*$/);
+  if (!m) { notify(L("Écris les lignes comme ceci : 230-250", "Write the lines like this: 230-250"), "warn"); return null; }
+  let a = parseInt(m[1], 10) - 1, b = (m[2] ? parseInt(m[2], 10) : a + 1) - 1;
+  if (a > b) { const t = a; a = b; b = t; }
+  a = Math.max(0, a); b = Math.min(cm.lineCount() - 1, b);
+  if (a > b) { notify(L("Ces lignes n'existent pas dans ce fichier.", "These lines don't exist in this file."), "warn"); return null; }
+  return cm.getRange({line: a, ch: 0}, {line: b, ch: cm.getLine(b).length});
+}
 $("mySnipAdd").onclick = () => {
-  const sel = cm.getSelection();
-  if (!sel.trim()) { notify(L("Sélectionne d'abord dans l'éditeur le code à garder (appui long sur le texte), puis touche à nouveau 🧩.", "First select the code to keep in the editor (long press on the text), then tap 🧩 again."), "warn"); return; }
+  let sel = cm.getSelection();
+  if (!sel.trim()) { sel = linesForSnippet(); if (sel === null) return; }
+  if (!sel.trim()) { notify(L("Ces lignes sont vides.", "These lines are empty."), "warn"); return; }
+  if (selMode) setSelMode(false);
   const code = dedentCode(sel);
   const def = (code.split("\n").filter(l => l.trim())[0] || "").trim().replace(/:$/, "").slice(0, 40);
   const v = askText(L("Nom du modèle :", "Template name:"), def);
@@ -3637,8 +3688,8 @@ const TOUR = [
    d: L("● rouge = erreur dans la ligne (touche-la pour l'explication). ● orange = ligne nouvelle ou modifiée, ▸ orange = lignes supprimées ici.",
         "Red ● = error on the line (tap it for the explanation). Orange ● = new or changed line, orange ▸ = lines deleted here.")},
   {page: "editor", sel: "#keys", t: L("Barre de touches", "Key bar"),
-   d: L("🧩 modèles de code, flèches ← ↑ ↓ → pour déplacer le curseur (appui long = continu), et les caractères utiles du GDScript. \" ( [ { ouvrent la paire.",
-        "🧩 code templates, ← ↑ ↓ → arrows to move the cursor (long press = continuous), and handy GDScript characters. \" ( [ { open the pair.")},
+   d: L("🧩 modèles de code, 🎯 aller à la définition, « Sél » (les flèches agrandissent la sélection), flèches ← ↑ ↓ → pour déplacer le curseur (appui long = continu), et les caractères utiles du GDScript. \" ( [ { ouvrent la paire.",
+        "🧩 code templates, 🎯 go to definition, “Sel” (the arrows extend the selection), ← ↑ ↓ → arrows to move the cursor (long press = continuous), and handy GDScript characters. \" ( [ { open the pair.")},
   {page: "editor", sel: "#statusRow", t: L("Barre d'état", "Status bar"),
    d: L("Montre l'état du fichier et les messages. 🕘 = historique des versions, ↻ = recharger l'onglet depuis GitHub, ▾ = replier la barre.",
         "Shows the file state and messages. 🕘 = version history, ↻ = reload the tab from GitHub, ▾ = collapse the bar.")},
@@ -4154,6 +4205,10 @@ async function gotoDef() {
     }
     showDefAt(best.line, best.ch, best.len);
     refreshStatus(L("🎯 Définition de « " + name + " » : ligne " + (best.line + 1), "🎯 Definition of “" + name + "”: line " + (best.line + 1)));
+    return;
+  }
+  if (KEYWORDS.concat(KW, FLOW).indexOf(name) !== -1) {
+    notify(L("« " + name + " » est un mot-clé du langage GDScript : il n'a pas de définition.", "“" + name + "” is a GDScript language keyword: it has no definition."), "ok");
     return;
   }
   if (godotNames().has(name)) {

@@ -4,7 +4,7 @@
 
 Éditeur GDScript de poche pour modifier les scripts d'un projet Godot 4 depuis un téléphone ou une tablette, directement dans un dépôt GitHub.
 
-- **Version actuelle : v0.16.0** (14/11/2026) — en test (v0.15.0 validée sur le téléphone Android, v0.14.0 aussi sur l'iPad mini 2, iOS 12)
+- **Version actuelle : v0.16.1** (14/11/2026) — v0.16.0 validée en partie sur le téléphone Android (Réglages en icônes, noms inconnus, logo, écran d'accueil) ; v0.16.1 corrige « Mes modèles » sur Android
 - **Langues :** français et anglais (English)
 - **Appli en ligne :** https://lutiinblack.github.io/gd-pocket/
 - **Format :** application web installable (PWA), distribuée hors Google Play et App Store
@@ -27,7 +27,8 @@ Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), a
 - Indentation par tabulations, automatique après une ligne finissant par `:`
 - **Erreurs en direct, comme dans Godot** : ligne fautive en rouge, ● dans la marge et explication dans la barre d'état (« : » oublié, parenthèses / crochets / guillemets non fermés, indentation incohérente, bloc vide, `=` au lieu de `==`…)
 - Barre de touches : 🧩 modèles de code, flèches ← ↑ ↓ → (appui long = déplacement continu), Tab (`"` `(` `[` `{` ouvrent la paire, comme le clavier), `:`, `(`, `)`, `_`, `"`, `$`, `@`, `=`, `.`, `[]`, `{}`, `->`, `#`
-- **Modèles de code 🧩** : 25 modèles (func, _ready, _process, signal, @export, @onready, for, match, await…) insérés à la bonne indentation, et **⭐ mes modèles** enregistrés depuis une sélection (renommer, supprimer, inclus dans la sauvegarde)
+- **Modèles de code 🧩** : 25 modèles (func, _ready, _process, signal, @export, @onready, for, match, await…) insérés à la bonne indentation, et **⭐ mes modèles** enregistrés depuis une sélection ou des lignes choisies (renommer, supprimer, inclus dans la sauvegarde)
+- **Sélection au doigt** : double toucher = un mot, triple toucher = une ligne, touche « Sél » + flèches pour agrandir la sélection
 - **🎯 Aller à la définition** (barre de touches, F12 ou Ctrl + clic) : saute à la déclaration d'une fonction, variable, signal ou constante, dans le script (variable locale d'abord) ou dans un autre script du dépôt
 - **Noms inconnus soulignés en orange** : un nom déclaré nulle part (ni dans le script, ni dans les autres scripts, ni parmi les noms Godot connus, autoloads compris) est signalé comme un doute ; désactivable
 - ↶ Annuler, ↷ Rétablir, ☰ Plan du script (fonctions, signaux, constantes…)
@@ -100,6 +101,7 @@ Publier une nouvelle version : changer `VERSION` dans `sw.js`, `APP_VERSION` dan
 
 | Version | Date | Nouveautés |
 |---|---|---|
+| v0.16.1 | 14/11/2026 | Correctif : touche « Sél » (les flèches agrandissent la sélection), choix des lignes sans sélection pour « Mes modèles », 🎯 sur un mot-clé |
 | v0.16.0 | 14/11/2026 | Réglages en icônes sur téléphone, mes modèles de code, aller à la définition, noms inconnus en orange, logo « la poche » et écran d'accueil |
 | v0.15.0 | 13/11/2026 | Recherche dans tout le projet, chemins corrigés au renommage, nouveau dossier, sauvegarde des réglages, traduction anglaise terminée |
 | v0.14.0 | 09/11/2026 | Tutoriel en bulles, appli en anglais, 🐞 Signaler un problème, page sécurité du jeton, fenêtres ＋ et « Nouveau script » en blocs |

@@ -1,6 +1,20 @@
 {
   "versions": [
     {
+      "version": "0.16.1",
+      "date": "14/11/2026",
+      "notes": [
+        "Correctif « Mes modèles » sur Android : nouvelle touche « Sél » dans la barre de touches — allumée, les flèches ← ↑ ↓ → agrandissent la sélection. Double toucher = un mot, triple toucher = une ligne.",
+        "Sans sélection, « Enregistrer la sélection comme modèle » propose de choisir les lignes (ex. 230-250), avec la fonction où se trouve le curseur par défaut.",
+        "🎯 sur un mot-clé (var, func, if…) : « mot-clé du langage GDScript »."
+      ],
+      "notes_en": [
+        "“My templates” fix on Android: new “Sel” key in the key bar — when on, the ← ↑ ↓ → arrows extend the selection. Double tap = a word, triple tap = a line.",
+        "Without a selection, “Save the selection as a template” lets you pick the lines (e.g. 230-250), with the function under the cursor by default.",
+        "🎯 on a keyword (var, func, if…): “GDScript language keyword”."
+      ]
+    },
+    {
       "version": "0.16.0",
       "date": "14/11/2026",
       "notes": [
