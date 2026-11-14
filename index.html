@@ -3991,7 +3991,15 @@ function godotNames() {
     "hframes", "vframes", "region_enabled", "region_rect", "billboard", "pixel_size", "light_mask", "visibility_layer", "texture_filter",
     "label_settings", "uppercase", "visible_characters", "visible_ratio", "placeholder_text", "editable", "secret", "bbcode_enabled", "selected",
     "stretch_mode", "expand_mode", "layer", "gravity", "priority", "constant_force", "constant_torque", "physics_material_override",
-    "can_sleep", "linear_velocity", "angular_velocity", "steering", "brake", "engine_force", "max_contacts", "rotation_order", "font_size"];
+    "can_sleep", "linear_velocity", "angular_velocity", "steering", "brake", "engine_force", "max_contacts", "rotation_order", "font_size",
+    // propriétés de classes courantes, signaux hérités et fonctions héritées citées sans () (ex. tween_callback(stop))
+    "multimesh", "root", "current_scene", "paused", "physics_object_picking", "transparent_bg", "world_3d", "world_2d", "canvas_item",
+    "body_entered", "body_exited", "area_entered", "area_exited", "body_shape_entered", "area_shape_entered", "timeout", "pressed", "button_down",
+    "button_up", "toggled", "value_changed", "finished", "animation_finished", "animation_started", "tree_entered", "tree_exiting", "tree_exited",
+    "ready", "renamed", "visibility_changed", "text_changed", "text_submitted", "gui_input", "mouse_entered", "mouse_exited", "input_event",
+    "child_entered_tree", "child_exiting_tree", "resized", "item_selected", "focus_entered", "focus_exited", "size_changed", "sleeping_state_changed",
+    "screen_entered", "screen_exited", "draw", "changed", "frame_changed", "process_frame", "physics_frame",
+    "stop", "play", "pause", "start", "hide", "show", "free", "queue_free", "queue_redraw", "reparent"];
   _godotNames = new Set([].concat(KEYWORDS, KW, FLOW, BASE, ENGINE, TYPES, GFUNC, BUILTINS, MEMBERS, extra));
   return _godotNames;
 }
