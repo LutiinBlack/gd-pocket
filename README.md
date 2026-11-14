@@ -75,7 +75,8 @@ Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), a
 
 ## Limites
 
-- La vérification en direct regarde la forme du code seulement : les variables inconnues, fautes de frappe dans les noms et erreurs de type restent à voir dans Godot.
+- La vérification en direct regarde la forme du code ; les noms inconnus (v0.16) sont un doute signalé en orange, pas une certitude ; les erreurs de type et les appels de fonction mal écrits restent à voir dans Godot.
+- « Aller à la définition » cherche par le nom, sans analyse des types.
 - Autocomplétion par mots, sans analyse des types.
 - Hors ligne, le renommage ne corrige pas les `preload()` / `load()` qui citent l'ancien chemin ; les scènes (`.tscn`) sont retrouvées par Godot grâce au `.uid`.
 - Hors ligne, seuls les fichiers préparés (⬇) ou déjà ouverts sont disponibles, et seules les versions d'historique déjà consultées.
