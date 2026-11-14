@@ -492,9 +492,9 @@
           <div id="repoForm">
             <h4 id="repoFormTitle">Nouveau dépôt</h4>
             <label for="ghOwner">Propriétaire du dépôt</label>
-            <input id="ghOwner" type="text" autocomplete="off" autocapitalize="off" placeholder="LutiinBlack">
+            <input id="ghOwner" type="text" autocomplete="off" autocapitalize="off" placeholder="ex. MonPseudoGitHub">
             <label for="ghRepo">Nom du dépôt</label>
-            <input id="ghRepo" type="text" autocomplete="off" autocapitalize="off" placeholder="Micro-Racer-Mobile-">
+            <input id="ghRepo" type="text" autocomplete="off" autocapitalize="off" placeholder="ex. mon-jeu-godot">
             <label for="ghBranch">Branche (vide = branche principale)</label>
             <input id="ghBranch" type="text" autocomplete="off" autocapitalize="off" placeholder="main">
             <label for="ghTokSel">Jeton GitHub</label>
@@ -825,7 +825,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
 <script>
 // ---------- Version et rapport d'erreurs (utile sur les vieux appareils) ----------
-var APP_VERSION = "0.16.1";
+var APP_VERSION = "0.16.2";
 var lastAppError = "";
 function showError(msg) {
   lastAppError = String(msg).slice(0, 300);
@@ -884,7 +884,7 @@ var I18N_EXACT = {
   "Dépôts GitHub": "GitHub repositories", "Jetons": "Tokens", "Affichage": "Display", "Signaler": "Report",
   "＋ Ajouter un dépôt": "＋ Add a repository", "Nouveau dépôt": "New repository", "Propriétaire du dépôt": "Repository owner", "Nom du dépôt": "Repository name",
   "Branche (vide = branche principale)": "Branch (empty = default branch)", "Jeton GitHub": "GitHub token", "Jeton GitHub (fine-grained)": "GitHub token (fine-grained)",
-  "Nom du nouveau jeton": "New token name", "ex. Téléphone — tous mes projets": "e.g. Phone — all my projects",
+  "Nom du nouveau jeton": "New token name", "ex. Téléphone — tous mes projets": "e.g. Phone — all my projects", "ex. MonPseudoGitHub": "e.g. MyGitHubName", "ex. mon-jeu-godot": "e.g. my-godot-game",
   "Enregistrer et tester": "Save and test", "Utiliser ce dépôt": "Use this repository", "Retirer de la liste": "Remove from the list",
   "Un même jeton peut servir à plusieurs dépôts (coche-les tous en créant le jeton sur GitHub). Les jetons se gèrent dans 🔑 Jetons.": "One token can serve several repositories (tick them all when creating the token on GitHub). Tokens are managed in 🔑 Tokens.",
   "＋ Ajouter un jeton": "＋ Add a token", "Nouveau jeton": "New token", "Nom": "Name", "Supprimer ce jeton": "Delete this token",
@@ -2195,8 +2195,8 @@ function editRepo(id) {
   editingId = id;
   const r = id ? repoById(id) : null, a = cfg();
   $("repoFormTitle").textContent = r ? "Modifier : " + (r.owner ? r.owner + "/" : "") + r.repo : "Nouveau dépôt";
-  $("ghOwner").value = r ? r.owner : (a.owner || "LutiinBlack");
-  $("ghRepo").value = r ? r.repo : (repos.length ? "" : "Micro-Racer-Mobile-");
+  $("ghOwner").value = r ? r.owner : (a.owner || "");
+  $("ghRepo").value = r ? r.repo : "";
   $("ghBranch").value = r ? r.branch : "";
   fillTokSel(r ? r.tokenId : a.tokenId);    // nouveau dépôt : propose le jeton du dépôt actif
   $("ghTokName").value = ""; $("ghToken").value = "";

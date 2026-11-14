@@ -1,6 +1,16 @@
 {
   "versions": [
     {
+      "version": "0.16.2",
+      "date": "14/11/2026",
+      "notes": [
+        "Nouveaux utilisateurs : le formulaire « Nouveau dépôt » n'est plus prérempli. Des exemples en gris (« ex. MonPseudoGitHub », « ex. mon-jeu-godot ») montrent quoi écrire. Tes dépôts déjà enregistrés ne changent pas."
+      ],
+      "notes_en": [
+        "New users: the “New repository” form is no longer prefilled. Grey examples (“e.g. MyGitHubName”, “e.g. my-godot-game”) show what to type. Your saved repositories don't change."
+      ]
+    },
+    {
       "version": "0.16.1",
       "date": "14/11/2026",
       "notes": [
