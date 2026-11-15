@@ -1,6 +1,16 @@
 {
   "versions": [
     {
+      "version": "0.16.3",
+      "date": "15/11/2026",
+      "notes": [
+        "iPad (iOS 12) : à l'ouverture d'un fichier, une bande sombre restait en bas à la place du clavier alors qu'il n'était pas sorti. La place du clavier n'est maintenant réservée que quand tu touches l'éditeur."
+      ],
+      "notes_en": [
+        "iPad (iOS 12): when opening a file, a dark band stayed at the bottom where the keyboard would be, although it hadn't appeared. The keyboard space is now only reserved when you tap the editor."
+      ]
+    },
+    {
       "version": "0.16.2",
       "date": "14/11/2026",
       "notes": [

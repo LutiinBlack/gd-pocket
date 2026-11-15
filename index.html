@@ -825,7 +825,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
 <script>
 // ---------- Version et rapport d'erreurs (utile sur les vieux appareils) ----------
-var APP_VERSION = "0.16.2";
+var APP_VERSION = "0.16.3";
 var lastAppError = "";
 function showError(msg) {
   lastAppError = String(msg).slice(0, 300);
@@ -2518,8 +2518,19 @@ function setKbTop(on) {
   cm.refresh();
   if (on) setTimeout(() => { window.scrollTo(0, 0); cm.scrollIntoView(null, 30); }, 60);
 }
+// iOS 12 : un focus donné par le code (ouverture d'un fichier…) ne montre pas le clavier → on ne réserve
+// sa place que si le focus suit un toucher dans l'éditeur ou la barre de touches (v0.16.3)
+let kbTouch = 0;
+function kbTouched(e) {
+  const t = e.target;
+  return !!(t && t.closest && (cm.getWrapperElement().contains(t) || t.closest("#keys")));
+}
 if (KB_FALLBACK) {
-  cm.on("focus", () => setKbTop(true));
+  document.addEventListener("touchstart", e => { if (kbTouched(e)) kbTouch = Date.now(); }, true);
+  document.addEventListener("touchend", e => {
+    if (kbTouched(e) && !kbOn && cm.hasFocus()) setTimeout(() => { if (cm.hasFocus()) setKbTop(true); }, 50);
+  }, true);
+  cm.on("focus", () => { if (Date.now() - kbTouch < 1200) setKbTop(true); });
   cm.on("blur", () => setTimeout(() => { if (!cm.hasFocus()) setKbTop(false); }, 200));
   window.addEventListener("resize", () => { if (kbOn) { $("kbSpacer").style.height = kbEstimate() + "px"; cm.refresh(); } });
   let scrollFix = 0;
