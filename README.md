@@ -4,7 +4,7 @@
 
 Éditeur GDScript de poche pour modifier les scripts d'un projet Godot 4 depuis un téléphone ou une tablette, directement dans un dépôt GitHub.
 
-- **Version actuelle : v0.16.3** (15/11/2026, correctif : bande sombre du clavier sur l'iPad à l'ouverture d'un fichier, validée sur l'iPad le 15/11/2026) — v0.16.0 et v0.16.1 validées sur le téléphone Android et l'iPad mini 2 (iOS 12) ; v0.16.2 (formulaire du premier dépôt sans nom prérempli) validée le 14/11/2026
+- **Version actuelle : v0.17.0** (16/11/2026 : doc de Godot dans 🎯, mes touches, onglets déplaçables, plein écran) — v0.16.x validées sur le téléphone Android et l'iPad mini 2 (iOS 12)
 - **Langues :** français et anglais (English)
 - **Appli en ligne :** https://lutiinblack.github.io/gd-pocket/
 - **Format :** application web installable (PWA), distribuée hors Google Play et App Store
@@ -26,15 +26,18 @@ Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), a
 - Autocomplétion pendant la frappe (mots-clés, annotations, types, fonctions courantes, mots du fichier)
 - Indentation par tabulations, automatique après une ligne finissant par `:`
 - **Erreurs en direct, comme dans Godot** : ligne fautive en rouge, ● dans la marge et explication dans la barre d'état (« : » oublié, parenthèses / crochets / guillemets non fermés, indentation incohérente, bloc vide, `=` au lieu de `==`…)
+- **⌨️ Mes touches** (Réglages) : choisir les symboles de la barre de touches (ajouter les siens, retirer, changer l'ordre)
 - Barre de touches : 🧩 modèles de code, flèches ← ↑ ↓ → (appui long = déplacement continu), Tab (`"` `(` `[` `{` ouvrent la paire, comme le clavier), `:`, `(`, `)`, `_`, `"`, `$`, `@`, `=`, `.`, `[]`, `{}`, `->`, `#`
 - **Modèles de code 🧩** : 25 modèles (func, _ready, _process, signal, @export, @onready, for, match, await…) insérés à la bonne indentation, et **⭐ mes modèles** enregistrés depuis une sélection ou des lignes choisies (renommer, supprimer, inclus dans la sauvegarde)
 - **Sélection au doigt** : double toucher = un mot, triple toucher = une ligne, touche « Sél » + flèches pour agrandir la sélection
 - **🎯 Aller à la définition** (barre de touches, F12 ou Ctrl + clic) : saute à la déclaration d'une fonction, variable, signal ou constante, dans le script (variable locale d'abord) ou dans un autre script du dépôt
+- **📘 Doc de Godot dans 🎯** : sur un nom de Godot (méthode, propriété, signal, constante, classe), description, paramètres et type ; classe devinée (`var x: Type`, `Type.new()`, `extends`) ; fiches de la doc officielle gardées pour le hors ligne, lien vers la doc en français
 - **Noms inconnus soulignés en orange** : un nom déclaré nulle part (ni dans le script, ni dans les autres scripts, ni parmi les noms Godot connus, autoloads compris) est signalé comme un doute ; désactivable
 - ↶ Annuler, ↷ Rétablir, ☰ Plan du script (fonctions, signaux, constantes…)
 - Recherche (Ctrl+F) et remplacer (Ctrl+H), avec respect des majuscules en option
 - **Recherche dans tout le projet** (📁 › « 🔎 Chercher dans le contenu des scripts », ou « ⧉ Projet » dans la recherche) : résultats par fichier et par ligne, un toucher ouvre le script à la bonne ligne ; aussi hors ligne
-- Onglets : plusieurs fichiers ouverts, point orange = modifié non envoyé, ⟳ = changé sur GitHub
+- Onglets : plusieurs fichiers ouverts, point orange = modifié non envoyé, ⟳ = changé sur GitHub ; appui long puis glisser pour changer leur ordre
+- **⛶ Plein écran** (à droite des onglets) : cache l'en-tête pour laisser toute la place au code
 - Taille du texte réglable, retour à la ligne en option
 - Lignes modifiées repérées dans la marge : ● orange (nouvelle ou modifiée), ▸ orange (lignes supprimées), jusqu'à l'envoi
 - Messages dans un bandeau en haut de l'écran : ✔ vert qui disparaît seul, ⚠ / ⛔ qui restent jusqu'à « OK »
@@ -77,7 +80,7 @@ Le jeton est un jeton GitHub *fine-grained* limité au(x) dépôt(s) voulu(s), a
 ## Limites
 
 - La vérification en direct regarde la forme du code ; les noms inconnus (v0.16) sont un doute signalé en orange, pas une certitude ; les erreurs de type et les appels de fonction mal écrits restent à voir dans Godot.
-- « Aller à la définition » cherche par le nom, sans analyse des types.
+- « Aller à la définition » cherche par le nom, sans analyse des types ; pour la doc de Godot, la classe est devinée simplement (`x.nom` suivi sur un niveau seulement).
 - Autocomplétion par mots, sans analyse des types.
 - Hors ligne, le renommage ne corrige pas les `preload()` / `load()` qui citent l'ancien chemin ; les scènes (`.tscn`) sont retrouvées par Godot grâce au `.uid`.
 - Hors ligne, seuls les fichiers préparés (⬇) ou déjà ouverts sont disponibles, et seules les versions d'historique déjà consultées.
@@ -101,6 +104,7 @@ Publier une nouvelle version : changer `VERSION` dans `sw.js`, `APP_VERSION` dan
 
 | Version | Date | Nouveautés |
 |---|---|---|
+| v0.17.0 | 16/11/2026 | Doc de Godot dans 🎯, ⌨️ mes touches, onglets déplaçables, ⛶ plein écran, exemple neutre du filtre |
 | v0.16.3 | 15/11/2026 | Correctif iPad : plus de bande sombre à la place du clavier à l'ouverture d'un fichier |
 | v0.16.2 | 14/11/2026 | Correctif : formulaire « Nouveau dépôt » vide pour les nouveaux utilisateurs, avec des exemples |
 | v0.16.1 | 14/11/2026 | Correctif : touche « Sél » (les flèches agrandissent la sélection), choix des lignes sans sélection pour « Mes modèles », 🎯 sur un mot-clé |
