@@ -64,6 +64,11 @@
   .setwrap { display:flex; align-items:flex-start; min-height:100%; }
   .setnav { flex:0 0 28%; max-width:190px; min-width:92px; position:-webkit-sticky; position:sticky; top:0; display:flex; flex-direction:column; }
   .setnav button { background:transparent; text-align:left; border-radius:6px; padding:10px 8px; font-size:14px; margin-bottom:4px; opacity:.75; border-left:3px solid transparent; word-break:break-word; }
+  .mkrow { display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid var(--mut); }
+  .mkrow .mksym { flex:1; font-family:monospace; font-size:17px; padding-left:6px; }
+  .mkrow .mkb { min-width:40px; padding:6px 8px; margin-left:4px; }
+  #mkNew { flex:1; min-width:0; font-family:monospace; font-size:16px; }
+  #mkList { margin:6px 0 10px; }
   .setnav button.on { background:var(--mut); opacity:1; border-left-color:var(--acc); }
   .setnav .ni { display:inline-block; min-width:1.35em; text-align:center; margin-right:4px; }
   /* v0.16 : téléphone en portrait → colonne d'icônes seules (les noms restent sur l'iPad et en paysage) */
@@ -94,6 +99,16 @@
   .fblock button.wide + select, .fblock select + button.wide { margin-top:8px; }
   #projDlg { position:fixed; top:0; right:0; bottom:0; left:0; background:rgba(0,0,0,.55); z-index:200; display:none; align-items:flex-start; justify-content:center; padding-top:6vh; }
   #projDlg.open { display:flex; }
+  #docDlg { position:fixed; top:0; right:0; bottom:0; left:0; background:rgba(0,0,0,.55); z-index:200; display:none; align-items:flex-start; justify-content:center; padding-top:5vh; }
+  #docDlg.open { display:flex; }
+  #docDlg .box { background:var(--bar); border-radius:10px; padding:14px; width:94vw; max-width:680px; max-height:88vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  #docDlg h2 { margin:0 0 2px; font-size:17px; word-break:break-word; }
+  #docSig { white-space:pre-wrap; word-break:break-word; background:var(--bg); border-radius:6px; padding:8px; font-size:13px; color:#8be9fd; margin:8px 0; }
+  #docBody { font-size:14px; line-height:1.45; }
+  #docBody p { margin:0 0 8px; }
+  #docBody code { background:var(--mut); border-radius:4px; padding:0 3px; font-size:13px; }
+  #docBody pre { background:var(--bg); border-radius:6px; padding:8px; font-size:12px; overflow-x:auto; tab-size:4; -moz-tab-size:4; }
+  a.btnlink { display:inline-block; background:var(--acc); color:#fff; border-radius:6px; padding:8px 10px; font-size:15px; text-decoration:none; }
   #projDlg .box { background:var(--bar); border-radius:10px; padding:14px; width:min(94vw,640px); max-height:86vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
   #projDlg h2 { margin:0 0 8px; font-size:17px; }
   #projCase.on { background:var(--acc); color:#fff; }
@@ -196,7 +211,18 @@
   #tabbar::-webkit-scrollbar { display:none; }
   .ftab { display:flex; align-items:center; gap:2px; flex:0 0 auto; max-width:60vw; background:var(--mut);
           border-radius:6px; padding:0 0 0 10px; font-size:14px; opacity:.75; }
+  #tabrow { display:flex; align-items:flex-start; background:var(--bar); }
+  #tabrow #tabbar { flex:1 1 auto; min-width:0; }
+  #fsBtn { flex:0 0 auto; margin:0 6px 6px 0; padding:6px 10px; font-size:16px; line-height:1; background:var(--mut); }
+  html.fsmode header, html.fsmode #findBar, html.fsmode #replBar { display:none !important; }
+  html.fsmode #tabrow { padding-top:5px; }
+  html.fsmode #fsBtn { background:var(--acc); }
   .ftab.on { opacity:1; box-shadow:inset 0 -2px 0 var(--acc); }
+  .ftab.dragging { opacity:.95; background:#4a4f6a; box-shadow:0 4px 12px rgba(0,0,0,.5), inset 0 -2px 0 var(--acc); position:relative; z-index:5; transition:none; }
+  #tabbar.dragmode { overflow-x:hidden; -webkit-user-select:none; user-select:none; }
+  .ftab.dropL { box-shadow:inset 3px 0 0 #ff79c6; }
+  .ftab.dropR { box-shadow:inset -3px 0 0 #ff79c6; }
+  .ftab { -webkit-touch-callout:none; }
   .ftab .lbl { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:7px 0; cursor:pointer; }
   .ftab .lbl.dirty::before { content:"● "; color:var(--warn); }
   .ftab .lbl.new::after { content:" (nouveau)"; opacity:.6; font-size:12px; }
@@ -399,7 +425,7 @@
   <button id="replOne">Remplacer</button>
   <button id="replAll">Tout</button>
 </div>
-<div id="tabbar"></div>
+<div id="tabrow"><div id="tabbar"></div><button id="fsBtn" class="nolang">⛶</button></div>
 <div id="keysTop"></div>
 <div id="editor"></div>
 <div id="kbSpacer"></div>
@@ -444,7 +470,7 @@
     </section>
     <section class="fblock">
       <div class="ftitle">Recherche</div>
-      <input id="filter" type="search" placeholder="🔍 Filtrer (ex. voiture)">
+      <input id="filter" type="search" placeholder="🔍 Filtrer (ex. joueur)">
       <button id="projBtn" class="ghost wide nolang" style="margin-top:8px"></button>
     </section>
     <section class="fblock">
@@ -480,6 +506,7 @@
         <button data-sec="tokens"><span class="ni">🔑</span><span class="nl">Jetons</span></button>
         <button data-sec="display"><span class="ni">🎨</span><span class="nl">Affichage</span></button>
         <button data-sec="offline"><span class="ni">✈️</span><span class="nl">Hors ligne</span></button>
+        <button data-sec="keys" class="nolang" id="navKeys"><span class="ni">⌨️</span><span class="nl" id="navKeysL"></span></button>
         <button data-sec="backup" class="nolang" id="navBackup"><span class="ni">💾</span><span class="nl" id="navBackupL"></span></button>
         <button data-sec="report"><span class="ni">🐞</span><span class="nl">Signaler</span></button>
         <button data-sec="help"><span class="ni">❓</span><span class="nl">Aide</span></button>
@@ -578,6 +605,14 @@
             <button id="repSee" class="ghost"></button>
           </div>
           <p class="hint nolang" id="repHint"></p>
+        </section>
+        <section id="sec-keys" class="nolang">
+          <h3 id="mkTitle"></h3>
+          <p class="hint" id="mkIntro"></p>
+          <div id="mkList"></div>
+          <div class="row"><input id="mkNew" type="text" maxlength="12" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"><button id="mkAdd"></button></div>
+          <p class="hint" id="mkHint"></p>
+          <button id="mkReset" class="ghost wide"></button>
         </section>
         <section id="sec-backup" class="nolang">
           <h3 id="bakTitle"></h3>
@@ -785,6 +820,16 @@
 </div>
 
 <!-- Fenêtre : rechercher dans tout le projet (v0.15) -->
+<div id="docDlg" class="nolang">
+  <div class="box">
+    <h2 id="docTitle"></h2>
+    <div id="docSub" class="hint"></div>
+    <pre id="docSig"></pre>
+    <div id="docBody"></div>
+    <p id="docLang" class="hint"></p>
+    <div class="row"><a id="docLink" class="btnlink" target="_blank" rel="noopener"></a><button id="docClose" class="ghost"></button></div>
+  </div>
+</div>
 <div id="projDlg" class="nolang">
   <div class="box">
     <h2 id="projTitle"></h2>
@@ -825,7 +870,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
 <script>
 // ---------- Version et rapport d'erreurs (utile sur les vieux appareils) ----------
-var APP_VERSION = "0.16.3";
+var APP_VERSION = "0.17.0";
 var lastAppError = "";
 function showError(msg) {
   lastAppError = String(msg).slice(0, 300);
@@ -868,7 +913,7 @@ var I18N_EXACT = {
   // Panneau Fichiers
   "Dépôt": "Repository", "Actions": "Actions", "Recherche": "Search", "Filtres": "Filters",
   "Nouveau": "New", "Actualiser": "Refresh", "Actualise…": "Refreshing…", "Hors ligne": "Offline", "Ouvrir": "Open", "Télécharger": "Download",
-  "🔍 Filtrer (ex. voiture)": "🔍 Filter (e.g. car)", "Par dossier": "By folder", "Nom A → Z": "Name A → Z", "Nom Z → A": "Name Z → A",
+  "🔍 Filtrer (ex. joueur)": "🔍 Filter (e.g. player)", "Par dossier": "By folder", "Nom A → Z": "Name A → Z", "Nom Z → A": "Name Z → A",
   "Type": "Type", "Récents": "Recent", "Scripts": "Scripts", "+ Scènes, textes": "+ Scenes, text", "Tous": "All files",
   "Style d'affichage": "Display style", "Tri": "Sort", "Types de fichiers affichés": "File types shown", "Dépôt affiché": "Repository shown",
   "Hors ligne :": "Offline:", "copie à jour ·": "up-to-date copy ·", "copie ancienne · rien = pas disponible": "old copy · nothing = not available",
@@ -1426,7 +1471,8 @@ function renderTabs() {
     }
     const x = document.createElement("button"); x.className = "x"; x.textContent = "×";
     x.setAttribute("aria-label", "Fermer " + t.name);
-    l.onclick = () => { if (i === active && t.kind === "local") renameLocal(); else switchTab(i); };
+    l.onclick = () => { if (tabDragJustEnded()) return; if (i === active && t.kind === "local") renameLocal(); else switchTab(i); };
+    d.dataset.i = i;
     x.onclick = e => { e.stopPropagation(); closeTab(i); };
     d.append(l, x); bar.appendChild(d);
   });
@@ -1436,6 +1482,73 @@ function renderTabs() {
   bar.appendChild(plus);
   tabs.forEach((_, i) => refreshTabLabel(i));
 }
+// ---------- Déplacer les onglets (v0.17) ----------
+// Doigt : appui long puis glisser ; souris : glisser directement. Un repère montre où l'onglet va tomber.
+let tabDrag = null, tabDragEnd = 0;
+function tabDragJustEnded() { return Date.now() - tabDragEnd < 400; }
+function tabDropIndex(x) {
+  const els = Array.prototype.slice.call($("tabbar").querySelectorAll(".ftab"));
+  for (let j = 0; j < els.length; j++) { const r = els[j].getBoundingClientRect(); if (x < r.left + r.width / 2) return j; }
+  return els.length;
+}
+function tabDragShow(x) {
+  const bar = $("tabbar"), els = bar.querySelectorAll(".ftab"), d = tabDrag;
+  const br = bar.getBoundingClientRect();
+  if (x < br.left + 30) bar.scrollLeft -= 12; else if (x > br.right - 30) bar.scrollLeft += 12;   // défile près des bords
+  d.to = tabDropIndex(x);
+  Array.prototype.forEach.call(els, (e, j) => { e.classList.toggle("dropL", j === d.to && d.to !== d.from && d.to !== d.from + 1); e.classList.remove("dropR"); });
+  if (d.to === els.length && d.to !== d.from + 1) els[els.length - 1].classList.add("dropR");
+  d.el.style.transform = "translateX(" + (x - d.x0) + "px) translateY(-3px)";
+}
+function tabDragStart(el, x) {
+  tabDrag.on = true; tabDrag.x0 = x;
+  el.classList.add("dragging"); $("tabbar").classList.add("dragmode");
+  if (navigator.vibrate) try { navigator.vibrate(15); } catch (e) {}
+  tabDragShow(x);
+}
+function tabDragFinish(apply) {
+  const d = tabDrag; tabDrag = null;
+  if (!d) return;
+  clearTimeout(d.timer);
+  if (!d.on) return;
+  tabDragEnd = Date.now();
+  $("tabbar").classList.remove("dragmode");
+  if (apply && d.to != null && d.to !== d.from && d.to !== d.from + 1) {
+    const act = tabs[active], moved = tabs.splice(d.from, 1)[0];
+    tabs.splice(d.to > d.from ? d.to - 1 : d.to, 0, moved);
+    active = tabs.indexOf(act);
+    saveTabs(true);
+  }
+  renderTabs();
+}
+function tabDragDown(e, x, touch) {
+  const el = e.target.closest ? e.target.closest(".ftab") : null;
+  if (!el || (e.target.closest && e.target.closest(".x"))) return;
+  tabDragFinish(false);
+  tabDrag = {el, from: +el.dataset.i, x0: x, xs: x, on: false, to: null, touch};
+  if (touch) tabDrag.timer = setTimeout(() => { if (tabDrag && !tabDrag.on) tabDragStart(el, tabDrag.xs); }, 450);
+}
+function tabDragMove(e, x) {
+  const d = tabDrag; if (!d) return;
+  if (!d.on) {
+    if (d.touch) { if (Math.abs(x - d.xs) > 10) { clearTimeout(d.timer); tabDrag = null; } return; }   // le doigt fait défiler la barre
+    if (Math.abs(x - d.xs) < 6) return;
+    tabDragStart(d.el, d.xs);
+  }
+  if (e.cancelable) e.preventDefault();
+  tabDragShow(x);
+}
+(function () {
+  const bar = $("tabbar");
+  bar.addEventListener("touchstart", e => { if (e.touches.length === 1) tabDragDown(e, e.touches[0].clientX, true); }, {passive: true});
+  bar.addEventListener("touchmove", e => { if (tabDrag) tabDragMove(e, e.touches[0].clientX); }, {passive: false});
+  bar.addEventListener("touchend", e => { if (tabDrag && tabDrag.on && e.cancelable) e.preventDefault(); tabDragFinish(true); });
+  bar.addEventListener("touchcancel", () => tabDragFinish(false));
+  bar.addEventListener("contextmenu", e => { if (tabDrag) e.preventDefault(); });
+  bar.addEventListener("mousedown", e => { if (e.button === 0) tabDragDown(e, e.clientX, false); });
+  document.addEventListener("mousemove", e => { if (tabDrag && !tabDrag.touch) tabDragMove(e, e.clientX); });
+  document.addEventListener("mouseup", () => { if (tabDrag && !tabDrag.touch) tabDragFinish(true); });
+})();
 function refreshTabLabel(i) {
   const el = $("tabbar").children[i]; if (!el) return;
   const l = el.querySelector(".lbl"), t = tabs[i];
@@ -1523,13 +1636,21 @@ function keyInsert(k) {
   cm.replaceSelection(k);
 }
 const KEYS = ["⇥", ":", "(", ")", "_", "\"", "$", "@", "=", ".", "[", "]", "{", "}", "->", "#"];
-KEYS.forEach(k => {
-  const b = document.createElement("button");
-  b.textContent = k;
-  b.addEventListener("mousedown", e => e.preventDefault());
-  b.addEventListener("click", () => { keyInsert(k); cm.focus(); });
-  $("keys").appendChild(b);
-});
+// v0.17 : « Mes touches » — symboles choisis dans Réglages › ⌨️ Touches (prefs.myKeys), sinon ceux d'origine
+function userKeys() { return Array.isArray(prefs.myKeys) && prefs.myKeys.length ? prefs.myKeys.filter(k => typeof k === "string" && k) : KEYS.slice(); }
+function buildKeys() {
+  const bar = $("keys");
+  Array.prototype.slice.call(bar.querySelectorAll("button.ukey")).forEach(b => b.remove());
+  userKeys().forEach(k => {
+    const b = document.createElement("button");
+    b.className = "ukey"; b.textContent = k;
+    if (k === "⇥") b.setAttribute("aria-label", "Tab");
+    b.addEventListener("mousedown", e => e.preventDefault());
+    b.addEventListener("click", () => { keyInsert(k); cm.focus(); });
+    bar.appendChild(b);
+  });
+}
+buildKeys();
 
 // ---------- Bandeau de messages (v0.13) ----------
 // ok = vert, disparaît seul après 3 s ; warn / err = orange / rouge, reste jusqu'à « OK »
@@ -2162,7 +2283,7 @@ function showSec(sec) {
 document.querySelectorAll(".setnav button").forEach(b => b.onclick = () => showSec(b.dataset.sec));
 // v0.16 : nom de la section en info-bulle (utile quand seules les icônes sont affichées)
 function navTitles() { document.querySelectorAll(".setnav button").forEach(b => { const l = b.querySelector(".nl"); if (l && l.textContent) { b.title = l.textContent; b.setAttribute("aria-label", l.textContent); } }); }
-showSec(["display", "tokens", "offline", "backup", "report", "help"].indexOf(prefs.setSec) !== -1 ? prefs.setSec : "repos");
+showSec(["display", "tokens", "offline", "keys", "backup", "report", "help"].indexOf(prefs.setSec) !== -1 ? prefs.setSec : "repos");
 
 // ---------- Réglages : dépôts ----------
 let editingId = null;   // null = nouveau dépôt
@@ -2417,7 +2538,29 @@ function findStep(dir) {
   if (!findMatches.length) return;
   showMatch(findIdx < 0 ? findFrom(cm.getCursor("from"), dir) : findIdx + dir, true, true);
 }
+// ---------- Plein écran de l'éditeur (v0.17) ----------
+// Cache l'en-tête (📁 ↶ ↷ ☰ 🔍 Envoyer) ; onglets et barre de touches restent. Android : vrai plein écran du navigateur.
+const FS_API = IS_ANDROID && !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+function isFs() { return document.documentElement.classList.contains("fsmode"); }
+function setFs(on) {
+  if (on === isFs()) return;
+  if (on && document.documentElement.classList.contains("finding")) closeFind();
+  document.documentElement.classList.toggle("fsmode", on);
+  fsLabel();
+  const de = document.documentElement, fe = document.fullscreenElement || document.webkitFullscreenElement;
+  try {
+    if (on && FS_API && !fe) { const r = de.requestFullscreen ? de.requestFullscreen() : de.webkitRequestFullscreen(); if (r && r.catch) r.catch(() => {}); }
+    if (!on && fe) { const r = document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen(); if (r && r.catch) r.catch(() => {}); }
+  } catch (e) {}
+  setTimeout(() => { cm.refresh(); if (typeof placeNotice === "function" && $("notice").classList.contains("show")) placeNotice(); }, 60);
+}
+$("fsBtn").addEventListener("mousedown", e => e.preventDefault());
+$("fsBtn").onclick = () => setFs(!isFs());
+["fullscreenchange", "webkitfullscreenchange"].forEach(ev => document.addEventListener(ev, () => {
+  if (!(document.fullscreenElement || document.webkitFullscreenElement) && isFs() && FS_API) setFs(false);   // sortie par le geste retour d'Android
+}));
 function openFind(withReplace) {
+  if (isFs()) setFs(false);
   if (withReplace) replacing = true;
   refreshFindUI();
   const sel = cm.getSelection();
@@ -3687,14 +3830,17 @@ const TOUR = [
    d: L("Annule ou rétablit ta dernière modification dans l'onglet affiché.", "Undoes or redoes your last change in the current tab.")},
   {page: "editor", sel: "#outlineBtn", t: L("☰ Plan du script", "☰ Script outline"),
    d: L("Liste les func, signal, const et @export du script : un toucher t'amène à la bonne ligne.", "Lists the script's func, signal, const and @export: one tap takes you to the right line.")},
+  {page: "editor", sel: "#fsBtn", t: L("⛶ Plein écran", "⛶ Full screen"),
+   d: L("Cache l'en-tête pour laisser toute la place au code (les onglets et la barre de touches restent). Le même bouton, devenu ⤡, ramène l'en-tête.",
+        "Hides the header to give all the room to the code (tabs and the key bar stay). The same button, now ⤡, brings the header back.")},
   {page: "editor", sel: "#find", t: L("🔍 Rechercher", "🔍 Search"),
    d: L("Cherche un mot dans le script (▲ ▼ pour passer d'un résultat à l'autre, ⇄ pour remplacer).", "Searches a word in the script (▲ ▼ to move between results, ⇄ to replace).")},
   {page: "editor", sel: "#save", t: L("Envoyer", "Send"),
    d: L("Envoie tes changements sur GitHub (un commit). Une fenêtre montre d'abord les différences et les erreurs. Sans Internet, l'envoi est mis en attente ⏳.",
         "Sends your changes to GitHub (a commit). A window first shows the differences and errors. Offline, sending is queued ⏳.")},
   {page: "editor", sel: "#tabbar", t: L("Onglets", "Tabs"),
-   d: L("Chaque fichier ouvert a son onglet. ● orange = modifié pas encore envoyé, ⟳ = changé sur GitHub, ⏳ = en attente d'Internet. « ＋ » ouvre ou crée un script.",
-        "Each open file has its tab. Orange ● = changed, not sent yet, ⟳ = changed on GitHub, ⏳ = waiting for Internet. “＋” opens or creates a script.")},
+   d: L("Chaque fichier ouvert a son onglet. ● orange = modifié pas encore envoyé, ⟳ = changé sur GitHub, ⏳ = en attente d'Internet. « ＋ » ouvre ou crée un script. Appui long sur un onglet puis glisser pour changer son ordre.",
+        "Each open file has its tab. Orange ● = changed, not sent yet, ⟳ = changed on GitHub, ⏳ = waiting for Internet. “＋” opens or creates a script. Long press a tab then drag it to change its order.")},
   {page: "editor", sel: ".CodeMirror-gutters", t: L("La marge", "The margin"),
    d: L("● rouge = erreur dans la ligne (touche-la pour l'explication). ● orange = ligne nouvelle ou modifiée, ▸ orange = lignes supprimées ici.",
         "Red ● = error on the line (tap it for the explanation). Orange ● = new or changed line, orange ▸ = lines deleted here.")},
@@ -3710,15 +3856,15 @@ const TOUR = [
    d: L("＋ Nouveau script, ↻ Actualiser la liste, Hors ligne (copie des fichiers sur l'appareil et son état), 📂 Ouvrir un fichier de l'appareil, 💾 Télécharger l'onglet.",
         "＋ New script, ↻ Refresh the list, Offline (copy of the files on the device and its state), 📂 Open a file from the device, 💾 Download the tab.")},
   {page: "files", sel: "#filter", block: true, t: L("Recherche", "Search"),
-   d: L("Filtre la liste par nom (ex. voiture).", "Filters the list by name (e.g. car).")},
+   d: L("Filtre la liste par nom (ex. joueur).", "Filters the list by name (e.g. player).")},
   {page: "files", sel: ".listopts", block: true, t: L("Filtres", "Filters"),
    d: L("Affichage (tout ou par dossier), tri, et types de fichiers (scripts, scènes et textes, ou tous). Légende hors ligne : ✔ copie à jour, ⬇ copie ancienne.",
         "Display (all or by folder), sort, and file types (scripts, scenes and text, or all). Offline legend: ✔ up-to-date copy, ⬇ old copy.")},
   {page: "files", sel: "#list", t: L("Fichiers", "Files"),
    d: L("Touche un fichier pour l'ouvrir. ✏️ = renommer / déplacer, 🗑 = supprimer (le .uid de Godot suit le script).", "Tap a file to open it. ✏️ = rename / move, 🗑 = delete (Godot's .uid follows the script).")},
   {page: "settings", sel: ".setnav", t: L("Réglages", "Settings"),
-   d: L("📦 Dépôts GitHub, 🔑 Jetons (un jeton pour un ou plusieurs dépôts), 🎨 Affichage (thème, taille, langue…), ✈️ Hors ligne, 💾 Sauvegarde, 🐞 Signaler un problème et ❓ Aide. Sur téléphone en portrait, seules les icônes sont affichées : le nom de la section reste écrit en haut à droite.",
-        "📦 GitHub repositories, 🔑 Tokens (one token for one or several repositories), 🎨 Display (theme, size, language…), ✈️ Offline, 💾 Backup, 🐞 Report a problem and ❓ Help. On a phone in portrait, only the icons are shown: the section name stays written at the top right.")},
+   d: L("📦 Dépôts GitHub, 🔑 Jetons (un jeton pour un ou plusieurs dépôts), 🎨 Affichage (thème, taille, langue…), ✈️ Hors ligne, ⌨️ Touches (symboles de la barre de touches), 💾 Sauvegarde, 🐞 Signaler un problème et ❓ Aide. Sur téléphone en portrait, seules les icônes sont affichées : le nom de la section reste écrit en haut à droite.",
+        "📦 GitHub repositories, 🔑 Tokens (one token for one or several repositories), 🎨 Display (theme, size, language…), ✈️ Offline, ⌨️ Keys (symbols of the key bar), 💾 Backup, 🐞 Report a problem and ❓ Help. On a phone in portrait, only the icons are shown: the section name stays written at the top right.")},
   {page: "settings", sec: "report", sel: "#repSend", t: L("🐞 Signaler un problème", "🐞 Report a problem"),
    d: L("Écris ce qui ne va pas : le signalement part sur GitHub, avec un suivi public de la réponse.", "Describe what's wrong: the report goes to GitHub, with a public follow-up of the answer.")},
   {page: "settings", sel: "#helpBtn", t: L("C'est tout ! 🎉", "That's all! 🎉"),
@@ -3937,9 +4083,59 @@ $("bakTitle").textContent = L("Sauvegarde des réglages", "Settings backup");
 $("bakIntro").textContent = L("Pour changer d'appareil sans tout refaire : exporte tes dépôts et réglages dans un fichier, puis importe-le sur l'autre appareil.",
   "To switch devices without redoing everything: export your repositories and settings to a file, then import it on the other device.");
 $("bakExpT").textContent = L("Exporter", "Export");
+// Plein écran (v0.17) : textes des boutons
+function fsLabel() {
+  const on = isFs(), b = $("fsBtn");
+  b.textContent = on ? "⤡" : "⛶";
+  b.title = on ? L("Quitter le plein écran", "Exit full screen") : L("Plein écran (cacher l'en-tête)", "Full screen (hide the header)");
+  b.setAttribute("aria-label", b.title);
+}
+fsLabel();
+// ---------- Réglages : ⌨️ Mes touches (v0.17) ----------
+$("navKeysL").textContent = L("Touches", "Keys"); navTitles();
+$("mkTitle").textContent = L("Mes touches", "My keys");
+$("mkIntro").textContent = L("Les symboles de la barre de touches, dans l'ordre. 🧩, 🎯, Sél et les flèches restent toujours au début.",
+  "The symbols of the key bar, in order. 🧩, 🎯, Sel and the arrows always stay at the start.");
+$("mkNew").placeholder = L("ex. -  ou  «", "e.g. -  or  «");
+$("mkAdd").textContent = L("＋ Ajouter", "＋ Add");
+$("mkHint").textContent = L("Un symbole ou un petit texte (12 caractères au plus), par exemple - « » != += :=. « ⇥ » = tabulation.",
+  "A symbol or a short text (12 characters at most), e.g. - « » != += :=. “⇥” = tab.");
+$("mkReset").textContent = L("↺ Revenir aux touches d'origine", "↺ Back to the original keys");
+function setMyKeys(list) {
+  const same = list.length === KEYS.length && list.every((k, i) => k === KEYS[i]);
+  prefs.myKeys = same ? null : list; store.set("prefs", prefs);
+  buildKeys(); renderMyKeys();
+}
+function renderMyKeys() {
+  const box = $("mkList"); box.innerHTML = "";
+  const list = userKeys();
+  list.forEach((k, i) => {
+    const row = document.createElement("div"); row.className = "mkrow";
+    const sym = document.createElement("span"); sym.className = "mksym"; sym.textContent = k === "⇥" ? "⇥ " + L("(tabulation)", "(tab)") : k;
+    const mk = (txt, lab, dis, fn) => { const b = document.createElement("button"); b.className = "ghost mkb"; b.textContent = txt; b.setAttribute("aria-label", lab); b.title = lab; b.disabled = dis; b.onclick = fn; return b; };
+    row.append(sym,
+      mk("↑", L("Monter", "Move up"), i === 0, () => { const l = list.slice(); l.splice(i - 1, 0, l.splice(i, 1)[0]); setMyKeys(l); }),
+      mk("↓", L("Descendre", "Move down"), i === list.length - 1, () => { const l = list.slice(); l.splice(i + 1, 0, l.splice(i, 1)[0]); setMyKeys(l); }),
+      mk("🗑", L("Retirer", "Remove"), list.length <= 1, () => { const l = list.slice(); l.splice(i, 1); setMyKeys(l); }));
+    box.appendChild(row);
+  });
+  $("mkReset").disabled = !(Array.isArray(prefs.myKeys) && prefs.myKeys.length);
+}
+function addMyKey() {
+  const v = $("mkNew").value.replace(/^\s+|\s+$/g, "");
+  if (!v) { notify(L("Écris d'abord un symbole dans la case.", "Type a symbol in the box first."), "warn"); return; }
+  const list = userKeys();
+  if (list.indexOf(v) !== -1) { notify(L("« " + v + " » est déjà dans ta barre de touches.", "“" + v + "” is already in your key bar."), "warn"); return; }
+  list.push(v); $("mkNew").value = ""; setMyKeys(list);
+  notify(L("Touche « " + v + " » ajoutée à la fin de la barre ✔", "Key “" + v + "” added at the end of the bar ✔"), "ok");
+}
+$("mkAdd").onclick = addMyKey;
+$("mkNew").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addMyKey(); } });
+$("mkReset").onclick = () => { if (confirm(L("Remettre les touches d'origine ? Tes touches ajoutées seront retirées.", "Restore the original keys? The keys you added will be removed."))) setMyKeys(KEYS.slice()); };
+renderMyKeys();
 $("bakExport").textContent = L("💾 Exporter mes réglages", "💾 Export my settings");
-$("bakExpHint").textContent = L("Le fichier contient tes dépôts, le nom de tes jetons, tes préférences d'affichage et tes modèles de code. Il ne contient JAMAIS la valeur de tes jetons GitHub.",
-  "The file holds your repositories, your token names, your display preferences and your code templates. It NEVER holds the value of your GitHub tokens.");
+$("bakExpHint").textContent = L("Le fichier contient tes dépôts, le nom de tes jetons, tes préférences d'affichage, tes touches et tes modèles de code. Il ne contient JAMAIS la valeur de tes jetons GitHub.",
+  "The file holds your repositories, your token names, your display preferences, your keys and your code templates. It NEVER holds the value of your GitHub tokens.");
 $("bakImpT").textContent = L("Importer", "Import");
 $("bakImport").textContent = L("📂 Importer un fichier de réglages", "📂 Import a settings file");
 $("bakImpHint").textContent = L("Les dépôts du fichier sont ajoutés ou mis à jour, ceux déjà présents sont gardés. Ensuite, recolle chaque jeton dans 🔑 Jetons (champ « Remplacer »).",
@@ -4203,10 +4399,217 @@ function showDefAt(line, ch, len) {
   cm.setSelection({line, ch}, {line, ch: ch + len});
 }
 let defBusy = false;
+// ---------- v0.17 : documentation de Godot dans 🎯 ----------
+// Fiches lues à la demande dans la doc officielle (XML du dépôt godotengine/godot), gardées sur l'appareil pour le hors ligne.
+const GDOC_BRANCH = "4.7";
+const GDOC_RAW = "https://raw.githubusercontent.com/godotengine/godot/" + GDOC_BRANCH + "/";
+const GDOC_MODULES = {"@GDScript": "gdscript", "GDScript": "gdscript", "RegEx": "regex", "RegExMatch": "regex", "GridMap": "gridmap",
+  "FastNoiseLite": "noise", "Noise": "noise", "NoiseTexture2D": "noise", "NoiseTexture3D": "noise", "ENetConnection": "enet",
+  "ENetMultiplayerPeer": "enet", "ENetPacketPeer": "enet", "WebSocketPeer": "websocket", "WebSocketMultiplayerPeer": "websocket",
+  "JSONRPC": "jsonrpc", "MultiplayerSpawner": "multiplayer", "MultiplayerSynchronizer": "multiplayer", "SceneMultiplayer": "multiplayer",
+  "SceneReplicationConfig": "multiplayer", "OggPacketSequence": "ogg", "AudioStreamOggVorbis": "vorbis", "AudioStreamMP3": "mp3",
+  "VideoStreamTheora": "theora", "GLTFDocument": "gltf", "GLTFState": "gltf", "NavigationMeshGenerator": "navigation_3d"};
+const gdocMem = Object.create(null);     // classe → fiche (ou null si introuvable)
+function gdocUrls(cls) {
+  if (/^CSG/.test(cls)) return [GDOC_RAW + "modules/csg/doc_classes/" + cls + ".xml"];
+  const m = GDOC_MODULES[cls], u = [];
+  if (m) u.push(GDOC_RAW + "modules/" + m + "/doc_classes/" + cls + ".xml");
+  u.push(GDOC_RAW + "doc/classes/" + cls + ".xml");
+  return u;
+}
+function gdocText(el) { return el ? el.textContent.replace(/^\s+|\s+$/g, "").split("\n").map(l => l.replace(/^\t+/, "")).join("\n") : ""; }
+function gdocParse(xml) {
+  const d = new DOMParser().parseFromString(xml, "text/xml"), c = d.documentElement;
+  if (!c || c.nodeName !== "class") return null;
+  const out = {name: c.getAttribute("name"), inherits: c.getAttribute("inherits") || "",
+    brief: gdocText(c.querySelector("class > brief_description")), desc: gdocText(c.querySelector("class > description")),
+    m: {}, p: {}, s: {}, k: {}};
+  const params = el => Array.prototype.map.call(el.querySelectorAll("param"), p => p.getAttribute("name") + ": " + p.getAttribute("type") + (p.hasAttribute("default") ? " = " + p.getAttribute("default") : ""));
+  const kids = (sel, fn) => Array.prototype.forEach.call(c.querySelectorAll(sel), fn);
+  kids("class > methods > method", e => {
+    const r = e.querySelector("return"), q = e.getAttribute("qualifiers") || "", n = e.getAttribute("name");
+    if (out.m[n]) return;
+    out.m[n] = {sig: (/static/.test(q) ? "static " : "") + "func " + n + "(" + params(e).join(", ") + (/vararg/.test(q) ? (params(e).length ? ", " : "") + "..." : "") + ") -> " + (r ? r.getAttribute("type") : "void"), d: gdocText(e.querySelector("description"))};
+  });
+  kids("class > members > member", e => { const n = e.getAttribute("name"); out.p[n] = {sig: "var " + n + ": " + e.getAttribute("type") + (e.hasAttribute("default") ? " = " + e.getAttribute("default") : ""), t: e.getAttribute("type"), d: gdocText(e)}; });
+  kids("class > signals > signal", e => { const n = e.getAttribute("name"); out.s[n] = {sig: "signal " + n + "(" + params(e).join(", ") + ")", d: gdocText(e.querySelector("description"))}; });
+  kids("class > constants > constant", e => { const n = e.getAttribute("name"), en = e.getAttribute("enum"); out.k[n] = {sig: (en ? "enum " + en + " › " : "const ") + n + " = " + e.getAttribute("value"), d: gdocText(e)}; });
+  return out;
+}
+function gdocSave(cls, doc) {
+  const idx = store.get("gdocIdx", []).filter(x => x !== cls); idx.push(cls);
+  while (idx.length > 30) store.del("gdoc:" + idx.shift());          // garde les 30 dernières fiches
+  if (!store.set("gdoc:" + cls, doc)) { while (idx.length > 1 && !store.set("gdoc:" + cls, doc)) store.del("gdoc:" + idx.shift()); }
+  store.set("gdocIdx", idx);
+}
+// Fiche d'une classe : mémoire → appareil → GitHub. null = pas une classe de Godot. throw "offline" si jamais téléchargée sans Internet.
+async function gdocClass(cls) {
+  if (!cls || !/^@?[A-Z]\w*$/.test(cls)) return null;
+  if (cls in gdocMem) return gdocMem[cls];
+  const saved = store.get("gdoc:" + cls, null);
+  if (saved) return (gdocMem[cls] = saved);
+  if (store.get("gdocNo", []).indexOf(cls) !== -1) return (gdocMem[cls] = null);
+  if (navigator.onLine === false) { const e = new Error("offline"); e.offline = true; throw e; }
+  for (const u of gdocUrls(cls)) {
+    let r;
+    try { r = await fetch(u, {cache: "no-store"}); } catch (e) { const er = new Error("offline"); er.offline = true; throw er; }
+    if (r.status === 404) continue;
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const doc = gdocParse(await r.text());
+    if (doc) { gdocMem[cls] = doc; gdocSave(cls, doc); return doc; }
+  }
+  const no = store.get("gdocNo", []); no.push(cls); store.set("gdocNo", no.slice(-200));
+  return (gdocMem[cls] = null);
+}
+// Cherche un nom dans une classe puis ses parents : {cls, kind, e}
+async function gdocFind(cls, name, depth) {
+  const doc = await gdocClass(cls);
+  if (!doc) return null;
+  const kinds = [["m", "method"], ["p", "property"], ["s", "signal"], ["k", "constant"]];
+  for (const [k, kind] of kinds) if (doc[k][name]) return {cls: doc.name, kind, e: doc[k][name]};
+  if (doc.inherits && (depth || 0) < 15) return gdocFind(doc.inherits, name, (depth || 0) + 1);
+  return null;
+}
+// Texte d'un script (onglet ouvert ou copie hors ligne) pour suivre « extends "res://…" » ou un class_name du projet
+function scriptTextFor(pathOrClass) {
+  const t = cur(), rid = t && t.kind === "gh" ? t.repoId : null;
+  if (/^res:\/\//.test(pathOrClass)) {
+    const p = pathOrClass.slice(6);
+    const tab = tabs.find(x => x.kind === "gh" && x.repoId === rid && x.path === p);
+    if (tab) return tab.doc.getValue();
+    const c = rid ? cacheGet(rid, p) : null; return c ? c.text : null;
+  }
+  const re = new RegExp("^\\s*class_name\\s+" + pathOrClass + "\\b", "m");
+  for (const x of tabs) if (x.kind === "gh" && x.repoId === rid && x.doc && re.test(x.doc.getValue())) return x.doc.getValue();
+  if (rid) for (const p of Object.keys(cidx(rid))) { if (!/\.gd$/.test(p)) continue; const c = cacheGet(rid, p); if (c && re.test(c.text)) return c.text; }
+  return null;
+}
+function extendsOf(text) { const m = /^\s*extends\s+("[^"]+"|'[^']+'|[A-Za-z_][\w.]*)/m.exec(text || ""); return m ? m[1].replace(/^["']|["']$/g, "") : ""; }
+// Classe Godot de base du script : suit les extends du projet jusqu'à une classe de Godot
+async function baseGodotClass(text) {
+  let ext = extendsOf(text), n = 0;
+  while (ext && n++ < 6) {
+    if (/^[A-Z]\w*$/.test(ext)) {
+      let doc = null; try { doc = await gdocClass(ext); } catch (e) { if (e.offline) throw e; }
+      if (doc) return ext;
+    }
+    const t = scriptTextFor(ext); if (!t) return null;
+    ext = extendsOf(t);
+  }
+  return ext ? null : "RefCounted";
+}
+// Type d'une variable déclarée dans le script (var x: T, var x := T.new(), param x: T, … as T)
+function declaredType(text, v) {
+  const code = typeof blankCode === "function" ? blankCode(text) : text, W = "(?:^|[^\\w.])";
+  const pats = [new RegExp(W + v + "\\s*:\\s*(?:Array\\[\\w+\\]|(@?[A-Z]\\w*))", "m"),
+    new RegExp("\\b(?:var|const)\\s+" + v + "\\s*:?=\\s*([A-Z]\\w*)\\s*\\.\\s*new\\s*\\(", "m"),
+    new RegExp("\\b(?:var|const)\\s+" + v + "\\s*:?=[^\\n]*?\\bas\\s+([A-Z]\\w*)", "m"),
+    new RegExp("\\b(?:var|const)\\s+" + v + "\\s*:?=\\s*([A-Z]\\w*)\\s*\\(", "m")];
+  for (const re of pats) { const m = re.exec(code); if (m) return m[1] || (/Array\[/.test(m[0]) ? "Array" : null); }
+  if (new RegExp("\\b(?:var|const)\\s+" + v + "\\s*:?=\\s*(?:\\[|\\{|\"|\\d)", "m").test(code)) {
+    const m = new RegExp("\\b(?:var|const)\\s+" + v + "\\s*:?=\\s*(.)", "m").exec(code);
+    return m[1] === "[" ? "Array" : m[1] === "{" ? "Dictionary" : m[1] === "\"" ? "String" : null;
+  }
+  return null;
+}
+// Ce qui précède le nom sous le curseur : "x" dans x.nom, "" sinon (null = expression trop compliquée)
+function receiverAt() {
+  const c = cm.getCursor(), line = cm.getLine(c.line) || "";
+  let a = c.ch; while (a > 0 && /\w/.test(line[a - 1])) a--;
+  let i = a - 1; while (i >= 0 && line[i] === " ") i--;
+  if (i < 0 || line[i] !== ".") return "";
+  i--; while (i >= 0 && line[i] === " ") i--;
+  let b = i + 1; while (i >= 0 && /\w/.test(line[i])) i--;
+  const w = line.slice(i + 1, b);
+  if (!w || (i >= 0 && /[)\]"'$%]/.test(line[i]))) return null;
+  if (i >= 0 && line[i] === ".") return null;          // a.b.nom : on ne suit pas les chaînes
+  return /^[A-Za-z_]\w*$/.test(w) ? w : null;
+}
+// Recherche complète : {cls, kind, e} ou {cls, kind: "class", doc} ; null = pas dans la doc de Godot
+async function gdocLookup(name, text) {
+  const rv = receiverAt();
+  if (rv === null) return null;
+  if (rv) {
+    let type = null;
+    if (rv === "self") type = await baseGodotClass(text);
+    else if (/^[A-Z]/.test(rv)) type = rv;
+    else type = declaredType(text, rv);
+    if (!type) { const base = await baseGodotClass(text); const mem = base ? await gdocFind(base, rv) : null; if (mem && mem.kind === "property") type = mem.e.t; }
+    if (!type) return {unknownReceiver: rv};
+    return await gdocFind(type, name);
+  }
+  if (/^[A-Z]/.test(name)) { const doc = await gdocClass(name); if (doc) return {cls: doc.name, kind: "class", doc}; }
+  const base = await baseGodotClass(text);
+  if (base) { const r = await gdocFind(base, name); if (r) return r; }
+  for (const g of ["@GlobalScope", "@GDScript"]) { const r = await gdocFind(g, name); if (r) return r; }
+  return null;
+}
+function gdocHtml(bb) {
+  const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  let s = bb.replace(/\[codeblocks\]([\s\S]*?)\[\/codeblocks\]/g, (_, x) => { const g = /\[gdscript[^\]]*\]([\s\S]*?)\[\/gdscript\]/.exec(x); return g ? "[codeblock]" + g[1] + "[/codeblock]" : ""; });
+  const blocks = [];
+  s = s.replace(/\[codeblock[^\]]*\]([\s\S]*?)\[\/codeblock\]/g, (_, x) => { blocks.push(x.replace(/^\n+|\s+$/g, "").replace(/ {4}/g, "\t")); return "\u0001" + (blocks.length - 1) + "\u0001"; });
+  s = esc(s)
+    .replace(/\[code\]([\s\S]*?)\[\/code\]/g, "<code>$1</code>").replace(/\[kbd\]([\s\S]*?)\[\/kbd\]/g, "<code>$1</code>")
+    .replace(/\[b\]([\s\S]*?)\[\/b\]/g, "<b>$1</b>").replace(/\[i\]([\s\S]*?)\[\/i\]/g, "<i>$1</i>")
+    .replace(/\[url=[^\]]*\]([\s\S]*?)\[\/url\]/g, "$1")
+    .replace(/\[(?:method|member|signal|constant|enum|param|annotation|constructor|operator|theme_item) ([^\]]+)\]/g, "<code>$1</code>")
+    .replace(/\[(@?[A-Z]\w*)\]/g, "<b>$1</b>").replace(/\[lb\]/g, "[").replace(/\[rb\]/g, "]").replace(/\[br\]/g, "\n")
+    .replace(/\[\/?(?:center|u|s|color[^\]]*|font[^\]]*)\]/g, "");
+  s = s.split(/\n{2,}|\n/).map(p => p.trim()).filter(Boolean).map(p => /^\u0001\d+\u0001$/.test(p) ? p : "<p>" + p + "</p>").join("");
+  return s.replace(/\u0001(\d+)\u0001/g, (_, i) => "<pre>" + esc(blocks[+i]) + "</pre>");
+}
+function gdocLink(cls, kind, name) {
+  const c = cls.toLowerCase(), base = "https://docs.godotengine.org/" + (LANG === "en" ? "en" : "fr") + "/4.x/classes/class_" + c + ".html";
+  return kind === "class" ? base : base + "#class-" + c.replace(/^@/, "") + "-" + kind + "-" + name.replace(/_/g, "-").toLowerCase();
+}
+function showGdoc(r, name) {
+  const kindTxt = {method: L("méthode", "method"), property: L("propriété", "property"), signal: L("signal", "signal"), constant: L("constante", "constant"), "class": L("classe", "class")}[r.kind];
+  const glob = r.cls === "@GlobalScope" || r.cls === "@GDScript";
+  $("docTitle").textContent = "📘 " + (r.kind === "class" ? r.cls : glob ? name : r.cls + "." + name);
+  $("docSub").textContent = kindTxt + (glob ? L(" · fonction ou constante globale de Godot", " · global Godot function or constant") : r.kind === "class" ? (r.doc.inherits ? L(" · hérite de ", " · inherits ") + r.doc.inherits : "") : L(" · classe ", " · class ") + r.cls);
+  $("docSig").textContent = r.kind === "class" ? r.doc.brief : r.e.sig;
+  $("docBody").innerHTML = gdocHtml(r.kind === "class" ? r.doc.desc : (r.e.d || L("(pas de description)", "(no description)")));
+  $("docLang").textContent = LANG === "en" ? "" : L("Description en anglais (doc officielle de Godot " + GDOC_BRANCH + "). La page en français est dans « Doc en ligne ».", "");
+  $("docLink").textContent = L("Doc en ligne (français) ↗", "Online docs ↗");
+  $("docLink").href = gdocLink(r.cls, r.kind, name);
+  $("docClose").textContent = L("Fermer", "Close");
+  $("docBody").scrollTop = 0; hideNotice();
+  $("docDlg").classList.add("open");
+}
+$("docClose").onclick = () => $("docDlg").classList.remove("open");
+$("docDlg").addEventListener("click", e => { if (e.target === $("docDlg")) $("docDlg").classList.remove("open"); });
+// Essaie d'afficher la doc de Godot ; renvoie true si c'est fait (ou si un message a été donné)
+let gdocOffline = false;
+function gdocOffNote() { return gdocOffline ? L(" (📴 hors ligne : la doc de Godot de ce script n'est pas encore sur l'appareil — ouvre-la une fois avec Internet)", " (📴 offline: Godot's docs for this script are not on the device yet — open them once with Internet)") : ""; }
+async function tryGdoc(name, quietIfMissing) {
+  gdocOffline = false;
+  refreshStatus(L("📘 Recherche de « " + name + " » dans la doc de Godot…", "📘 Looking for “" + name + "” in Godot's docs…"));
+  try {
+    const r = await gdocLookup(name, cm.getValue());
+    refreshStatus();
+    if (r && r.unknownReceiver) return false;
+    if (r) { showGdoc(r, name); return true; }
+    return false;
+  } catch (e) {
+    refreshStatus();
+    if (e.offline) {
+      gdocOffline = true;
+      if (quietIfMissing) return false;
+      notify(L("📴 La doc de Godot pour « " + name + " » n'est pas encore sur l'appareil : ouvre-la une fois avec Internet, elle restera ensuite disponible hors ligne.",
+        "📴 Godot's docs for “" + name + "” are not on the device yet: open them once with Internet, they will then stay available offline."), "warn");
+      return true;
+    }
+    return false;
+  }
+}
 async function gotoDef() {
   const t = cur(), name = nameAtCursor();
   if (!name) { notify(L("Place le curseur sur un nom (fonction, variable, signal, constante…), puis touche 🎯.", "Put the cursor on a name (function, variable, signal, constant…), then tap 🎯."), "warn"); return; }
   const pos = cm.getCursor();
+  if (defBusy) return;
+  // v0.17 : x.nom avec x d'un type de Godot → doc de Godot d'abord
+  if (receiverAt()) { defBusy = true; let done = false; try { done = await tryGdoc(name, true); } finally { defBusy = false; } if (done) return; }
   const here = defsIn(cm.getValue(), name, false);
   const best = pickLocalDef(here, pos.line);
   if (best) {
@@ -4222,12 +4625,13 @@ async function gotoDef() {
     notify(L("« " + name + " » est un mot-clé du langage GDScript : il n'a pas de définition.", "“" + name + "” is a GDScript language keyword: it has no definition."), "ok");
     return;
   }
+  if (!receiverAt()) { defBusy = true; let done = false; try { done = await tryGdoc(name, !godotNames().has(name)); } finally { defBusy = false; } if (done) return; }
   if (godotNames().has(name)) {
-    notify(L("« " + name + " » fait partie de Godot : il n'a pas de définition dans ton projet. Sa documentation est dans l'aide de Godot.", "“" + name + "” is part of Godot: it has no definition in your project. Its documentation is in Godot's help."), "ok");
+    notify(L("« " + name + " » fait partie de Godot : il n'a pas de définition dans ton projet, et sa fiche n'a pas été trouvée dans la doc de Godot.", "“" + name + "” is part of Godot: it has no definition in your project, and its page was not found in Godot's docs."), "ok");
     return;
   }
   const c = t.kind === "gh" ? repoById(t.repoId) : null;
-  if (!c || !c.owner || c.id !== activeId()) { notify(L("Aucune définition de « " + name + " » dans ce fichier." + (c && c.owner ? " Pour chercher dans les autres scripts, choisis le dépôt « " + c.repo + " » dans 📁." : ""), "No definition of “" + name + "” in this file." + (c && c.owner ? " To search the other scripts, choose repository “" + c.repo + "” in 📁." : "")), "warn"); return; }
+  if (!c || !c.owner || c.id !== activeId()) { notify(L("Aucune définition de « " + name + " » dans ce fichier." + (c && c.owner ? " Pour chercher dans les autres scripts, choisis le dépôt « " + c.repo + " » dans 📁." : ""), "No definition of “" + name + "” in this file." + (c && c.owner ? " To search the other scripts, choose repository “" + c.repo + "” in 📁." : "")) + gdocOffNote(), "warn"); return; }
   if (defBusy) return;
   defBusy = true;
   try {
@@ -4243,7 +4647,7 @@ async function gotoDef() {
     refreshStatus();
     if (!hits.length) {
       notify(L("Aucune définition de « " + name + " » trouvée dans le projet" + (missing.length ? " (📴 " + missing.length + " script(s) non disponibles hors ligne)" : "") + ".",
-        "No definition of “" + name + "” found in the project" + (missing.length ? " (📴 " + missing.length + " script(s) not available offline)" : "") + "."), "warn");
+        "No definition of “" + name + "” found in the project" + (missing.length ? " (📴 " + missing.length + " script(s) not available offline)" : "") + ".") + gdocOffNote(), "warn");
       return;
     }
     if (hits.length === 1) { await goProjHit(hits[0]); refreshStatus(L("🎯 Définition de « " + name + " » : " + hits[0].p + ", ligne " + (hits[0].line + 1), "🎯 Definition of “" + name + "”: " + hits[0].p + ", line " + (hits[0].line + 1))); return; }

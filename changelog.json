@@ -1,6 +1,24 @@
 {
   "versions": [
     {
+      "version": "0.17.0",
+      "date": "16/11/2026",
+      "notes": [
+        "📘 Doc de Godot dans 🎯 : sur un nom de Godot (méthode, propriété, signal, constante, classe), 🎯 affiche sa description, ses paramètres et son type. La classe est devinée (var x: Type, Type.new(), extends…). Fiches lues dans la doc officielle et gardées pour le hors ligne ; lien vers la doc en français.",
+        "⌨️ Mes touches (Réglages) : choisis les symboles de la barre de touches — ajoute les tiens (- « » …), retire-en, change l'ordre ou reviens aux touches d'origine. Inclus dans la 💾 sauvegarde.",
+        "Onglets : appui long sur un onglet puis glisse-le pour changer son ordre (à la souris : glisser directement). L'ordre est gardé.",
+        "⛶ Plein écran dans l'éditeur (à droite des onglets) : cache l'en-tête pour laisser toute la place au code ; le même bouton, devenu ⤡, ramène l'en-tête. Sur Android, vrai plein écran.",
+        "Filtre de 📁 : exemple « ex. joueur »."
+      ],
+      "notes_en": [
+        "📘 Godot docs in 🎯: on a Godot name (method, property, signal, constant, class), 🎯 shows its description, parameters and type. The class is guessed (var x: Type, Type.new(), extends…). Pages are read from the official docs and kept for offline use; link to the online docs.",
+        "⌨️ My keys (Settings): choose the symbols of the key bar — add your own (- « » …), remove some, change the order or go back to the original keys. Included in the 💾 backup.",
+        "Tabs: long press a tab then drag it to change its order (with a mouse: just drag). The order is kept.",
+        "⛶ Full screen in the editor (right of the tabs): hides the header to give all the room to the code; the same button, now ⤡, brings it back. On Android, real full screen.",
+        "📁 filter: “e.g. player” example."
+      ]
+    },
+    {
       "version": "0.16.3",
       "date": "15/11/2026",
       "notes": [
